@@ -27,6 +27,7 @@ $env:PYTHONPYCACHEPREFIX = Join-Path $CacheRoot "pycache"
 $env:STAADPREP_PROJECT_ROOT = $ProjectRoot
 $env:STAADPREP_CACHE_DIR = $CacheRoot
 $env:STAADPREP_LOG_DIR = $LogRoot
+$env:STAADPREP_DEMO = "1"
 $env:PYTHONPATH = Join-Path $ProjectRoot "src"
 $env:PYTHONUTF8 = "1"
 

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
@@ -19,15 +21,19 @@ from staadprep.ui.panels import (
     PropertiesPanel,
     QuickFixPanel,
     ValidationPanel,
-    ViewportPlaceholder,
 )
+from staadprep.viewer.widget import StructuralViewport
 
 
 class MainWindow(QMainWindow):
     """Approved V1 engineering shell; feature actions are enabled by later tasks."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        viewport_factory: Callable[[], QWidget] | None = None,
+    ) -> None:
         super().__init__()
+        self._viewport_factory = viewport_factory or StructuralViewport
         self.setWindowTitle("STAAD Model Preprocessor")
         self.resize(1480, 900)
         self.setMinimumSize(1080, 700)
@@ -86,7 +92,7 @@ class MainWindow(QMainWindow):
         self.project_explorer.setMaximumWidth(330)
         main_splitter.addWidget(self.project_explorer)
 
-        self.viewport_host = ViewportPlaceholder()
+        self.viewport_host = self._viewport_factory()
         main_splitter.addWidget(self.viewport_host)
 
         right_column = QWidget()

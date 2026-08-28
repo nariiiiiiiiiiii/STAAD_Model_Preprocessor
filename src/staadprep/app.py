@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QApplication
 
 from staadprep.ui.main_window import MainWindow
 from staadprep.ui.theme import APP_STYLESHEET
+from staadprep.viewer.demo import build_demo_frame
 
 
 def create_application() -> QApplication:
@@ -29,6 +30,11 @@ def create_application() -> QApplication:
 def main() -> int:
     app = create_application()
     window = MainWindow()
+
+    if os.environ.get("STAADPREP_DEMO") == "1":
+        window.viewport_host.set_model(build_demo_frame())
+        window.statusBar().showMessage("Development demo model — not validated")
+
     window.show()
 
     smoke_ms = os.environ.get("STAADPREP_SMOKE_MS")

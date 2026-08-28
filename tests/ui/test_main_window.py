@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from PySide6.QtWidgets import QApplication
 
+from staadprep.ui.panels import ViewportPlaceholder
+
 
 def test_main_window_has_approved_regions(qtbot) -> None:
     from staadprep.ui.main_window import MainWindow
 
-    window = MainWindow()
+    window = MainWindow(viewport_factory=ViewportPlaceholder)
     qtbot.addWidget(window)
 
     assert window.project_explorer.objectName() == "project_explorer"
@@ -22,7 +24,7 @@ def test_main_window_has_approved_regions(qtbot) -> None:
 def test_engineering_actions_are_disabled_until_backing_tasks_exist(qtbot) -> None:
     from staadprep.ui.main_window import MainWindow
 
-    window = MainWindow()
+    window = MainWindow(viewport_factory=ViewportPlaceholder)
     qtbot.addWidget(window)
 
     assert window.import_action.isEnabled() is False

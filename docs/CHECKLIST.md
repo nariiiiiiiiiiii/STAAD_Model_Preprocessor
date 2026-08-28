@@ -17,7 +17,7 @@
 - [x] Toolbar: Import Model / Unit Check / Repair / Normalize Axis / Renumber / Validate / Export STD.
 - [x] Project Explorer.
 - [x] 3D viewport placeholder.
-- [ ] Replace placeholder with real viewer (T04).
+- [x] Replace placeholder with real viewer (T04).
 - [x] Properties panel.
 - [x] Validation panel.
 - [x] Quick Fix panel.
