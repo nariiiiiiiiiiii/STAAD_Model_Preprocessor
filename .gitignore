@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Project-local runtime outputs
+.tmp/
+.cache/
+.logs/
+build/
+dist/
+artifacts/
+
+# Native build outputs
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Local SDK/vendor binaries may be staged in-project but are not committed by default
+vendor/**/bin/
+vendor/**/lib/

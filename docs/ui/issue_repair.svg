@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+<rect width="1200" height="720" fill="#10151b"/>
+<rect x="60" y="50" width="1080" height="620" rx="10" fill="#171d24" stroke="#394452"/>
+<text x="92" y="92" fill="#eef3f8" font-family="Segoe UI,Arial" font-size="23" font-weight="700">Issue Repair — Near Nodes</text>
+<text x="92" y="120" fill="#9aa7b5" font-family="Segoe UI,Arial" font-size="13">Inspect before mutating the analytical graph. All changes are logged and undoable.</text>
+<rect x="92" y="150" width="620" height="390" rx="7" fill="#0e1319" stroke="#323b47"/>
+<text x="112" y="178" fill="#cfd8e3" font-family="Segoe UI,Arial" font-size="13" font-weight="700">3D INSPECTION</text>
+<g stroke="#d8e0e8" stroke-width="3"><line x1="170" y1="390" x2="360" y2="300"/><line x1="363" y1="298" x2="555" y2="238"/></g>
+<circle cx="360" cy="300" r="8" fill="#ff666b"/><circle cx="363" cy="298" r="8" fill="#f5b14c"/>
+<line x1="360" y1="300" x2="363" y2="298" stroke="#f5b14c" stroke-width="4" stroke-dasharray="3 3"/>
+<rect x="438" y="350" width="220" height="82" rx="6" fill="#3b301d" stroke="#896924"/><text x="458" y="380" fill="#f7c45f" font-family="Segoe UI,Arial" font-size="14" font-weight="700">Gap = 0.42 mm</text><text x="458" y="404" fill="#d9c797" font-family="Segoe UI,Arial" font-size="12">Node 128 ↔ Node 247</text>
+<g fill="#aeb9c5" font-family="Segoe UI,Arial" font-size="12"><text x="112" y="508">Tip: select either node to inspect connected members before repair.</text></g>
+<rect x="738" y="150" width="370" height="390" rx="7" fill="#202731"/>
+<text x="765" y="184" fill="#dfe7ef" font-family="Segoe UI,Arial" font-size="15" font-weight="700">ISSUE DETAILS</text>
+<g font-family="Segoe UI,Arial" font-size="13"><text x="765" y="220" fill="#aeb9c5">Severity</text><text x="980" y="220" fill="#f5b14c">WARNING</text><text x="765" y="250" fill="#aeb9c5">Type</text><text x="980" y="250" fill="#eef3f8">Near Nodes</text><text x="765" y="280" fill="#aeb9c5">Node A</text><text x="980" y="280" fill="#eef3f8">128</text><text x="765" y="310" fill="#aeb9c5">Node B</text><text x="980" y="310" fill="#eef3f8">247</text><text x="765" y="340" fill="#aeb9c5">Distance</text><text x="980" y="340" fill="#f5b14c">0.42 mm</text><text x="765" y="370" fill="#aeb9c5">Connected members</text><text x="980" y="370" fill="#eef3f8">A: 3 / B: 2</text></g>
+<line x1="762" y1="397" x2="1082" y2="397" stroke="#394452"/>
+<text x="765" y="428" fill="#dfe7ef" font-family="Segoe UI,Arial" font-size="14" font-weight="700">RECOMMENDED ACTION</text>
+<text x="765" y="454" fill="#aeb9c5" font-family="Segoe UI,Arial" font-size="12">Merge Node 247 into Node 128 after preview.</text>
+<rect x="765" y="476" width="145" height="42" rx="6" fill="#225f9e"/><text x="801" y="502" fill="#fff" font-family="Segoe UI,Arial" font-size="13">Merge Nodes</text><rect x="922" y="476" width="78" height="42" rx="6" fill="#2b3440"/><text x="946" y="502" fill="#dce5ef" font-family="Segoe UI,Arial" font-size="13">Ignore</text><rect x="1012" y="476" width="70" height="42" rx="6" fill="#2b3440"/><text x="1033" y="502" fill="#dce5ef" font-family="Segoe UI,Arial" font-size="13">Close</text>
+<rect x="92" y="568" width="1016" height="70" rx="7" fill="#1d242d"/><text x="116" y="596" fill="#9aa7b5" font-family="Segoe UI,Arial" font-size="12">PREVIEW IMPACT</text><text x="116" y="620" fill="#dfe7ef" font-family="Segoe UI,Arial" font-size="13">Nodes 426 → 425   |   Members unchanged   |   Structures 2 → 1 (predicted)   |   Audit record will be created</text>
+</svg>

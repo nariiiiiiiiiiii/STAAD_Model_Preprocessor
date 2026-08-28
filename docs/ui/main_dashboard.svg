@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#11151b"/>
+  <rect x="0" y="0" width="1600" height="46" fill="#1b212a"/>
+  <text x="24" y="30" fill="#e7edf5" font-family="Segoe UI,Arial" font-size="20" font-weight="700">STAAD Model Preprocessor — Warehouse_Frame_A</text>
+  <rect x="0" y="46" width="1600" height="76" fill="#202731"/>
+  <g font-family="Segoe UI,Arial" font-size="14" fill="#dbe4ee">
+    <g transform="translate(20,62)"><rect width="132" height="44" rx="6" fill="#2b3440"/><text x="18" y="27">Import Model</text></g>
+    <g transform="translate(164,62)"><rect width="112" height="44" rx="6" fill="#2b3440"/><text x="18" y="27">Unit Check</text></g>
+    <g transform="translate(288,62)"><rect width="92" height="44" rx="6" fill="#2b3440"/><text x="21" y="27">Repair</text></g>
+    <g transform="translate(392,62)"><rect width="142" height="44" rx="6" fill="#2b3440"/><text x="15" y="27">Normalize Axis</text></g>
+    <g transform="translate(546,62)"><rect width="104" height="44" rx="6" fill="#2b3440"/><text x="17" y="27">Renumber</text></g>
+    <g transform="translate(662,62)"><rect width="102" height="44" rx="6" fill="#2b3440"/><text x="20" y="27">Validate</text></g>
+    <g transform="translate(776,62)"><rect width="116" height="44" rx="6" fill="#225f9e"/><text x="17" y="27" fill="#fff">Export STD</text></g>
+  </g>
+
+  <rect x="0" y="122" width="270" height="585" fill="#171c23" stroke="#323b47"/>
+  <text x="18" y="152" fill="#cfd8e3" font-family="Segoe UI,Arial" font-size="15" font-weight="700">PROJECT EXPLORER</text>
+  <g font-family="Segoe UI,Arial" font-size="14" fill="#bfc9d4">
+    <text x="20" y="184">Files</text><text x="38" y="208">▸ Warehouse_Frame_A.skp</text>
+    <text x="20" y="248">Model Tree</text><text x="38" y="274">• Nodes (426)</text><text x="38" y="300">— Members (618)</text><text x="38" y="326">△ Supports (0)</text>
+    <text x="20" y="366">Structures</text><text x="38" y="392">▣ Structure 01 (Main)</text><text x="38" y="418" fill="#f5b14c">▣ Structure 02 (Detached)</text>
+  </g>
+  <rect x="16" y="474" width="238" height="190" rx="6" fill="#202731"/>
+  <text x="30" y="502" fill="#cfd8e3" font-family="Segoe UI,Arial" font-size="14" font-weight="700">MODEL SUMMARY</text>
+  <g font-family="Segoe UI,Arial" font-size="14" fill="#aeb9c5"><text x="30" y="534">Nodes</text><text x="200" y="534" fill="#eef3f8">426</text><text x="30" y="560">Members</text><text x="200" y="560" fill="#eef3f8">618</text><text x="30" y="586">Structures</text><text x="200" y="586" fill="#f5b14c">2</text><text x="30" y="612">Unit</text><text x="200" y="612" fill="#eef3f8">m</text><text x="30" y="638">Axis</text><text x="200" y="638" fill="#eef3f8">Y-Up</text></g>
+
+  <rect x="270" y="122" width="980" height="585" fill="#0e1319" stroke="#323b47"/>
+  <text x="292" y="151" fill="#dce5ef" font-family="Segoe UI,Arial" font-size="14" font-weight="700">3D VIEW</text>
+  <g stroke="#32404d" stroke-width="1" opacity="0.7">
+    <path d="M340 620 L1110 620 M370 575 L1140 575 M400 530 L1170 530 M430 485 L1200 485"/>
+    <path d="M420 670 L610 180 M560 670 L720 180 M700 670 L830 180 M840 670 L940 180 M980 670 L1050 180"/>
+  </g>
+  <g stroke="#d7dfe8" stroke-width="3" fill="none">
+    <path d="M430 590 L430 320 L650 300 L650 585 M650 300 L870 330 L870 590 M870 330 L1080 300 L1080 590"/>
+    <path d="M430 455 L650 440 L870 458 L1080 445 M430 590 L650 585 L870 590 L1080 590"/>
+    <path d="M430 320 L540 250 L650 300 M650 300 L760 245 L870 330 M870 330 L975 245 L1080 300"/>
+    <path d="M540 250 L760 245 L975 245"/>
+  </g>
+  <g fill="#65d596"><circle cx="430" cy="590" r="5"/><circle cx="430" cy="455" r="5"/><circle cx="430" cy="320" r="5"/><circle cx="650" cy="585" r="5"/><circle cx="650" cy="440" r="5"/><circle cx="650" cy="300" r="5"/><circle cx="870" cy="590" r="5"/><circle cx="870" cy="458" r="5"/><circle cx="870" cy="330" r="5"/><circle cx="1080" cy="590" r="5"/><circle cx="1080" cy="445" r="5"/><circle cx="1080" cy="300" r="5"/></g>
+  <circle cx="378" cy="290" r="8" fill="#ff5e64"/><path d="M382 286 L455 245" stroke="#ff5e64" stroke-width="2"/><rect x="455" y="220" width="170" height="48" rx="5" fill="#5a2025"/><text x="468" y="240" fill="#fff" font-family="Segoe UI,Arial" font-size="13">Orphan Node</text><text x="468" y="258" fill="#ffc7c9" font-family="Segoe UI,Arial" font-size="12">ID: 128</text>
+  <path d="M735 585 L739 585" stroke="#f6b94e" stroke-width="8"/><path d="M738 580 L775 535" stroke="#f6b94e" stroke-width="2"/><rect x="775" y="505" width="196" height="52" rx="5" fill="#59431d"/><text x="787" y="526" fill="#fff" font-family="Segoe UI,Arial" font-size="13">Very Short Member</text><text x="787" y="545" fill="#ffe0a5" font-family="Segoe UI,Arial" font-size="12">M359 · L=0.015 m</text>
+  <g stroke="#f5a742" stroke-width="2.5" fill="none" stroke-dasharray="8 6"><rect x="1110" y="475" width="105" height="110" rx="8"/><path d="M1125 570 L1125 505 L1195 500 L1195 570 M1125 505 L1160 480 L1195 500"/></g><text x="1104" y="610" fill="#f5b14c" font-family="Segoe UI,Arial" font-size="12">Detached Structure 02</text>
+  <g font-family="Segoe UI,Arial" font-size="13" font-weight="700"><line x1="318" y1="665" x2="360" y2="665" stroke="#ef6060" stroke-width="3"/><text x="366" y="670" fill="#ef6060">X</text><line x1="318" y1="665" x2="318" y2="622" stroke="#60d38b" stroke-width="3"/><text x="310" y="616" fill="#60d38b">Y</text><line x1="318" y1="665" x2="290" y2="685" stroke="#55a6ff" stroke-width="3"/><text x="276" y="698" fill="#55a6ff">Z</text></g>
+
+  <rect x="1250" y="122" width="350" height="585" fill="#171c23" stroke="#323b47"/>
+  <text x="1270" y="151" fill="#dce5ef" font-family="Segoe UI,Arial" font-size="14" font-weight="700">PROPERTIES</text>
+  <g font-family="Segoe UI,Arial" font-size="13" fill="#aeb9c5"><text x="1270" y="183">Type</text><text x="1480" y="183" fill="#eef3f8">Member</text><text x="1270" y="208">ID</text><text x="1480" y="208" fill="#eef3f8">359</text><text x="1270" y="233">Start / End</text><text x="1480" y="233" fill="#eef3f8">215 → 216</text><text x="1270" y="258">Length</text><text x="1480" y="258" fill="#f5b14c">0.015 m</text><text x="1270" y="283">Local Axis</text><text x="1450" y="283" fill="#f5b14c">Needs Normalize</text></g>
+  <line x1="1268" y1="306" x2="1580" y2="306" stroke="#323b47"/>
+  <text x="1270" y="336" fill="#dce5ef" font-family="Segoe UI,Arial" font-size="14" font-weight="700">VALIDATION</text>
+  <g font-family="Segoe UI,Arial" font-size="13"><text x="1270" y="368" fill="#70d79a">✓ Units: mm → m</text><text x="1515" y="368" fill="#70d79a">PASS</text><text x="1270" y="394" fill="#70d79a">✓ Reference length 6.000 m</text><text x="1515" y="394" fill="#70d79a">PASS</text><text x="1270" y="420" fill="#ff666b">✕ Orphan nodes</text><text x="1515" y="420" fill="#ff666b">1 ERROR</text><text x="1270" y="446" fill="#f5b14c">⚠ Structures</text><text x="1515" y="446" fill="#f5b14c">2</text><text x="1270" y="472" fill="#f5b14c">⚠ Crossing w/o node</text><text x="1515" y="472" fill="#f5b14c">1</text></g>
+  <line x1="1268" y1="494" x2="1580" y2="494" stroke="#323b47"/>
+  <text x="1270" y="524" fill="#dce5ef" font-family="Segoe UI,Arial" font-size="14" font-weight="700">QUICK FIX</text>
+  <g font-family="Segoe UI,Arial" font-size="12" fill="#dce5ef"><rect x="1270" y="544" width="142" height="42" rx="5" fill="#2b3440"/><text x="1300" y="570">Merge Nodes</text><rect x="1422" y="544" width="158" height="42" rx="5" fill="#2b3440"/><text x="1442" y="570">Split Intersection</text><rect x="1270" y="596" width="142" height="42" rx="5" fill="#2b3440"/><text x="1290" y="622">Reverse Member</text><rect x="1422" y="596" width="158" height="42" rx="5" fill="#4e292c"/><text x="1452" y="622">Delete Orphan</text><rect x="1270" y="648" width="310" height="42" rx="5" fill="#225f9e"/><text x="1378" y="674" fill="#fff">Auto Repair</text></g>
+
+  <rect x="0" y="707" width="1600" height="155" fill="#161b22" stroke="#323b47"/>
+  <text x="18" y="736" fill="#dce5ef" font-family="Segoe UI,Arial" font-size="14" font-weight="700">ISSUE CONSOLE</text>
+  <g font-family="Segoe UI,Arial" font-size="12"><text x="20" y="764" fill="#8f9baa">TYPE</text><text x="150" y="764" fill="#8f9baa">ID</text><text x="290" y="764" fill="#8f9baa">DESCRIPTION</text><text x="1040" y="764" fill="#8f9baa">ACTION</text><text x="20" y="793" fill="#ff666b">ERROR</text><text x="150" y="793" fill="#d9e2ec">Node 128</text><text x="290" y="793" fill="#d9e2ec">Orphan node not connected to any member</text><text x="1040" y="793" fill="#a9cfff">Delete / Connect</text><text x="20" y="820" fill="#f5b14c">WARNING</text><text x="150" y="820" fill="#d9e2ec">Structure 02</text><text x="290" y="820" fill="#d9e2ec">Detached structure found</text><text x="1040" y="820" fill="#a9cfff">Inspect</text></g>
+  <rect x="1240" y="738" width="330" height="88" rx="7" fill="#3c321b" stroke="#a77d2c"/><text x="1270" y="773" fill="#f7c45f" font-family="Segoe UI,Arial" font-size="17" font-weight="700">⚠ MODEL STATUS: NOT READY</text><rect x="1310" y="790" width="190" height="28" rx="5" fill="#225f9e"/><text x="1351" y="809" fill="#fff" font-family="Segoe UI,Arial" font-size="12">Run Auto Repair</text>
+  <rect x="0" y="862" width="1600" height="38" fill="#202731"/><text x="20" y="886" fill="#aeb9c5" font-family="Segoe UI,Arial" font-size="12">Ready</text><text x="1120" y="886" fill="#aeb9c5" font-family="Segoe UI,Arial" font-size="12">Unit: m  |  Axis: Y-Up  |  Nodes: 426  |  Members: 618  |  Structures: 2</text>
+</svg>
