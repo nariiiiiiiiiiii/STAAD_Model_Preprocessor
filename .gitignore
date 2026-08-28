@@ -24,6 +24,7 @@ artifacts/
 
 # OS
 Thumbs.db
+desktop.ini
 .DS_Store
 
 # Local SDK/vendor binaries may be staged in-project but are not committed by default

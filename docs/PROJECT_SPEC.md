@@ -1,6 +1,6 @@
 # PROJECT SPEC — STAAD Model Preprocessor
 
-Status: Approved design baseline, awaiting written-spec review before implementation.
+Status: APPROVED FOR IMPLEMENTATION — task-gated execution; STRICT approved for HR-1 through HR-4.
 Date: 2026-08-28
 
 ## 1. Problem statement

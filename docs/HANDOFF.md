@@ -1,148 +1,124 @@
 # HANDOFF — STAAD Model Preprocessor
 
 Date: 2026-08-28
-Status: Design package created; implementation not started yet.
+Status: **SPEC APPROVED + STRICT APPROVED; implementation plan ready; T01 is next.**
 
 ## Canonical project root
 
 `D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`
 
-HARD RULE: all project-created files, temp, logs, cache, build output, artifacts, test output, and staged dependencies must remain inside this root.
+HARD RULE: all project-created source files, temp, logs, cache, build output, artifacts, test output, generated reports, and staged dependencies must remain inside this root.
 
 ## User goal
 
-Eliminate the repetitive cleanup step between SketchUp and structural design in STAAD.Pro.
-
-The app should prepare a clean analytical geometry model before STAAD.Pro so the user can begin section/load/design work with minimal manual geometry cleanup.
-
-## Approved product direction
-
-Desktop application, not a web app.
+Eliminate repetitive structural-geometry cleanup between SketchUp and STAAD.Pro so design work can begin with little or no manual model cleanup in STAAD.Pro.
 
 Primary workflow:
 
-`SketchUp SKP / DXF -> Preprocessor -> repair/normalize/renumber/validate -> STAAD .STD -> STAAD.Pro`
+`SketchUp SKP / DXF -> Preprocessor -> inspect/repair/normalize/renumber/validate -> STAAD .STD -> STAAD.Pro`
 
 Primary input target: `.skp` directly.
 Fallback input: `.dxf`.
-
 Primary output: `.std`.
 
-Do NOT make V1 a structural solver or mini STAAD.
+V1 is a geometry/topology preprocessor, not a solver or mini STAAD.
 
-## Approved technology direction
+## Approved technology
 
-- Python 3.12+ primary language.
+- Python 3.12+ primary application language.
 - PySide6 desktop UI.
-- PyVista/VTK 3D viewer.
-- NumPy/SciPy as needed.
+- PyVista/VTK 3D viewport.
+- NumPy/SciPy for indexed numerical/spatial work.
 - ezdxf for DXF.
-- C++ SketchUp C API helper for native SKP reading behind an adapter boundary.
-- Nuitka preferred later for Windows distribution after compatibility is proven.
+- C++ + official SketchUp C API helper behind an isolated SKP bridge.
+- Nuitka preferred for Windows packaging after runtime compatibility is proven.
 
 ## Approved UI baseline
 
-Dark professional engineering application.
+Do not redesign V1 unless explicitly requested.
 
-Layout:
-- top toolbar/ribbon,
-- left Project Explorer,
-- central 3D viewport,
-- right Properties + Validation + Quick Fix,
-- bottom Issue Console,
-- status/model summary.
-
-Reference mockups:
+References:
+- `docs/UI_BASELINE.md`
 - `docs/ui/main_dashboard.svg`
 - `docs/ui/unit_check.svg`
 - `docs/ui/issue_repair.svg`
 
-Do not redesign V1 unless explicitly requested.
+Layout:
+- toolbar/ribbon,
+- Project Explorer,
+- central 3D viewport,
+- Properties + Validation + Quick Fix,
+- Issue Console,
+- persistent model summary/status.
 
-## V1 focus
+## Approval state
 
-- import SKP/DXF,
-- unit/scale/reference-length verification,
-- model extents/measurements,
-- canonical node/member graph,
-- duplicate/near/orphan detection,
-- short/zero/duplicate members,
-- gaps and crossing-without-node,
-- connected-component/structure count,
-- inspect/isolate/highlight issues,
-- repair inside app,
-- normalize member incidence/local-X direction,
-- deterministic renumber,
-- final validation,
-- export `.STD`,
-- audit/repair history,
-- Windows executable.
+User explicitly approved on 2026-08-28:
+1. current Project Spec,
+2. STRICT / Full TDD for HR-1 through HR-4.
 
-## Deferred patches
+Approved high-risk areas:
+- HR-1 unit/scale/coordinate/axis transformations,
+- HR-2 topology/connectivity detection and structural graph repair,
+- HR-3 STAAD `.STD` exporter semantics,
+- HR-4 deterministic node/member numbering and mapping integrity.
 
-After V1 is in real use, possible patches include:
-- member property helpers,
-- support assignment,
-- loads,
-- load combinations,
-- OpenSTAAD integration,
-- IFC/BIM,
-- advanced SketchUp component/solid -> analytical centerline extraction.
-
-## Development strategy
-
-Optimize for fastest path to real use.
-
-Use vertical slices and stable interfaces.
-
-Recommended order:
-1. foundation/UI shell,
-2. canonical model,
-3. DXF vertical slice for fast core proof,
-4. validator/issue model,
-5. repair command framework,
-6. viewer integration,
-7. normalize/renumber,
-8. `.STD` exporter,
-9. SKP native adapter,
-10. packaging/real-project acceptance.
-
-Although DXF may be implemented first internally, SKP remains the primary V1 user input target.
-
-## Risk / approval gate
-
-Per Serena development policy, these are HIGH-RISK and must NOT be implemented before explicit user approval for STRICT / Full TDD:
-
-1. unit/coordinate/axis transformation semantics,
-2. topology/connectivity mutation and automatic repair,
-3. STAAD `.STD` exporter semantics,
-4. deterministic renumber with reference rewriting.
-
-Reason: defects can create an analytical model that looks clean visually but is structurally/connectively wrong.
+Do not request this approval again for the same scoped V1 behavior. If a new high-risk area outside HR-1..HR-4 appears, request a new explicit approval before implementing it.
 
 See `docs/RISK_GATES.md`.
 
-Low-risk UI/foundation work can proceed after the written-spec review gate.
+## Execution mode
+
+The user requires **one Task at a time**.
+
+Detailed plan:
+`docs/superpowers/plans/2026-08-28-staad-model-preprocessor-v1.md`
+
+Operational board:
+`docs/TASK_BOARD.md`
+
+Mandatory end-of-Task sequence:
+1. targeted verification,
+2. update TASK_BOARD/CHECKLIST/HANDOFF,
+3. Git commit,
+4. report to user,
+5. STOP and wait for explicit instruction to run the next Task.
 
 ## Current state
 
-Created:
+Completed design/setup package:
 - isolated project directory,
 - project-local Git repository,
-- mandatory file-boundary rules,
-- product specification,
-- architecture,
-- workflow,
-- checklists,
-- risk gates,
-- UI baseline,
-- three SVG UI mockups.
+- project-boundary rules,
+- PROJECT_SPEC,
+- ARCHITECTURE,
+- WORKFLOW,
+- CHECKLIST,
+- RISK_GATES,
+- UI baseline + SVG mockups,
+- detailed T01–T18 implementation plan,
+- operational TASK_BOARD.
 
-No production code has been implemented yet.
+No production application code has been implemented yet.
 
-## Next action
+## Next Task
 
-1. User reviews/approves written spec package.
-2. Create detailed implementation plan.
-3. Begin foundation + UI shell / safe vertical-slice work.
-4. Separately obtain explicit STRICT approval before high-risk engineering semantics are implemented.
+**T01 — Python Bootstrap + Project-Local Path Guard**
+
+Expected deliverable:
+- `pyproject.toml`,
+- Python `src/staadprep` bootstrap,
+- project-local temp/cache/log/build path service,
+- path-escape tests,
+- project-local development launcher.
+
+Risk: STANDARD.
+
+Do not start T02 during the same execution.
+
+## Resume instruction
+
+When the user says `เริ่ม Task 1` / `Run T01`, execute only T01 from:
+`docs/superpowers/plans/2026-08-28-staad-model-preprocessor-v1.md`
+
+After T01 verification + commit, stop.

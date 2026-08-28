@@ -30,7 +30,7 @@ Verification:
 - affected-component launch/build,
 - focused regression checks.
 
-## STRICT / Full TDD — mandatory approval gate
+## STRICT / Full TDD
 
 The following are high-risk because a defect may produce an apparently clean model whose analytical geometry is actually wrong.
 
@@ -47,7 +47,7 @@ Failure impact:
 - wrong elevations,
 - unsafe downstream engineering assumptions.
 
-Proposed verification:
+Verification:
 - RED/GREEN tests,
 - hand-calculated coordinate/length fixtures,
 - inverse-transform checks,
@@ -71,7 +71,7 @@ Failure impact:
 - structure that looks visually connected but is analytically wrong,
 - incorrect load path after import into STAAD.Pro.
 
-Proposed verification:
+Verification:
 - RED/GREEN tests for each graph mutation,
 - independent graph invariants before/after,
 - golden dirty models,
@@ -92,7 +92,7 @@ Failure impact:
 - wrong analytical geometry,
 - member/node references pointing to the wrong entities.
 
-Proposed verification:
+Verification:
 - RED/GREEN exporter tests,
 - byte/text golden expected `.STD` files,
 - independent model->text->parsed-fixture consistency checks,
@@ -102,15 +102,15 @@ Proposed verification:
 Scope:
 - node renumber,
 - member renumber,
-- atomic update of all references,
-- old->new mapping.
+- atomic reference integrity,
+- old->new / UUID->STAAD-number mapping.
 
 Failure impact:
 - stale member incidences,
 - wrong references,
 - exported geometry corruption.
 
-Proposed verification:
+Verification:
 - permutation fixtures,
 - referential-integrity invariants,
 - stable/deterministic repeated-run test,
@@ -118,12 +118,12 @@ Proposed verification:
 
 ## Approval state
 
-Current state: NOT YET APPROVED FOR HIGH-RISK IMPLEMENTATION.
+Current state: **APPROVED**.
 
-Low-risk/standard foundation and UI shell may proceed after written-spec review.
+Approval received from the user on **2026-08-28** for:
+- the current `PROJECT_SPEC`, and
+- STRICT / Full TDD implementation of HR-1 through HR-4 defined in this document.
 
-Before implementing HR-1 through HR-4, explicitly ask the user:
+This approval applies to the scoped V1 behaviors above. If implementation discovers a new high-risk behavior outside HR-1 through HR-4, stop and request a new explicit approval before implementing that new risk area.
 
-`Proceed with STRICT / Full TDD for these high-risk components?`
-
-Do not implement or test their real engineering semantics until approval is received.
+Execution remains task-gated: complete one Task, verify, commit, update HANDOFF, then stop for user review before starting the next Task.

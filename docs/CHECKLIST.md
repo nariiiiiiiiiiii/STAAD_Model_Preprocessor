@@ -6,7 +6,7 @@
 - [x] Add mandatory project-boundary rules.
 - [x] Add product specification.
 - [x] Add architecture/workflow docs.
-- [ ] Add implementation plan after written-spec approval.
+- [x] Add implementation plan after written-spec approval.
 - [ ] Create Python package skeleton.
 - [ ] Add project-local path service.
 - [ ] Add development environment configuration.
