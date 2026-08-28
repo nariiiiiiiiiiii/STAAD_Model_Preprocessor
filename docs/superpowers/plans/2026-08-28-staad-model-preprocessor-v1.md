@@ -525,15 +525,15 @@ Commit: `feat: add reversible structural repair commands`
 - Produces: selecting an issue highlights/zooms its entity keys
 - Produces: action buttons dispatch only predefined `RepairCommand` objects
 
-- [ ] **Step 1: UI test binds Issue rows to exact Issue IDs**
+- [x] **Step 1: UI test binds Issue rows to exact Issue IDs**
 
-- [ ] **Step 2: Implement issue table/filter/severity counts and structure isolate action**
+- [x] **Step 2: Implement issue table/filter/severity counts and structure isolate action**
 
-- [ ] **Step 3: Implement Quick Fix actions with confirmation for destructive delete operations**
+- [x] **Step 3: Implement Quick Fix actions with confirmation for destructive delete operations**
 
-- [ ] **Step 4: Add Undo/Redo actions and re-render/revalidate after command completion**
+- [x] **Step 4: Add Undo/Redo actions and re-render/revalidate after command completion**
 
-- [ ] **Step 5: Smoke check combined dirty fixture interactively and commit**
+- [x] **Step 5: Smoke check combined dirty fixture interactively and commit**
 
 Commit: `feat: inspect and repair model issues in desktop UI`
 

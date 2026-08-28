@@ -28,6 +28,7 @@ def main() -> int:
     first_member = viewport.select_member_by_cell(0)
     first_node = viewport.scene.point_keys[0]
     viewport.highlight_nodes((first_node,))
+    viewport.focus_entities((first_node,), (first_member,))
     app.processEvents()
 
     if viewport.selection.selected_members != (first_member,):
@@ -37,12 +38,26 @@ def main() -> int:
     if emitted != [first_member]:
         raise RuntimeError("Member selection signal did not emit the selected UUID")
 
+    viewport.isolate_entities((first_node, first_member))
+    app.processEvents()
+    if viewport._node_actor is None or viewport._member_actor is None:
+        raise RuntimeError("Base actors are unavailable for isolation smoke check")
+    if viewport._node_actor.GetVisibility() != 0 or viewport._member_actor.GetVisibility() != 0:
+        raise RuntimeError("Isolation did not hide the base model actors")
+
+    viewport.clear_isolation()
+    app.processEvents()
+    if viewport._node_actor.GetVisibility() != 1 or viewport._member_actor.GetVisibility() != 1:
+        raise RuntimeError("Clearing isolation did not restore base model actors")
+
     viewport.close()
     app.processEvents()
     print(
         "VIEWPORT_SMOKE_PASS",
         f"nodes={len(viewport.scene.point_keys)}",
         f"members={len(viewport.scene.member_keys)}",
+        "focus=pass",
+        "isolate=pass",
     )
     return 0
 

@@ -1,5 +1,3 @@
-"""Qt/PyVista structural viewport for canonical analytical models."""
-
 from __future__ import annotations
 
 import os
@@ -12,6 +10,7 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pyvistaqt import QtInteractor
 
+from staadprep.model.geometry import Vec3
 from staadprep.model.project import ProjectModel
 from staadprep.viewer.scene import SceneData
 from staadprep.viewer.selection import SelectionState
@@ -56,8 +55,12 @@ class StructuralViewport(QWidget):
     def set_model(self, model: ProjectModel) -> None:
         self.scene = SceneData.from_model(model)
         self.selection.clear()
+        if not self._off_screen:
+            self.plotter.disable_picking()
         self.plotter.clear()
         self._configure_scene()
+        self._member_actor = None
+        self._node_actor = None
         self._member_highlight_actor = None
         self._node_highlight_actor = None
 
@@ -181,6 +184,79 @@ class StructuralViewport(QWidget):
             pickable=False,
         )
         self.plotter.render()
+
+    def focus_entities(
+        self,
+        node_keys: Iterable[UUID],
+        member_keys: Iterable[UUID],
+        location: Vec3 | None = None,
+    ) -> None:
+        """Fit the camera around selected issue entities without changing the model."""
+        if self.scene is None:
+            return
+        coordinates: list[np.ndarray] = []
+        for key in node_keys:
+            index = self.scene.point_index_by_key.get(key)
+            if index is not None:
+                coordinates.append(self.scene.points[index])
+
+        member_set = set(member_keys)
+        for index, key in enumerate(self.scene.member_keys):
+            if key not in member_set:
+                continue
+            row = self.scene.lines[index]
+            coordinates.append(self.scene.points[int(row[1])])
+            coordinates.append(self.scene.points[int(row[2])])
+
+        if location is not None:
+            coordinates.append(np.asarray(location.as_tuple(), dtype=float))
+        if not coordinates:
+            return
+
+        points = np.asarray(coordinates, dtype=float)
+        minimum = points.min(axis=0)
+        maximum = points.max(axis=0)
+        span = maximum - minimum
+        reference = max(float(span.max()), 0.1)
+        padding = reference * 0.2
+        bounds = (
+            float(minimum[0] - padding),
+            float(maximum[0] + padding),
+            float(minimum[1] - padding),
+            float(maximum[1] + padding),
+            float(minimum[2] - padding),
+            float(maximum[2] + padding),
+        )
+        self.plotter.reset_camera(bounds=bounds)
+        self.plotter.render()
+
+    def isolate_entities(self, keys: Iterable[UUID]) -> None:
+        """Temporarily hide the base model and display only the selected issue entities."""
+        if self.scene is None:
+            return
+        key_set = set(keys)
+        node_keys = tuple(key for key in self.scene.point_keys if key in key_set)
+        member_keys = tuple(key for key in self.scene.member_keys if key in key_set)
+        self.highlight_nodes(node_keys)
+        self.highlight_members(member_keys)
+        self._set_actor_visibility(self._node_actor, False)
+        self._set_actor_visibility(self._member_actor, False)
+        self.focus_entities(node_keys, member_keys)
+        self.plotter.render()
+
+    def clear_isolation(self) -> None:
+        self._set_actor_visibility(self._node_actor, True)
+        self._set_actor_visibility(self._member_actor, True)
+        self.highlight_nodes(())
+        self.highlight_members(())
+        if self.scene is not None and self.scene.points.size:
+            self.plotter.reset_camera()
+        self.plotter.render()
+
+    @staticmethod
+    def _set_actor_visibility(actor, visible: bool) -> None:
+        if actor is not None:
+            actor.SetVisibility(bool(visible))
 
     def _remove_actor(self, actor) -> None:
         if actor is not None:

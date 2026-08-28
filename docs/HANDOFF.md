@@ -1,7 +1,7 @@
 # HANDOFF — STAAD Model Preprocessor
 
 Date: 2026-08-28
-Status: **T09 complete on `task/09-repair`; T10 is next and not started.**
+Status: **T10 complete on `task/10-issue-ui`; awaiting user approval before T11.**
 
 ## Canonical project root
 
@@ -15,117 +15,114 @@ HARD RULE: every project-created source file, worktree, temp, cache, log, build 
 
 V1 prepares clean analytical geometry before STAAD.Pro. It is not a structural solver or mini STAAD.
 
-## Completed tasks
+## Completed task commits before T10
 
-- T01 `4a7551b` — project-local bootstrap/path guard.
+- T01 `4a7551b` — project-local Python/runtime bootstrap and path guard.
 - T02 `8e4c2f8` — approved desktop UI shell.
 - T03 `f97bffe` — canonical Node/Member/Project model + serialization.
-- T04 `a38fc97` — PyVista/VTK 3D viewport + selection/highlight.
-- T05 `9fcf6be` — raw DXF import/preview.
-- T06 `8bf1b25` — STRICT unit/scale/axis engine.
-- T07 `ce24224` — STRICT topology + connected structures.
-- T08 `adde44b` — STRICT validation detectors.
+- T04 `a38fc97` — real PyVista/VTK viewport + selection/highlight.
+- T05 `9fcf6be` — raw DXF import + preview.
+- T06 `8bf1b25` — STRICT unit/scale/axis transform engine.
+- T07 `ce24224` — STRICT canonical topology + connected structures.
+- T08 `adde44b` — STRICT read-only geometry/topology validators.
+- T09 `7bfeb94` — STRICT reversible repair commands + undo/redo + audit.
 
-## T09 — Repair Commands + Undo/Redo + Audit
+## T10 — Issue Console + Quick-Fix UI
 
 Branch/worktree:
-- branch: `task/09-repair`
-- worktree: `.worktrees/task-09-repair`
-- base commit: `adde44b`
+- branch: `task/10-issue-ui`
+- worktree: `.worktrees/task-10-issue-ui`
+- base commit: `7bfeb94`
 
 Created:
-- `src/staadprep/repair/__init__.py`
-- `src/staadprep/repair/commands.py`
-- `src/staadprep/repair/history.py`
-- `src/staadprep/repair/audit.py`
-- `tests/unit/test_repair_commands.py`
-- `tests/unit/test_repair_history.py`
-- `tests/unit/test_repair_edges.py`
+- `src/staadprep/ui/issue_console.py`
+- `tests/ui/test_issue_console.py`
+- `tests/ui/test_issue_repair_smoke.py`
+- `scripts/smoke_issue_repair.py`
 
-### Repair command contract
+Modified:
+- `src/staadprep/ui/main_window.py`
+- `src/staadprep/ui/panels.py`
+- `src/staadprep/viewer/widget.py`
+- `scripts/smoke_viewport.py`
+- `tests/ui/test_structural_viewport.py`
+- Task/checklist/plan docs.
 
-Every command mutates `ProjectModel` in place, increments revision once on successful apply, validates graph integrity, reruns T08 validation, and returns `RepairResult` containing affected UUIDs and current issues.
+Note: the original plan listed `viewer/scene.py` for T10. Camera focus and isolate behavior were implemented in `viewer/widget.py` instead because they are renderer state, not canonical scene-data transformation.
 
-Implemented commands:
-- `MergeNodes`
-- `SnapNode`
-- `DeleteNode`
-- `DeleteMember`
-- `ConnectNodes`
-- `SplitMember`
-- `ReverseMember`
-- `ScaleModel`
-- `TransformModel`
+## T10 behavior
 
-Safety semantics:
-- `DeleteNode` rejects connected nodes; core repair never creates dangling references intentionally.
-- `MergeNodes` redirects every affected member atomically and retains zero-length outcomes for validator visibility rather than silently deleting them.
-- `SplitMember` requires a point on the member and strictly inside its endpoints.
-- `ConnectNodes` requires two existing distinct nodes.
-- `ScaleModel` rejects non-finite/non-positive factors.
-- command failures before mutation do not advance revision/history/audit.
+Issue Console:
+- exact `Issue.id` stored on every row,
+- severity filter: ALL / ERROR / WARNING / INFO,
+- ERROR/WARNING/INFO counts,
+- selecting an issue highlights exact canonical node/member UUIDs,
+- selecting an issue fits the camera to its entities/location,
+- disconnected-structure issue can isolate the affected structure in the real viewport.
 
-### Undo / redo
+Quick Fix dispatch uses only T09 `RepairCommand` objects through `RepairHistory`.
 
-`RepairHistory`:
-- `execute()` applies command, clears redo stack, appends audit entry.
-- `undo()` restores exact pre-command model state including revision.
-- `redo()` reuses the same command-created UUID identities and reproduces the same serialized result.
-- undo/redo stack movement happens only after mutation succeeds; a failed revert does not lose the recovery entry.
+Supported selected-issue quick fixes:
+- DUPLICATE_NODE -> `MergeNodes`,
+- NEAR_NODE -> `MergeNodes`,
+- UNCONNECTED_GAP -> `MergeNodes`,
+- ORPHAN_NODE -> `DeleteNode`,
+- ZERO_LENGTH_MEMBER -> `DeleteMember`,
+- SHORT_MEMBER -> `DeleteMember`,
+- DUPLICATE_MEMBER -> delete one duplicate member.
 
-For all nine commands, serialized JSON after `execute -> undo` equals the original byte-normalized project payload. `redo` reproduces the original post-command payload.
+Delete commands require user confirmation before execution.
 
-### Audit
+CROSSING_WITHOUT_NODE is inspect/highlight only in T10. It is intentionally not auto-fixed by a non-atomic UI sequence because a correct crossing repair requires two splits plus canonical-node unification; no composite STRICT repair command exists yet. Do not hide this limitation.
 
-`AuditLog` is append-only through its public API and exposes entries as a tuple.
-Each `AuditEntry` records:
-- command type,
-- before/after revision,
-- affected UUIDs,
-- command parameters,
-- timezone-aware UTC timestamp.
+Undo/Redo:
+- Ctrl+Z / Ctrl+Y actions exist,
+- Quick Fix panel exposes Undo / Redo buttons,
+- execute/undo/redo automatically re-renders and re-runs validation,
+- Project Explorer, Validation panel, status bar, issue counts and history controls refresh after every mutation.
 
-Undo/redo are also logged as `UNDO:<Command>` / `REDO:<Command>` events without embedding audit state into `ProjectModel`.
+## Runtime issue found and fixed during T10
 
-## STRICT T09 verification evidence
+Real Qt/VTK smoke exposed a PyVista picking lifecycle bug after repair refresh:
+
+`PyVistaPickingError: Picking is already enabled`
+
+Root cause: `StructuralViewport.set_model()` rebound picking after every model refresh without disabling the prior picking session.
+
+Fix: disable active picking before clearing/rebuilding the viewport, then enable picking on the new member actor.
+
+Regression coverage is in the real Windows Qt/VTK issue-repair smoke test.
+
+## T10 verification evidence
 
 TDD RED evidence:
-- repair tests initially failed with `ModuleNotFoundError: staadprep.repair`.
-- edge regression later caught an undo-stack atomicity bug where a failed revert removed the undo entry; fixed by peek -> revert -> stack move.
+- `staadprep.ui.issue_console` initially missing.
+- viewport focus/isolate smoke initially lacked required behavior markers.
+- combined dirty-model smoke initially failed because `smoke_issue_repair.py` did not exist.
+- after the smoke harness existed, it exposed the real repeated-picking lifecycle failure described above.
 
-Targeted T09 suite:
-- 35 tests passed.
+Targeted UI verification:
+- 11 UI tests passed.
+- real viewport focus/isolate smoke passed.
+- combined dirty fixture real Qt/VTK repair smoke passed.
+
+Full regression before documentation update:
+- 116 tests passed.
 - Ruff passed.
-- mypy passed for `commands.py`, `history.py`, `audit.py`.
+- targeted mypy for T10 UI modules passed after adding Qt callback/variadic annotations.
 
-Independent repair check:
-- two structures separated by a 0.5 mm near-node gap.
-- before repair: 2 structures + NEAR_NODE issue.
-- `MergeNodes`: 1 structure, NEAR_NODE and DISCONNECTED_STRUCTURE removed.
-- undo: 2 structures restored.
-- redo: 1 structure restored again.
-- audit entries after execute/undo/redo: 3.
+## Current UI/product boundary
 
-Full project regression before documentation update:
-- 110 tests passed.
-- Ruff passed.
+The app can now inspect, highlight, isolate, repair and undo/redo a canonical `ProjectModel` interactively.
 
-## Important T10 boundary
-
-T09 provides only safe core mutations/history/audit. It does **not** wire destructive actions to UI yet.
-
-T10 owns:
-- Issue Console rows bound to exact Issue IDs,
-- selecting issue -> highlight/zoom,
-- Quick Fix buttons dispatching predefined `RepairCommand` objects only,
-- confirmation before destructive delete actions,
-- Undo/Redo UI,
-- re-render/revalidate after command completion.
-
-Do not implement T11 orientation normalization during T10.
+The raw DXF import path still stops at `RAW DXF PREVIEW — NOT VALIDATED`; Unit Check/reference-dimension UI has not yet been wired to convert raw DXF into canonical metre/Y-Up topology automatically. Do not silently assume source axis/scale to bypass that gate.
 
 ## Next task
 
-**T10 — Issue Console + inspect/zoom/quick-fix UI integration**
+**T11 — Member Incidence / Local-X Normalization**
 
-Risk: STANDARD for UI integration; mutation safety remains covered by STRICT T09 tests.
+Risk: **STRICT HR-2 / Full TDD already approved by user.**
+
+T11 owns deterministic member-direction classification/normalization and viewer direction arrows. It must not change T10 issue/repair semantics except where required to expose orientation-specific UI state.
+
+Do not start T11 until the user explicitly requests it.

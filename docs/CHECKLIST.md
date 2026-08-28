@@ -72,6 +72,16 @@
 - [x] Scale model.
 - [x] Audit log.
 
+### Repair / issue UI (T10)
+- [x] Issue Console binds rows to exact issue IDs.
+- [x] Severity filter and ERROR/WARNING/INFO counts.
+- [x] Select issue -> highlight + camera focus.
+- [x] Disconnected structure isolate/restore in viewport.
+- [x] Predefined Quick Fix dispatch through `RepairHistory`.
+- [x] Destructive delete confirmation.
+- [x] Undo/Redo UI with automatic re-render and re-validation.
+- [x] Combined dirty fixture real Qt/VTK smoke flow.
+
 ## M7 — Normalize / renumber
 - [ ] Preview member directions.
 - [ ] Direction arrows in viewer.
