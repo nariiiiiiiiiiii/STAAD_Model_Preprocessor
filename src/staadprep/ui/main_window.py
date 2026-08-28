@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
+    QFileDialog,
     QMainWindow,
     QSplitter,
     QToolBar,
@@ -14,6 +16,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from staadprep.importers.contracts import ImportBatch
+from staadprep.importers.dxf_reader import DxfReader
+from staadprep.importers.raw_preview import raw_batch_to_preview_model
 from staadprep.ui.panels import (
     IssueConsole,
     ModelStatusBar,
@@ -34,6 +39,7 @@ class MainWindow(QMainWindow):
     ) -> None:
         super().__init__()
         self._viewport_factory = viewport_factory or StructuralViewport
+        self.current_import_batch: ImportBatch | None = None
         self.setWindowTitle("STAAD Model Preprocessor")
         self.resize(1480, 900)
         self.setMinimumSize(1080, 700)
@@ -44,7 +50,10 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("Ready — no model loaded")
 
     def _create_actions(self) -> None:
-        self.import_action = self._disabled_action("Import Model", "Available after importer tasks")
+        self.import_action = QAction("Import Model", self)
+        self.import_action.setToolTip("Import raw DXF geometry (SKP support arrives later)")
+        self.import_action.triggered.connect(self._choose_dxf)
+
         self.unit_check_action = self._disabled_action("Unit Check", "Available in Task 06")
         self.repair_action = self._disabled_action("Repair", "Available in Task 09")
         self.normalize_axis_action = self._disabled_action(
@@ -125,3 +134,36 @@ class MainWindow(QMainWindow):
         root_layout.addWidget(model_status_bar)
 
         self.setCentralWidget(central)
+
+    def _choose_dxf(self) -> None:
+        file_name, _ = QFileDialog.getOpenFileName(
+            self,
+            "Import DXF",
+            "",
+            "DXF Files (*.dxf)",
+        )
+        if file_name:
+            self.load_raw_dxf(Path(file_name))
+
+    def load_raw_dxf(self, path: Path) -> ImportBatch:
+        """Read and preview raw DXF geometry without cleanup or transformation."""
+        batch = DxfReader().read(path)
+        preview_model = raw_batch_to_preview_model(batch)
+        set_model = getattr(self.viewport_host, "set_model", None)
+        if set_model is None:
+            raise TypeError("Configured viewport does not support set_model()")
+        set_model(preview_model)
+        self.project_explorer.set_raw_preview_summary(
+            node_count=len(preview_model.nodes),
+            member_count=len(preview_model.members),
+            unit=batch.declared_unit,
+        )
+
+        self.current_import_batch = batch
+        self.model_status.setText("RAW DXF PREVIEW — NOT VALIDATED")
+        unit = batch.declared_unit or "unknown"
+        self.statusBar().showMessage(
+            "RAW DXF PREVIEW — NOT VALIDATED | "
+            f"Segments: {len(batch.segments)} | Points: {len(batch.points)} | Unit: {unit}"
+        )
+        return batch

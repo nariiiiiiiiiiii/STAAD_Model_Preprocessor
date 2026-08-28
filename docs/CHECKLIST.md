@@ -31,10 +31,10 @@
 - [x] Define stable UUID identities and source mapping.
 
 ## M3 — Import vertical slice
-- [ ] DXF line import.
-- [ ] Render imported members.
-- [ ] Display node/member count.
-- [ ] Source metadata.
+- [x] DXF line import.
+- [x] Render imported members.
+- [x] Display node/member count.
+- [x] Source metadata.
 - [ ] SKP importer contract.
 - [ ] SKP native helper after core pipeline is stable enough.
 

@@ -102,29 +102,46 @@ class ProjectExplorerPanel(SectionPanel):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__("Project Explorer", parent)
         self.setObjectName("project_explorer")
-        tree = QTreeWidget()
-        tree.setHeaderHidden(True)
-        tree.setAlternatingRowColors(True)
+        self.tree = QTreeWidget()
+        self.tree.setHeaderHidden(True)
+        self.tree.setAlternatingRowColors(True)
         model = QTreeWidgetItem(["Model"])
-        model.addChildren(
-            [
-                QTreeWidgetItem(["Nodes (0)"]),
-                QTreeWidgetItem(["Members (0)"]),
-                QTreeWidgetItem(["Supports (0)"]),
-            ]
-        )
+        self.node_item = QTreeWidgetItem(["Nodes (0)"])
+        self.member_item = QTreeWidgetItem(["Members (0)"])
+        self.support_item = QTreeWidgetItem(["Supports (0)"])
+        model.addChildren([self.node_item, self.member_item, self.support_item])
         structures = QTreeWidgetItem(["Structures"])
         structures.addChild(QTreeWidgetItem(["No model loaded"]))
-        tree.addTopLevelItems([QTreeWidgetItem(["Files"]), model, structures])
-        tree.expandAll()
-        self.body_layout.addWidget(tree, 1)
+        self.tree.addTopLevelItems([QTreeWidgetItem(["Files"]), model, structures])
+        self.tree.expandAll()
+        self.body_layout.addWidget(self.tree, 1)
 
         summary_title = QLabel("MODEL SUMMARY")
         summary_title.setObjectName("section_title")
         self.body_layout.addWidget(summary_title)
-        summary = QLabel("Nodes      0\nMembers    0\nStructures 0\nUnit       —\nAxis       —")
-        summary.setObjectName("muted_label")
-        self.body_layout.addWidget(summary)
+        self.summary_label = QLabel(
+            "Nodes      0\nMembers    0\nStructures 0\nUnit       —\nAxis       —"
+        )
+        self.summary_label.setObjectName("muted_label")
+        self.body_layout.addWidget(self.summary_label)
+
+    def set_raw_preview_summary(
+        self,
+        *,
+        node_count: int,
+        member_count: int,
+        unit: str | None,
+    ) -> None:
+        self.node_item.setText(0, f"Nodes ({node_count})")
+        self.member_item.setText(0, f"Members ({member_count})")
+        unit_text = unit or "unknown"
+        self.summary_label.setText(
+            f"Nodes      {node_count}\n"
+            f"Members    {member_count}\n"
+            "Structures —\n"
+            f"Unit       {unit_text}\n"
+            "Axis       RAW / NOT TRANSFORMED"
+        )
 
 
 class PropertiesPanel(SectionPanel):

@@ -21,13 +21,13 @@ def test_main_window_has_approved_regions(qtbot) -> None:
     assert window.model_status.text() == "MODEL STATUS: NO MODEL"
 
 
-def test_engineering_actions_are_disabled_until_backing_tasks_exist(qtbot) -> None:
+def test_only_backed_actions_are_enabled(qtbot) -> None:
     from staadprep.ui.main_window import MainWindow
 
     window = MainWindow(viewport_factory=ViewportPlaceholder)
     qtbot.addWidget(window)
 
-    assert window.import_action.isEnabled() is False
+    assert window.import_action.isEnabled() is True
     assert window.unit_check_action.isEnabled() is False
     assert window.repair_action.isEnabled() is False
     assert window.normalize_axis_action.isEnabled() is False

@@ -313,23 +313,23 @@ Commit: `feat: add structural 3D viewport`
 - Produces: `ImportBatch(points, segments, source_format, declared_unit, metadata, warnings)`
 - Produces: `DxfReader.read(path: Path) -> ImportBatch`
 
-- [ ] **Step 1: Create a tiny deterministic DXF fixture**
+- [x] **Step 1: Create a tiny deterministic DXF fixture**
 
 Fixture contains `LINE`, 3D `POLYLINE`, and `POINT`. Faces are absent. Expected output is known segment/point counts and exact raw coordinates with no coordinate conversion.
 
-- [ ] **Step 2: Write RED importer test**
+- [x] **Step 2: Write RED importer test**
 
 Assert LINE extraction, polyline-to-segment expansion, layer preservation, point extraction, and `$INSUNITS` metadata capture.
 
-- [ ] **Step 3: Implement raw reader only**
+- [x] **Step 3: Implement raw reader only**
 
 Do NOT merge endpoints, scale units, transform axes, detect structures, or repair geometry in this Task.
 
-- [ ] **Step 4: Wire `Import Model > DXF` to show raw lines through a temporary raw preview adapter**
+- [x] **Step 4: Wire `Import Model > DXF` to show raw lines through a temporary raw preview adapter**
 
 The status must clearly say `RAW DXF PREVIEW — NOT VALIDATED`.
 
-- [ ] **Step 5: Run integration test, UI smoke check, commit**
+- [x] **Step 5: Run integration test, UI smoke check, commit**
 
 Commit: `feat: import and preview raw DXF geometry`
 

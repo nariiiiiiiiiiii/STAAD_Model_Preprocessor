@@ -10,8 +10,8 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T02 | Desktop UI shell matching approved baseline | FAST/STANDARD | **COMPLETE** |
 | T03 | Canonical Node/Member/Project model + project serialization | STANDARD | **COMPLETE** |
 | T04 | 3D viewport + synthetic structural model + selection | STANDARD | **COMPLETE** |
-| T05 | DXF raw-line import vertical slice | STANDARD | **READY** |
-| T06 | Unit/scale/dimension + Z-Up→Y-Up engine | **STRICT HR-1** | BLOCKED by T03,T05 |
+| T05 | DXF raw-line import vertical slice | STANDARD | **COMPLETE** |
+| T06 | Unit/scale/dimension + Z-Up→Y-Up engine | **STRICT HR-1** | **READY** |
 | T07 | Canonical topology builder + connected structures | **STRICT HR-2** | BLOCKED by T06 |
 | T08 | Geometry/topology validation detectors | **STRICT HR-2** | BLOCKED by T07 |
 | T09 | Repair commands + undo/redo + audit log | **STRICT HR-2** | BLOCKED by T08 |
@@ -43,4 +43,4 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 
 ## Next Task
 
-**T05 — DXF raw-line import vertical slice**
+**T06 — Unit/scale/dimension + Z-Up→Y-Up engine**

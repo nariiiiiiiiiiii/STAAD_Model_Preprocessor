@@ -1,7 +1,7 @@
 # HANDOFF — STAAD Model Preprocessor
 
 Date: 2026-08-28
-Status: **T04 implemented on `task/04-viewer`; awaiting user approval before T05.**
+Status: **T05 complete on `task/05-dxf`; awaiting user approval before T06.**
 
 ## Canonical project root
 
@@ -13,150 +13,119 @@ HARD RULE: every project-created source file, worktree, temp, cache, log, build 
 
 `SketchUp SKP / DXF -> Preprocessor -> inspect/repair/normalize/renumber/validate -> STAAD .STD -> STAAD.Pro`
 
-V1 prepares clean analytical geometry; it is not a structural solver or mini STAAD.
+V1 prepares clean analytical geometry before STAAD.Pro. It is not a structural solver or mini STAAD.
 
 ## Locked baselines
 
-- Python 3.12+ application target.
+- Python 3.12+ application target; current machine is Python 3.14.3.
 - PySide6 desktop UI.
-- PyVista/VTK 3D viewport.
+- PyVista + pyvistaqt + VTK 3D viewport.
 - NumPy/SciPy for numerical/spatial work.
 - ezdxf for DXF.
 - C++ + official SketchUp C API helper behind an isolated SKP bridge.
 - UI baseline: `docs/UI_BASELINE.md` and `docs/ui/*.svg`.
 - STRICT approval already granted for HR-1 through HR-4.
 
-## Execution rule
+## Completed tasks
 
-Normally execute one Task at a time. The user explicitly authorized `Task 3 + 4` in the current run. T03 and T04 were handled sequentially with separate commits. Stop after T04.
+- T01 `4a7551b` — project-local Python/runtime bootstrap and path guard.
+- T02 `8e4c2f8` — approved desktop UI shell.
+- T03 `f97bffe` — canonical Node/Member/Project model + serialization.
+- T04 `a38fc97` — real PyVista/VTK viewport + synthetic frame + selection/highlight.
 
-## Completed T01
-
-Commit: `4a7551b chore: bootstrap project-local Python runtime`
-
-Key outputs:
-- project-local runtime path guard,
-- `.tmp/.cache/.logs/artifacts/build/dist/vendor` ownership,
-- path escape tests,
-- `scripts/run_dev.ps1`.
-
-## Completed T02
-
-Commit: `8e4c2f8 feat: add approved desktop UI shell`
-
-Key outputs:
-- locked desktop shell layout,
-- toolbar/project explorer/viewport host/right panels/issue console/status,
-- engineering actions disabled until backing Tasks exist,
-- PySide6 6.11.2 verified on Python 3.14.3.
-
-## Completed T03
-
-Commit: `f97bffe feat: add canonical structural model contract`
-
-Key outputs:
-- `Vec3`, `Node`, `Member`, `ProjectModel`, `ModelMetadata`,
-- stable UUID identity independent from STAAD-facing numbers,
-- versioned project JSON schema `1`,
-- non-finite coordinate rejection,
-- round-trip project serialization.
-
-Important boundary: T03 does not merge nodes, infer topology, repair connectivity, convert units, or transform axes.
-
-## T04 — completed deliverables
+## T05 — DXF raw-geometry vertical slice
 
 Branch/worktree:
-- branch: `task/04-viewer`
-- worktree: `.worktrees/task-04-viewer`
-- base commit: `f97bffe`
+- branch: `task/05-dxf`
+- worktree: `.worktrees/task-05-dxf`
+- base commit: `a38fc97`
 
-Created/implemented:
-- `src/staadprep/viewer/scene.py`
-- `src/staadprep/viewer/selection.py`
-- `src/staadprep/viewer/widget.py`
-- `src/staadprep/viewer/demo.py`
-- `src/staadprep/viewer/__init__.py`
-- `tests/unit/test_scene_data.py`
-- `tests/ui/test_structural_viewport.py`
-- `tests/conftest.py`
-- `scripts/smoke_viewport.py`
+Created:
+- `src/staadprep/importers/__init__.py`
+- `src/staadprep/importers/contracts.py`
+- `src/staadprep/importers/dxf_reader.py`
+- `src/staadprep/importers/raw_preview.py`
+- `tests/golden_models/01_dxf_lines/source.dxf`
+- `tests/integration/test_dxf_reader.py`
+- `tests/integration/test_raw_dxf_preview.py`
+- `tests/ui/test_dxf_import_flow.py`
+- `scripts/smoke_dxf_preview.py`
 
 Modified:
-- `src/staadprep/ui/main_window.py` — real `StructuralViewport` replaces placeholder by default; viewport factory injection keeps lightweight UI tests isolated from VTK.
-- `src/staadprep/app.py` — development demo frame loads only when `STAADPREP_DEMO=1`.
-- `scripts/run_dev.ps1` — enables development demo mode.
-- `pyproject.toml` — declares `pyvistaqt` runtime dependency.
+- `src/staadprep/ui/main_window.py`
+- `src/staadprep/ui/panels.py`
+- `tests/ui/test_main_window.py`
+- status/checklist/plan docs.
 
-### Scene contract
+### T05 behavior
 
-`SceneData.from_model(model)` produces deterministic:
-- `(N, 3)` point coordinates,
-- VTK line connectivity,
-- stable UUID ordering,
-- rendered-cell-index -> member UUID mapping.
+`DxfReader` extracts only raw:
+- `LINE`,
+- 3D `POLYLINE` expanded into segments,
+- `POINT`,
+- layer names,
+- source handles/references,
+- `$INSUNITS` metadata.
 
-Dangling member references fail closed with `ValueError`.
+No T05 operation may:
+- convert units,
+- transform axes,
+- merge coincident endpoints,
+- snap/repair geometry,
+- detect structures/topology,
+- claim the preview is validated.
 
-### Real viewport behavior
+The temporary raw preview deliberately creates separate endpoint nodes for each raw segment. The golden fixture therefore renders 3 segments as 3 members + 7 nodes (6 segment endpoints + 1 POINT), even where raw coordinates coincide.
 
-`StructuralViewport` provides:
-- Y-Up XYZ axes/grid,
-- canonical model rendering,
-- node/member actors,
-- member cell selection callback,
-- programmatic member highlighting,
-- programmatic node highlighting,
-- stable selection state,
-- demo multi-bay structural frame in development mode.
+UI behavior:
+- `Import Model` is enabled for DXF.
+- imported raw lines render in the real 3D viewport.
+- Project Explorer displays raw node/member counts and declared unit.
+- status is exactly `RAW DXF PREVIEW — NOT VALIDATED`.
+- Unit Check, Repair, Normalize Axis, Renumber, Validate, and Export STD remain disabled until their backing Tasks exist.
 
-Demo fixture currently produces:
-- 16 nodes,
-- 20 members.
+## T05 verification evidence
 
-## Qt / VTK diagnostic result
+Golden DXF fixture:
+- `$INSUNITS = 4` -> `mm`
+- 1 LINE
+- 1 3D POLYLINE -> 2 segments
+- 1 POINT
+- total raw segments = 3
+- total raw points = 1
 
-The earlier popup `This application failed to start because no Qt platform plugin could be initialized` was NOT caused by Qt being absent.
+TDD RED observed:
+- importer: `ModuleNotFoundError: staadprep.importers`
+- raw preview: `ModuleNotFoundError: staadprep.importers.raw_preview`
+- summary binding: `ProjectExplorerPanel` lacked `summary_label` before implementation.
 
-Verified on this machine:
-- Python `3.14.3`,
-- PySide6 `6.11.2`,
-- Qt runtime `6.11.2`,
-- PyVista `0.48.4`,
-- pyvistaqt `0.12.0`,
-- VTK `9.6.2`,
-- normal `QApplication` uses platform `windows` successfully.
+Final verification before task close:
+- full pytest regression: 18 passed.
+- Ruff: pass.
+- T04 viewport smoke: `VIEWPORT_SMOKE_PASS nodes=16 members=20`.
+- T05 real Windows-render smoke: `DXF_PREVIEW_SMOKE_PASS segments=3 points=1 render_nodes=7 render_members=3 unit=mm`.
+- `git diff --check`: pass.
 
-Two actual T04 implementation defects were found and fixed during Windows render smoke testing:
-1. Line mesh was initially created as point vertex cells + line cells, causing `member_index` cell-data length mismatch. It now creates line-only `PolyData`.
-2. `QtInteractor` accepts `off_screen=` at construction but pyvistaqt 0.12.0 does not expose `.off_screen`. `StructuralViewport` now owns `_off_screen` state itself.
+## Important boundaries for T06
 
-Test-environment policy:
-- pytest lightweight Qt tests use `QT_QPA_PLATFORM=offscreen`,
-- VTK/PyVista viewport rendering is verified in a separate subprocess using the real Windows Qt platform,
-- do not use VTK offscreen rendering as the T04 acceptance path on this Windows stack because it is unstable in the connector environment.
+T05 captures source unit metadata but does **not** convert it.
 
-## T04 verification
+Example current fixture coordinates remain raw millimetres:
+- `(0,0,0) -> (6000,0,0)` stays exactly `6000` in T05.
 
-Verified before commit:
-- full pytest regression: 15 passed,
-- Ruff: PASS,
-- real Windows app demo auto-close: PASS,
-- real viewport subprocess smoke: `VIEWPORT_SMOKE_PASS nodes=16 members=20`,
-- member cell selection + UUID mapping: PASS,
-- node/member highlight state: PASS,
-- normal Qt platform initialization: `windows` PASS.
+T06 is STRICT HR-1 and owns:
+- verified unit conversion to canonical metre,
+- scale/reference-length logic,
+- model extents/dimension checks,
+- SketchUp Z-Up -> STAAD Y-Up coordinate transform,
+- coordinate tolerance/rounding semantics defined by the T06 plan.
 
-## Next Task
+Do not mix topology merge/repair into T06; topology construction remains T07 / HR-2.
 
-**T05 — DXF Raw-Geometry Vertical Slice**
+## Next task
 
-Risk: STANDARD.
+**T06 — Unit, Scale, Dimension, and Z-Up→Y-Up Engine**
 
-T05 will:
-- define raw import contracts,
-- read DXF `LINE`, 3D `POLYLINE`, and `POINT`,
-- preserve raw coordinates/layers/unit metadata without conversion,
-- show `RAW DXF PREVIEW — NOT VALIDATED`,
-- wire the first real Import Model flow.
+Risk: **STRICT HR-1 / Full TDD already approved by user.**
 
-Do not start T05 until the user explicitly says `เริ่ม Task 5` / `Run T05`.
+Do not start T06 until the user explicitly says to continue/run Task 6.
