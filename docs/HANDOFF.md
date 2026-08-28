@@ -1,7 +1,7 @@
 # HANDOFF — STAAD Model Preprocessor
 
 Date: 2026-08-28
-Status: **T05 complete on `task/05-dxf`; awaiting user approval before T06.**
+Status: **T06 implemented on `task/06-units`; awaiting user approval before T07.**
 
 ## Canonical project root
 
@@ -17,115 +17,110 @@ V1 prepares clean analytical geometry before STAAD.Pro. It is not a structural s
 
 ## Locked baselines
 
-- Python 3.12+ application target; current machine is Python 3.14.3.
+- Python 3.12+ target; current machine Python 3.14.3.
 - PySide6 desktop UI.
 - PyVista + pyvistaqt + VTK 3D viewport.
-- NumPy/SciPy for numerical/spatial work.
-- ezdxf for DXF.
-- C++ + official SketchUp C API helper behind an isolated SKP bridge.
-- UI baseline: `docs/UI_BASELINE.md` and `docs/ui/*.svg`.
-- STRICT approval already granted for HR-1 through HR-4.
+- ezdxf DXF input.
+- C++ + official SketchUp C API helper planned for direct SKP input.
+- STRICT/Full TDD approval already granted for HR-1 through HR-4.
 
-## Completed tasks
+## Completed task commits before T06
 
-- T01 `4a7551b` — project-local Python/runtime bootstrap and path guard.
+- T01 `4a7551b` — project-local runtime/path guard.
 - T02 `8e4c2f8` — approved desktop UI shell.
-- T03 `f97bffe` — canonical Node/Member/Project model + serialization.
-- T04 `a38fc97` — real PyVista/VTK viewport + synthetic frame + selection/highlight.
+- T03 `f97bffe` — canonical model + project serialization.
+- T04 `a38fc97` — real 3D viewport + synthetic frame + selection/highlight.
+- T05 `9fcf6be` — raw DXF import + real 3D preview.
 
-## T05 — DXF raw-geometry vertical slice
+## T06 — Unit / Scale / Dimension / Axis Engine
 
+Risk: **STRICT HR-1**.
 Branch/worktree:
-- branch: `task/05-dxf`
-- worktree: `.worktrees/task-05-dxf`
-- base commit: `a38fc97`
+- branch: `task/06-units`
+- worktree: `.worktrees/task-06-units`
+- base commit: `9fcf6be`
 
 Created:
-- `src/staadprep/importers/__init__.py`
-- `src/staadprep/importers/contracts.py`
-- `src/staadprep/importers/dxf_reader.py`
-- `src/staadprep/importers/raw_preview.py`
-- `tests/golden_models/01_dxf_lines/source.dxf`
-- `tests/integration/test_dxf_reader.py`
-- `tests/integration/test_raw_dxf_preview.py`
-- `tests/ui/test_dxf_import_flow.py`
-- `scripts/smoke_dxf_preview.py`
+- `src/staadprep/units/__init__.py`
+- `src/staadprep/units/transforms.py`
+- `tests/unit/test_units_transforms.py`
+- `tests/unit/test_import_batch_axis_contract.py`
+- `tests/golden_models/07_wrong_scale/case.json`
+- `tests/golden_models/08_wrong_axis/case.json`
 
 Modified:
-- `src/staadprep/ui/main_window.py`
-- `src/staadprep/ui/panels.py`
-- `tests/ui/test_main_window.py`
-- status/checklist/plan docs.
+- `src/staadprep/importers/contracts.py` adds `ImportBatch.source_axis`.
+- task/checklist/plan/handoff docs.
 
-### T05 behavior
+### Verified public behavior
 
-`DxfReader` extracts only raw:
-- `LINE`,
-- 3D `POLYLINE` expanded into segments,
-- `POINT`,
-- layer names,
-- source handles/references,
-- `$INSUNITS` metadata.
+Length units:
+- `LengthUnit.METER`
+- `LengthUnit.MILLIMETER`
+- `LengthUnit.CENTIMETER`
+- `LengthUnit.INCH`
+- `LengthUnit.FOOT`
+- `LengthUnit.UNKNOWN`
+- `to_meters(value, unit)` fails closed for UNKNOWN.
 
-No T05 operation may:
-- convert units,
-- transform axes,
-- merge coincident endpoints,
-- snap/repair geometry,
-- detect structures/topology,
-- claim the preview is validated.
+Reference conversions independently checked:
+- 1000 mm = 1 m
+- 100 cm = 1 m
+- 39.37007874015748 in = 1 m
+- 3.280839895013123 ft = 1 m
 
-The temporary raw preview deliberately creates separate endpoint nodes for each raw segment. The golden fixture therefore renders 3 segments as 3 members + 7 nodes (6 segment endpoints + 1 POINT), even where raw coordinates coincide.
+Coordinate convention:
+- SketchUp/source Z-Up -> STAAD Y-Up exactly `(x, y, z) -> (x, z, -y)`.
+- basis mapping: X -> +X, Y -> -Z, Z -> +Y.
+- mapping is right-handed and preserves Euclidean distance.
 
-UI behavior:
-- `Import Model` is enabled for DXF.
-- imported raw lines render in the real 3D viewport.
-- Project Explorer displays raw node/member counts and declared unit.
-- status is exactly `RAW DXF PREVIEW — NOT VALIDATED`.
-- Unit Check, Repair, Normalize Axis, Renumber, Validate, and Export STD remain disabled until their backing Tasks exist.
+Dimension utilities:
+- `measure(a, b)` Euclidean 3D distance.
+- `model_extents(points)` -> minimum / maximum / size.
+- empty extents fail closed.
 
-## T05 verification evidence
+Reference-scale workflow:
+- `reference_scale_ratio = measured / expected`.
+- suspicious factors near 10, 25.4, 100, 304.8, 1000 produce warnings.
+- warnings never rescale geometry automatically.
+- invalid expected reference length fails closed.
 
-Golden DXF fixture:
-- `$INSUNITS = 4` -> `mm`
-- 1 LINE
-- 1 3D POLYLINE -> 2 segments
-- 1 POINT
-- total raw segments = 3
-- total raw points = 1
+Batch transform:
+- `transform_batch(batch, source_unit, source_axis)` converts unit to canonical metres first.
+- Z-Up then maps to Y-Up; Y-Up remains oriented and is only unit-scaled.
+- source refs, layers, source format, warnings, and metadata are preserved.
+- transformed batch records source unit/axis and canonical `m` / `Y-UP` metadata.
+- source batch is immutable/not mutated.
+- unknown unit or unsupported axis fails closed.
+- T06 does not merge/snap endpoints or create topology.
 
-TDD RED observed:
-- importer: `ModuleNotFoundError: staadprep.importers`
-- raw preview: `ModuleNotFoundError: staadprep.importers.raw_preview`
-- summary binding: `ProjectExplorerPanel` lacked `summary_label` before implementation.
+## STRICT TDD evidence
 
-Final verification before task close:
-- full pytest regression: 18 passed.
-- Ruff: pass.
-- T04 viewport smoke: `VIEWPORT_SMOKE_PASS nodes=16 members=20`.
-- T05 real Windows-render smoke: `DXF_PREVIEW_SMOKE_PASS segments=3 points=1 render_nodes=7 render_members=3 unit=mm`.
-- `git diff --check`: pass.
+Observed RED stages:
+1. unit engine missing: `ModuleNotFoundError: staadprep.units`.
+2. axis function missing: import failure for `sketchup_z_up_to_staad_y_up`.
+3. extents/measurement/reference/batch interfaces missing: import failure for `Extents` and related APIs.
+4. `ImportBatch.source_axis` missing: constructor rejected `source_axis`.
 
-## Important boundaries for T06
+Final targeted HR-1 suite:
+- 30/30 tests passed before full regression.
 
-T05 captures source unit metadata but does **not** convert it.
+Final repository regression:
+- 48/48 tests passed.
+- Ruff: PASS.
+- mypy strict targeted check: PASS on `units/transforms.py` + `importers/contracts.py`.
+- independent sanity: `HR1_INDEPENDENT_PASS right_handed=True inch_to_m=1 ratio=1000 warning=True`.
 
-Example current fixture coordinates remain raw millimetres:
-- `(0,0,0) -> (6000,0,0)` stays exactly `6000` in T05.
+## Important scope boundary
 
-T06 is STRICT HR-1 and owns:
-- verified unit conversion to canonical metre,
-- scale/reference-length logic,
-- model extents/dimension checks,
-- SketchUp Z-Up -> STAAD Y-Up coordinate transform,
-- coordinate tolerance/rounding semantics defined by the T06 plan.
+T06 is the verified engine layer only. The existing Unit Check toolbar action is still not wired to a dedicated dimension/reference-length UI. The checklist records this explicitly so the project does not claim UI functionality that is not implemented.
 
-Do not mix topology merge/repair into T06; topology construction remains T07 / HR-2.
+T07 must consume metre/Y-Up geometry and is responsible for canonical endpoint identity and connected structures. It must not reimplement unit or axis conversion.
 
 ## Next task
 
-**T06 — Unit, Scale, Dimension, and Z-Up→Y-Up Engine**
+**T07 — Canonical Topology Builder + Structure Count**
 
-Risk: **STRICT HR-1 / Full TDD already approved by user.**
+Risk: **STRICT HR-2 / Full TDD already approved by user.**
 
-Do not start T06 until the user explicitly says to continue/run Task 6.
+Do not begin T07 until the user explicitly asks to continue/run Task 7.

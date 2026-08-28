@@ -39,12 +39,14 @@
 - [ ] SKP native helper after core pipeline is stable enough.
 
 ## M4 — Unit / dimension
-- [ ] Source unit display.
-- [ ] Canonical metre display.
-- [ ] Overall extents.
-- [ ] Measure tool.
-- [ ] Reference-length workflow.
-- [ ] Suspicious scale-factor warning.
+- [x] Source unit metadata + verified LengthUnit conversion engine.
+- [x] Canonical metre conversion engine.
+- [x] Overall extents engine.
+- [x] Point-to-point measure engine.
+- [x] Reference-length ratio workflow engine.
+- [x] Suspicious scale-factor warning engine (never auto-rescales).
+- [x] SketchUp Z-Up -> STAAD Y-Up right-handed transform engine.
+- [ ] Wire Unit Check / dimension UI to the verified engine.
 
 ## M5 — Validation
 - [ ] Invalid coordinate.

@@ -357,15 +357,15 @@ Commit: `feat: import and preview raw DXF geometry`
 - Produces: `model_extents(points) -> Extents`
 - Produces: `reference_scale_ratio(measured_m, expected_m) -> float`
 
-- [ ] **Step 1: Write independent conversion tests**
+- [x] **Step 1: Write independent conversion tests**
 
 Known cases: `1000 mm = 1 m`, `100 cm = 1 m`, `39.37007874015748 in = 1 m`, `3.280839895013123 ft = 1 m`.
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
-- [ ] **Step 3: Implement conversion table minimally; run GREEN**
+- [x] **Step 3: Implement conversion table minimally; run GREEN**
 
-- [ ] **Step 4: Write axis-transform RED tests from hand-calculated fixtures**
+- [x] **Step 4: Write axis-transform RED tests from hand-calculated fixtures**
 
 ```python
 def test_sketchup_to_staad_preserves_length_and_handed_mapping():
@@ -375,17 +375,17 @@ def test_sketchup_to_staad_preserves_length_and_handed_mapping():
 
 Also assert source basis X→+X, Y→-Z, Z→+Y and pairwise distances are preserved.
 
-- [ ] **Step 5: Implement transform; run GREEN and inverse round-trip checks**
+- [x] **Step 5: Implement transform; run GREEN and inverse round-trip checks**
 
-- [ ] **Step 6: Add reference-length/extents tests including suspicious ratios**
+- [x] **Step 6: Add reference-length/extents tests including suspicious ratios**
 
 Recognize ratios near `10`, `100`, `1000`, `25.4`, and `304.8` as warnings; never silently rescale.
 
-- [ ] **Step 7: Run full HR-1 targeted suite + lint/type-check**
+- [x] **Step 7: Run full HR-1 targeted suite + lint/type-check**
 
 Run: `python -m pytest tests/unit/test_units_transforms.py -v --basetemp=.tmp/pytest`
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 Commit: `feat: add verified unit and coordinate transform engine`
 

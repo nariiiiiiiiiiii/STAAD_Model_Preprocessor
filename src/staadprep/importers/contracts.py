@@ -1,8 +1,7 @@
 """Neutral raw-import contracts.
 
-These objects intentionally preserve source coordinates exactly as read. Unit
-conversion, axis transforms, endpoint merging, and topology semantics belong to
-later tasks.
+Raw readers preserve source coordinates exactly as read. Unit conversion, axis
+transforms, endpoint merging, and topology semantics are applied by later stages.
 """
 
 from __future__ import annotations
@@ -34,5 +33,6 @@ class ImportBatch:
     segments: tuple[RawSegment, ...] = ()
     source_format: str = ""
     declared_unit: str | None = None
+    source_axis: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
     warnings: tuple[str, ...] = ()
