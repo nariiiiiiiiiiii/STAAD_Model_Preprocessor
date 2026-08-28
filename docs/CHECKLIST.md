@@ -7,10 +7,10 @@
 - [x] Add product specification.
 - [x] Add architecture/workflow docs.
 - [x] Add implementation plan after written-spec approval.
-- [ ] Create Python package skeleton.
-- [ ] Add project-local path service.
-- [ ] Add development environment configuration.
-- [ ] Add smoke-launch script.
+- [x] Create Python package skeleton.
+- [x] Add project-local path service.
+- [x] Add development environment configuration.
+- [x] Add smoke-launch script.
 
 ## M1 — UI shell
 - [ ] Reproduce approved dark engineering layout.

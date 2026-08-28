@@ -4,7 +4,8 @@ __pycache__/
 .venv/
 
 # Project-local runtime outputs
-.tmp/
+.tmp/*
+!.tmp/.gitkeep
 .cache/
 .logs/
 build/

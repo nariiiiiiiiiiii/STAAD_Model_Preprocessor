@@ -6,9 +6,9 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 
 | Task | Deliverable | Risk | Status |
 |---|---|---|---|
-| T01 | Python project bootstrap + project-local path guard | STANDARD | READY |
-| T02 | Desktop UI shell matching approved baseline | FAST/STANDARD | BLOCKED by T01 |
-| T03 | Canonical Node/Member/Project model + project serialization | STANDARD | BLOCKED by T01 |
+| T01 | Python project bootstrap + project-local path guard | STANDARD | **COMPLETE** |
+| T02 | Desktop UI shell matching approved baseline | FAST/STANDARD | **READY** |
+| T03 | Canonical Node/Member/Project model + project serialization | STANDARD | QUEUED (T01 dependency satisfied) |
 | T04 | 3D viewport + synthetic structural model + selection | STANDARD | BLOCKED by T02,T03 |
 | T05 | DXF raw-line import vertical slice | STANDARD | BLOCKED by T03,T04 |
 | T06 | Unit/scale/dimension + Z-Up→Y-Up engine | **STRICT HR-1** | BLOCKED by T03,T05 |
@@ -43,4 +43,4 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 
 ## Next Task
 
-**T01 — Python project bootstrap + project-local path guard**
+**T02 — Desktop UI shell matching approved baseline**

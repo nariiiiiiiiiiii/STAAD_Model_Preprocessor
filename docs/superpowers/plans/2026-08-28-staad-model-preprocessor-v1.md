@@ -116,11 +116,11 @@ Stable internal entity keys are UUIDs. STAAD node/member numbers are mutable int
 - Produces: `ProjectPaths.ensure_layout() -> None`
 - Produces: `ProjectPaths.assert_inside_project(path: Path) -> Path`
 
-- [ ] **Step 1: Add package/test configuration with project-local pytest temp**
+- [x] **Step 1: Add package/test configuration with project-local pytest temp**
 
 Use a `src` layout and configure pytest with `--basetemp=.tmp/pytest`. Dependencies: PySide6, pyvista, vtk, numpy, scipy, ezdxf; dev dependencies: pytest, pytest-qt, ruff, mypy, nuitka.
 
-- [ ] **Step 2: Write failing path-boundary tests**
+- [x] **Step 2: Write failing path-boundary tests**
 
 ```python
 from pathlib import Path
@@ -146,26 +146,26 @@ def test_rejects_path_outside_project(tmp_path: Path) -> None:
         paths.assert_inside_project(tmp_path / "outside.log")
 ```
 
-- [ ] **Step 3: Run RED**
+- [x] **Step 3: Run RED**
 
 Run: `python -m pytest tests/unit/test_paths.py -v --basetemp=.tmp/pytest`
 Expected: FAIL because `staadprep.paths` does not exist.
 
-- [ ] **Step 4: Implement the path service**
+- [x] **Step 4: Implement the path service**
 
 `ProjectPaths` owns `.tmp`, `.cache`, `.logs`, `artifacts`, `build`, `dist`, and `vendor`; resolve paths before the `is_relative_to` check so `..` cannot escape the root.
 
-- [ ] **Step 5: Add `scripts/run_dev.ps1`**
+- [x] **Step 5: Add `scripts/run_dev.ps1`**
 
 The script sets `TEMP`, `TMP`, `PYTHONPYCACHEPREFIX`, and app-specific cache/log environment variables to directories under the repository before launching `python -m staadprep.app`.
 
-- [ ] **Step 6: Run GREEN + lint**
+- [x] **Step 6: Run GREEN + lint**
 
 Run: `python -m pytest tests/unit/test_paths.py -v --basetemp=.tmp/pytest`
 Run: `python -m ruff check src tests`
 Expected: PASS.
 
-- [ ] **Step 7: Update status docs and commit**
+- [x] **Step 7: Update status docs and commit**
 
 Commit: `chore: bootstrap project-local Python runtime`
 
