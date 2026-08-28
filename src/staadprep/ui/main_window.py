@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
 from pathlib import Path
 from uuid import UUID
@@ -18,11 +19,13 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from staadprep.exporters.staad_std import ExportReport, StaadExportError, export_staad_std
 from staadprep.importers.contracts import ImportBatch
 from staadprep.importers.dxf_reader import DxfReader
 from staadprep.importers.raw_preview import raw_batch_to_preview_model
 from staadprep.model.project import ProjectModel
 from staadprep.orientation.normalize import normalization_commands
+from staadprep.paths import ProjectPaths
 from staadprep.repair.commands import DeleteMember, DeleteNode, MergeNodes, RepairCommand
 from staadprep.repair.history import RepairHistory
 from staadprep.topology.connectivity import connected_components
@@ -34,7 +37,7 @@ from staadprep.ui.panels import (
     QuickFixPanel,
     ValidationPanel,
 )
-from staadprep.validation.issues import Issue, IssueType
+from staadprep.validation.issues import Issue, IssueSeverity, IssueType
 from staadprep.validation.validators import validate_model
 from staadprep.viewer.widget import StructuralViewport
 
@@ -49,8 +52,14 @@ class MainWindow(QMainWindow):
         viewport_factory: Callable[[], QWidget] | None = None,
         *,
         confirm_delete: ConfirmDelete | None = None,
+        project_root: Path | None = None,
     ) -> None:
         super().__init__()
+        configured_root = project_root or Path(
+            os.environ.get("STAADPREP_PROJECT_ROOT", Path.cwd())
+        )
+        self._project_paths = ProjectPaths.from_root(configured_root)
+        self._project_paths.ensure_layout()
         self._viewport_factory = viewport_factory or StructuralViewport
         self._confirm_delete = confirm_delete or self._confirm_delete_dialog
         self.current_import_batch: ImportBatch | None = None
@@ -87,7 +96,12 @@ class MainWindow(QMainWindow):
         self.validate_action = QAction("Validate", self)
         self.validate_action.setEnabled(False)
         self.validate_action.triggered.connect(self.refresh_validation)
-        self.export_std_action = self._disabled_action("Export STD", "Available in Task 13")
+        self.export_std_action = QAction("Export STD", self)
+        self.export_std_action.setEnabled(False)
+        self.export_std_action.setToolTip(
+            "Requires validated canonical model with complete STAAD numbering"
+        )
+        self.export_std_action.triggered.connect(self._choose_export_std)
 
         self.undo_action = QAction("Undo Repair", self)
         self.undo_action.setShortcut(QKeySequence.StandardKey.Undo)
@@ -186,6 +200,35 @@ class MainWindow(QMainWindow):
         if file_name:
             self.load_raw_dxf(Path(file_name))
 
+    def _choose_export_std(self) -> None:
+        initial_path = self._project_paths.artifacts / "model.std"
+        file_name, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export STAAD STD",
+            str(initial_path),
+            "STAAD Model (*.std)",
+        )
+        if not file_name:
+            return
+        try:
+            self.export_current_std(Path(file_name))
+        except (StaadExportError, ValueError) as exc:
+            self.statusBar().showMessage(f"Export blocked: {exc}")
+            QMessageBox.warning(self, "Export Blocked", str(exc))
+
+    def export_current_std(self, path: Path) -> ExportReport:
+        """Export the current numbered canonical model inside the project boundary."""
+        if self.current_model is None:
+            raise StaadExportError("canonical model is required before STAAD export")
+        safe_path = self._project_paths.assert_inside_project(path)
+        report = export_staad_std(self.current_model, safe_path)
+        self.statusBar().showMessage(
+            "Exported STAAD STD | "
+            f"Nodes: {report.node_count} | Members: {report.member_count} | "
+            f"Warnings: {len(report.warning_issue_ids)} | {report.path}"
+        )
+        return report
+
     def load_raw_dxf(self, path: Path) -> ImportBatch:
         """Read and preview raw DXF geometry without cleanup or transformation."""
         batch = DxfReader().read(path)
@@ -208,6 +251,10 @@ class MainWindow(QMainWindow):
         self._update_history_actions()
         self.validate_action.setEnabled(False)
         self.repair_action.setEnabled(False)
+        self.export_std_action.setEnabled(False)
+        self.export_std_action.setToolTip(
+            "Canonical validated and numbered model required"
+        )
         self.orientation_reverse_count = 0
         self.normalize_axis_action.setEnabled(False)
         self.normalize_axis_action.setToolTip("Canonical metre/Y-Up model required")
@@ -263,6 +310,41 @@ class MainWindow(QMainWindow):
             f"Revision: {self.current_model.revision}"
         )
         self._update_history_actions()
+        self._refresh_export_gate()
+
+    def _refresh_export_gate(self) -> None:
+        model = self.current_model
+        if model is None:
+            self.export_std_action.setEnabled(False)
+            return
+        if not model.nodes:
+            self.export_std_action.setEnabled(False)
+            self.export_std_action.setToolTip("STAAD export requires at least one node")
+            return
+        if any(issue.severity is IssueSeverity.ERROR for issue in self.current_issues):
+            self.export_std_action.setEnabled(False)
+            self.export_std_action.setToolTip(
+                "Resolve validation ERROR issues before STAAD export"
+            )
+            return
+        node_numbers = [node.number for node in model.nodes.values()]
+        member_numbers = [member.number for member in model.members.values()]
+        if not self._valid_number_sequence(node_numbers) or not self._valid_number_sequence(
+            member_numbers
+        ):
+            self.export_std_action.setEnabled(False)
+            self.export_std_action.setToolTip(
+                "Complete positive unique STAAD numbering before export"
+            )
+            return
+        self.export_std_action.setEnabled(True)
+        self.export_std_action.setToolTip("Export validated STAAD geometry (.std)")
+
+    @staticmethod
+    def _valid_number_sequence(numbers: list[int | None]) -> bool:
+        if any(type(number) is not int or number <= 0 for number in numbers):
+            return False
+        return len(set(numbers)) == len(numbers)
 
     def _on_issue_selected(self, issue_id: str) -> None:
         issue = self._issue_by_id(issue_id)

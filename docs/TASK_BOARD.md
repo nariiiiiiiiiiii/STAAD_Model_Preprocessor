@@ -18,8 +18,8 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T10 | Issue Console + inspect/zoom/quick-fix UI integration | STANDARD | **COMPLETE** |
 | T11 | Member incidence/local-X normalization | **STRICT HR-2** | **COMPLETE** |
 | T12 | Deterministic node/member renumber + reference rewrite | **STRICT HR-4** | **COMPLETE** |
-| T13 | STAAD `.STD` exporter | **STRICT HR-3** | **READY** |
-| T14 | Native SKP reader helper scaffold + metadata/edge extraction | STANDARD | BLOCKED by T03 |
+| T13 | STAAD `.STD` exporter | **STRICT HR-3** | **COMPLETE** |
+| T14 | Native SKP reader helper scaffold + metadata/edge extraction | STANDARD | **READY** |
 | T15 | SKP transforms → canonical raw geometry integration | **STRICT HR-1/HR-2** | BLOCKED by T06,T14 |
 | T16 | End-to-end READY gate + golden dirty-model suite + audit report | **STRICT HR-1..HR-4** | BLOCKED by T08,T09,T12,T13,T15 |
 | T17 | Windows packaging (`.exe`) + production path/log policy | STANDARD | BLOCKED by T16 |
@@ -43,4 +43,4 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 
 ## Next Task
 
-**T13 — Minimal STAAD `.STD` geometry exporter**
+**T14 — SKP bridge contract + native helper capability probe**

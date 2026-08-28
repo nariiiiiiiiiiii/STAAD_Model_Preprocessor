@@ -623,7 +623,7 @@ Commit: `feat: add deterministic STAAD-facing numbering`
 - Export subset exactly: `STAAD SPACE`, `UNIT METER KN`, `JOINT COORDINATES`, `MEMBER INCIDENCES`, `FINISH`.
 - Requires every node/member to have a positive unique `.number` and final critical validation to pass.
 
-- [ ] **Step 1: Write exact text-golden RED test**
+- [x] **Step 1: Write exact text-golden RED test**
 
 Expected form:
 
@@ -638,17 +638,17 @@ MEMBER INCIDENCES
 FINISH
 ```
 
-- [ ] **Step 2: Implement deterministic numeric formatting**
+- [x] **Step 2: Implement deterministic numeric formatting**
 
 Use fixed canonical formatting that strips insignificant trailing zeros but never emits locale commas, NaN, or Infinity.
 
-- [ ] **Step 3: Reject missing/duplicate numbers and dangling references with explicit export errors**
+- [x] **Step 3: Reject missing/duplicate numbers and dangling references with explicit export errors**
 
-- [ ] **Step 4: Independently parse generated sections in test code and compare back to the canonical coordinates/incidences**
+- [x] **Step 4: Independently parse generated sections in test code and compare back to the canonical coordinates/incidences**
 
 The parser used for test verification must be test-only and independent from exporter formatting functions.
 
-- [ ] **Step 5: Wire Export STD button behind validation gate and commit**
+- [x] **Step 5: Wire Export STD button behind validation gate and commit**
 
 Commit: `feat: export validated STAAD geometry model`
 

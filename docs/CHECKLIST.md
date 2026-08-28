@@ -91,11 +91,11 @@
 - [x] Old->new mapping report (`NumberingMap` UUID -> STAAD-facing number).
 
 ## M8 — STAAD export
-- [ ] Define supported `.STD` subset.
-- [ ] Generate UNIT command / joint coordinates.
-- [ ] Generate member incidences.
-- [ ] Syntax validation.
-- [ ] Golden expected files.
+- [x] Define supported `.STD` subset.
+- [x] Generate UNIT command / joint coordinates.
+- [x] Generate member incidences.
+- [x] Syntax validation.
+- [x] Golden expected files.
 - [ ] Verify with target STAAD.Pro environment.
 
 ## M9 — Production readiness
@@ -109,7 +109,7 @@
 # Golden fixtures
 
 Create at minimum:
-- [ ] 01_clean_frame
+- [x] 01_clean_frame
 - [ ] 02_orphan_node
 - [ ] 03_near_nodes
 - [ ] 04_duplicate_member
