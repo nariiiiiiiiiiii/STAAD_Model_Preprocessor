@@ -1,0 +1,13 @@
+{
+  "nodes": [
+    {"id": 1, "xyz": [0.0, 0.0, 0.0]},
+    {"id": 2, "xyz": [2.0, 2.0, 0.0]},
+    {"id": 3, "xyz": [0.0, 2.0, 0.0]},
+    {"id": 4, "xyz": [2.0, 0.0, 0.0]}
+  ],
+  "members": [
+    {"id": 101, "start": 1, "end": 2},
+    {"id": 102, "start": 3, "end": 4}
+  ],
+  "expected": {"type": "CROSSING_WITHOUT_NODE", "severity": "ERROR", "entity_ids": [101, 102], "location": [1.0, 1.0, 0.0]}
+}

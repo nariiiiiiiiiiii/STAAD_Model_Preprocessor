@@ -1,0 +1,15 @@
+{
+  "nodes": [
+    {"id": 1, "xyz": [0.0, 0.0, 0.0]},
+    {"id": 2, "xyz": [0.005, 0.0, 0.0]},
+    {"id": 3, "xyz": [1.0, 0.0, 0.0]}
+  ],
+  "members": [
+    {"id": 101, "start": 1, "end": 2},
+    {"id": 102, "start": 3, "end": 3}
+  ],
+  "expected": [
+    {"type": "SHORT_MEMBER", "severity": "WARNING", "entity_ids": [101]},
+    {"type": "ZERO_LENGTH_MEMBER", "severity": "ERROR", "entity_ids": [102]}
+  ]
+}

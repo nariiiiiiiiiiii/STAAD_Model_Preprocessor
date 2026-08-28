@@ -13,8 +13,8 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T05 | DXF raw-line import vertical slice | STANDARD | **COMPLETE** |
 | T06 | Unit/scale/dimension + Z-Up→Y-Up engine | **STRICT HR-1** | **COMPLETE** |
 | T07 | Canonical topology builder + connected structures | **STRICT HR-2** | **COMPLETE** |
-| T08 | Geometry/topology validation detectors | **STRICT HR-2** | **READY** |
-| T09 | Repair commands + undo/redo + audit log | **STRICT HR-2** | BLOCKED by T08 |
+| T08 | Geometry/topology validation detectors | **STRICT HR-2** | **COMPLETE** |
+| T09 | Repair commands + undo/redo + audit log | **STRICT HR-2** | **READY** |
 | T10 | Issue Console + inspect/zoom/quick-fix UI integration | STANDARD | BLOCKED by T04,T09 |
 | T11 | Member incidence/local-X normalization | **STRICT HR-2** | BLOCKED by T07,T10 |
 | T12 | Deterministic node/member renumber + reference rewrite | **STRICT HR-4** | BLOCKED by T11 |
@@ -43,4 +43,4 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 
 ## Next Task
 
-**T08 — Geometry/topology validation detectors**
+**T09 — Repair commands + undo/redo + audit log**

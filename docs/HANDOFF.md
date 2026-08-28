@@ -1,7 +1,7 @@
 # HANDOFF — STAAD Model Preprocessor
 
 Date: 2026-08-28
-Status: **T07 implemented on `task/07-topology`; awaiting user approval before T08.**
+Status: **T08 implemented on `task/08-validation`; awaiting user approval before T09.**
 
 ## Canonical project root
 
@@ -17,98 +17,132 @@ V1 prepares clean analytical geometry before STAAD.Pro. It is not a structural s
 
 ## Locked baselines
 
-- Python 3.12+ target; current machine Python 3.14.3.
-- PySide6 + PyVista/pyvistaqt/VTK desktop stack.
-- ezdxf raw import.
-- Canonical analytical coordinate space: metre + Y-Up.
+- Python 3.12+ application target; current machine is Python 3.14.3.
+- PySide6 desktop UI.
+- PyVista + pyvistaqt + VTK 3D viewport.
+- NumPy/SciPy for numerical/spatial work.
+- ezdxf for DXF.
+- C++ + official SketchUp C API helper behind an isolated SKP bridge.
 - STRICT approval already granted for HR-1 through HR-4.
 
 ## Completed tasks
 
-- T01 `4a7551b` — project-local runtime/path guard.
+- T01 `4a7551b` — project-local Python/runtime bootstrap and path guard.
 - T02 `8e4c2f8` — approved desktop UI shell.
 - T03 `f97bffe` — canonical Node/Member/Project model + serialization.
-- T04 `a38fc97` — real 3D structural viewport + selection/highlight.
+- T04 `a38fc97` — real PyVista/VTK viewport + synthetic frame + selection/highlight.
 - T05 `9fcf6be` — raw DXF import + real 3D preview.
-- T06 `8bf1b25` — verified unit/scale/dimension and Z-Up->Y-Up engine.
+- T06 `8bf1b25` — verified metre conversion, scale/reference checks, Z-Up -> Y-Up transform.
+- T07 `ce24224` — canonical topology + connected structure count.
 
-## T07 — Canonical Topology Builder + Structure Count
+## T08 — Geometry / Topology Validation Detectors
 
 Branch/worktree:
-- branch: `task/07-topology`
-- worktree: `.worktrees/task-07-topology`
-- base commit: `8bf1b25`
+- branch: `task/08-validation`
+- worktree: `.worktrees/task-08-validation`
+- base commit: `ce24224`
 
 Created:
-- `src/staadprep/topology/__init__.py`
-- `src/staadprep/topology/builder.py`
-- `src/staadprep/topology/connectivity.py`
-- `tests/unit/test_topology_builder.py`
-- `tests/unit/test_connectivity.py`
-- `tests/integration/test_canonical_topology_pipeline.py`
-- `tests/golden_models/06_disconnected_structures/case.json`
+- `src/staadprep/validation/__init__.py`
+- `src/staadprep/validation/issues.py`
+- `src/staadprep/validation/validators.py`
+- `tests/unit/test_validators.py`
+- `tests/unit/test_validation_edges.py`
+- golden cases:
+  - `02_orphan_node`
+  - `03_near_nodes`
+  - `04_duplicate_member`
+  - `05_short_member`
+  - `09_crossing_without_node`
+  - `10_combined_dirty_frame`
 
-### T07 behavior
+### T08 contracts
 
-`TopologyPolicy`:
-- default `coincident_tolerance_m = 1e-9 m`.
-- non-finite or non-positive tolerance fails closed.
+`IssueSeverity`:
+- ERROR
+- WARNING
+- INFO
 
-`build_project()`:
-- accepts only canonical metre/Y-Up coordinate batches.
-- recognizes canonical coordinate metadata from T06 while preserving original source unit/axis for audit.
-- uses quantized 3D spatial buckets and searches only the 27 neighboring buckets.
-- confirms true Euclidean distance before merging an endpoint.
-- points within tolerance become one canonical Node.
-- a 0.5 mm gap remains separate; near-node repair is not performed in T07.
-- raw POINT entities are retained as Nodes so T08 can identify orphan nodes.
-- zero-length segments are deliberately retained as Members so T08 can flag them; T07 does not silently delete them.
-- Node source references aggregate deterministically and Member source refs/layers remain auditable.
+`IssueType`:
+- INVALID_COORDINATE
+- DUPLICATE_NODE
+- NEAR_NODE
+- ORPHAN_NODE
+- ZERO_LENGTH_MEMBER
+- SHORT_MEMBER
+- DUPLICATE_MEMBER
+- UNCONNECTED_GAP
+- CROSSING_WITHOUT_NODE
+- DISCONNECTED_STRUCTURE
 
-`connected_components()`:
-- validates all member start/end references exist.
-- returns every connected graph component, including isolated zero-member nodes.
-- zero-length members remain attached to their one-node component.
-- components are ordered with larger member-bearing structures first, then deterministically by geometry.
+`ValidationPolicy` V1 defaults:
+- `near_node_m = 0.001` (1 mm)
+- `short_member_m = 0.010` (10 mm)
+- `intersection_m = 1e-6` (1 micrometre)
+- exact duplicate-node tolerance remains `1e-9 m`, aligned with T07 topology identity.
 
-## STRICT T07 verification evidence
+### Detector behavior
+
+- Invalid coordinate: ERROR.
+- Duplicate node: ERROR.
+- Near node: WARNING.
+- Orphan node: ERROR.
+- Zero-length member: ERROR.
+- Short member: WARNING.
+- Duplicate/reversed-incidence member: ERROR.
+- Unconnected near-node gap across different connected components: ERROR.
+- Crossing without canonical node: ERROR.
+- Secondary member-bearing disconnected structure: WARNING.
+
+Near-node detection uses `scipy.spatial.cKDTree`.
+
+Crossing detection uses sweep-style AABB candidate filtering and 3D closest-points-on-segments math. A crossing is reported only when:
+- closest separation <= `intersection_m`,
+- both closest parameters are interior to their members,
+- members do not share a canonical endpoint,
+- no canonical node exists at the crossing location.
+
+Parallel members, endpoint-only contacts, and crossings already split by a canonical node are not reported as crossing-without-node.
+
+### Important scope boundary
+
+T08 is read-only. It must not:
+- merge/snap nodes,
+- delete members/nodes,
+- split members,
+- connect gaps,
+- modify UUID identities,
+- alter model revision/topology.
+
+Those operations belong to T09.
+
+## STRICT T08 verification evidence
 
 TDD RED evidence:
-- topology builder initially failed with `ModuleNotFoundError: staadprep.topology`.
-- connectivity initially failed with `ModuleNotFoundError: staadprep.topology.connectivity`.
+- validator tests initially failed with `ModuleNotFoundError: staadprep.validation`.
 
-Targeted verification:
-- T07 topology/connectivity/cross-task suite: 12 passed.
-- Ruff: pass.
-- mypy on `src/staadprep/topology`: pass.
+Targeted detector suite:
+- 15 tests passed after implementation and edge checks.
 
-Independent checks:
-- hand-authored disconnected golden model: main frame 4 members + detached member -> exactly 2 components with `(4 nodes,4 members)` and `(2 nodes,1 member)`.
-- T05 DXF -> T06 mm/Z-Up transform -> T07 canonical topology: raw 7 preview nodes collapse to exactly 5 canonical nodes / 3 members / 2 components, with hand-calculated metre/Y-Up coordinates.
-- negative spatial-bucket boundary case within tolerance merges correctly.
-- 5,000-member chain sanity: `TOPOLOGY_SCALE_PASS nodes=5001 members=5000 structures=1`.
+Full regression before task close:
+- 75 tests passed.
+- Ruff passed.
+- targeted mypy for validation module passed.
 
-Final regression before status update:
-- full pytest: 60 passed.
-- Ruff full source/tests: pass.
+Independent scale/false-positive sanity:
+- clean 5,001-node / 5,000-member chain -> `issues=0`.
+- output: `VALIDATION_SCALE_PASS nodes=5001 members=5000 issues=0`.
 
-## Important T07 boundaries
+Golden combined dirty frame confirms the expected detector families are all present without mutating the model.
 
-T07 does NOT:
-- merge near nodes beyond the strict coincident tolerance,
-- detect duplicate/short/orphan/crossing issues,
-- repair geometry,
-- normalize member direction,
-- renumber nodes/members.
+## Environment note
 
-Those behaviors remain T08 onward.
+The shared project-local venv used for development contains SciPy 1.18.1 and NumPy 2.5.2. A transient first import attempt reported SciPy missing, but a direct interpreter import confirmed SciPy exists in the project-local venv; subsequent validator runs were stable.
 
 ## Next task
 
-**T08 — Geometry / Topology Validation Detectors**
+**T09 — Repair Commands + Undo/Redo + Audit Log**
 
 Risk: **STRICT HR-2 / Full TDD already approved by user.**
 
-T08 will detect invalid/duplicate/near/orphan/zero-length/short/duplicate-member/unconnected-gap/crossing/disconnected-structure issues without mutating the model.
-
-Do not start T08 until the user explicitly asks to continue/run Task 8.
+T09 owns actual graph mutation and must preserve exact undo/redo and auditability. Do not start T09 until the user explicitly requests it.

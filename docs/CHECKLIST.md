@@ -49,15 +49,15 @@
 - [ ] Wire Unit Check / dimension UI to the verified engine.
 
 ## M5 — Validation
-- [ ] Invalid coordinate.
-- [ ] Duplicate node.
-- [ ] Near node.
-- [ ] Orphan node.
-- [ ] Zero-length member.
-- [ ] Short member.
-- [ ] Duplicate member.
-- [ ] Unconnected gap.
-- [ ] Crossing without node.
+- [x] Invalid coordinate.
+- [x] Duplicate node.
+- [x] Near node.
+- [x] Orphan node.
+- [x] Zero-length member.
+- [x] Short member.
+- [x] Duplicate member.
+- [x] Unconnected gap.
+- [x] Crossing without node.
 - [x] Connected-component count.
 
 ## M6 — Repair

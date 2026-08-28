@@ -448,23 +448,23 @@ Commit: `feat: build canonical topology and connected structures`
 - Produces: `ValidationPolicy(near_node_m, short_member_m, intersection_m)`
 - Produces: `validate_model(model, policy) -> list[Issue]`
 
-- [ ] **Step 1: Add one RED test per detector before implementation**
+- [x] **Step 1: Add one RED test per detector before implementation**
 
 Each fixture asserts exact issue type, affected UUIDs, and severity.
 
-- [ ] **Step 2: Implement finite/duplicate/near/orphan/zero/short/duplicate-member checks**
+- [x] **Step 2: Implement finite/duplicate/near/orphan/zero/short/duplicate-member checks**
 
 Near-node detection uses `scipy.spatial.cKDTree` or equivalent indexed search.
 
-- [ ] **Step 3: Implement disconnected-structure issue from `connected_components`**
+- [x] **Step 3: Implement disconnected-structure issue from `connected_components`**
 
-- [ ] **Step 4: Implement 3D segment-crossing-without-node check**
+- [x] **Step 4: Implement 3D segment-crossing-without-node check**
 
 Use indexed candidate bounding boxes and closest-points-on-segments math; only report when closest distance ≤ `intersection_m`, both closest parameters lie in the interior of the two segments, and no canonical node exists at the intersection.
 
-- [ ] **Step 5: Run every golden dirty fixture and combined regression**
+- [x] **Step 5: Run every golden dirty fixture and combined regression**
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Commit: `feat: detect structural geometry and topology issues`
 
