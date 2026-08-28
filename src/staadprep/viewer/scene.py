@@ -17,6 +17,8 @@ class SceneData:
     point_keys: tuple[UUID, ...]
     member_keys: tuple[UUID, ...]
     point_index_by_key: dict[UUID, int]
+    member_midpoints: np.ndarray
+    local_x_vectors: np.ndarray
 
     @classmethod
     def from_model(cls, model: ProjectModel) -> SceneData:
@@ -32,6 +34,8 @@ class SceneData:
 
         member_keys = tuple(sorted(model.members, key=str))
         line_rows: list[tuple[int, int, int]] = []
+        midpoints: list[np.ndarray] = []
+        local_x_vectors: list[np.ndarray] = []
         for member_key in member_keys:
             member = model.members[member_key]
             try:
@@ -43,10 +47,30 @@ class SceneData:
                 ) from exc
             line_rows.append((2, start_index, end_index))
 
+            start = points[start_index]
+            end = points[end_index]
+            vector = end - start
+            length = float(np.linalg.norm(vector))
+            midpoints.append((start + end) / 2.0)
+            if length > 0.0:
+                local_x_vectors.append(vector / length)
+            else:
+                local_x_vectors.append(np.zeros(3, dtype=float))
+
         lines = (
             np.array(line_rows, dtype=np.int64)
             if line_rows
             else np.empty((0, 3), dtype=np.int64)
+        )
+        member_midpoints = (
+            np.asarray(midpoints, dtype=float).reshape((-1, 3))
+            if midpoints
+            else np.empty((0, 3), dtype=float)
+        )
+        local_x = (
+            np.asarray(local_x_vectors, dtype=float).reshape((-1, 3))
+            if local_x_vectors
+            else np.empty((0, 3), dtype=float)
         )
         return cls(
             points=points,
@@ -54,6 +78,8 @@ class SceneData:
             point_keys=point_keys,
             member_keys=member_keys,
             point_index_by_key=point_index_by_key,
+            member_midpoints=member_midpoints,
+            local_x_vectors=local_x,
         )
 
     def member_key_for_cell(self, cell_index: int) -> UUID:

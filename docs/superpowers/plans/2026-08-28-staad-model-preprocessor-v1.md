@@ -557,15 +557,15 @@ Commit: `feat: inspect and repair model issues in desktop UI`
 - Produces: `needs_reverse(model, member) -> bool`
 - Produces: `NormalizeMemberDirection(member_key)` repair command or command factory
 
-- [ ] **Step 1: RED tests for deterministic dominant-axis rule**
+- [x] **Step 1: RED tests for deterministic dominant-axis rule**
 
 For Y-Up: vertical member points `-Y→+Y`; X-dominant points `-X→+X`; Z-dominant points `-Z→+Z`. For diagonal ties use priority X, then Y, then Z. The implementation controls member incidence/local-X only; it does not claim to normalize STAAD local-Y/local-Z/Beta.
 
-- [ ] **Step 2: Implement classification/reversal decision and run GREEN**
+- [x] **Step 2: Implement classification/reversal decision and run GREEN**
 
-- [ ] **Step 3: Add viewport local-X arrows and preview count**
+- [x] **Step 3: Add viewport local-X arrows and preview count**
 
-- [ ] **Step 4: Normalize all through existing reversible repair history, revalidate, commit**
+- [x] **Step 4: Normalize all through existing reversible repair history, revalidate, commit**
 
 Commit: `feat: normalize deterministic member incidence`
 

@@ -1,7 +1,7 @@
 # HANDOFF — STAAD Model Preprocessor
 
 Date: 2026-08-28
-Status: **T10 complete on `task/10-issue-ui`; awaiting user approval before T11.**
+Status: **T11 implemented on `task/11-orientation`; awaiting user approval before T12.**
 
 ## Canonical project root
 
@@ -15,7 +15,7 @@ HARD RULE: every project-created source file, worktree, temp, cache, log, build 
 
 V1 prepares clean analytical geometry before STAAD.Pro. It is not a structural solver or mini STAAD.
 
-## Completed task commits before T10
+## Completed task commits before T11
 
 - T01 `4a7551b` — project-local Python/runtime bootstrap and path guard.
 - T02 `8e4c2f8` — approved desktop UI shell.
@@ -26,103 +26,149 @@ V1 prepares clean analytical geometry before STAAD.Pro. It is not a structural s
 - T07 `ce24224` — STRICT canonical topology + connected structures.
 - T08 `adde44b` — STRICT read-only geometry/topology validators.
 - T09 `7bfeb94` — STRICT reversible repair commands + undo/redo + audit.
+- T10 `b3e7d4e` — Issue Console, viewport focus/isolate, Quick Fix and Undo/Redo UI.
 
-## T10 — Issue Console + Quick-Fix UI
+## T11 — Member Incidence / Local-X Normalization
 
 Branch/worktree:
-- branch: `task/10-issue-ui`
-- worktree: `.worktrees/task-10-issue-ui`
-- base commit: `7bfeb94`
+- branch: `task/11-orientation`
+- worktree: `.worktrees/task-11-orientation`
+- base commit: `b3e7d4e`
 
 Created:
-- `src/staadprep/ui/issue_console.py`
-- `tests/ui/test_issue_console.py`
-- `tests/ui/test_issue_repair_smoke.py`
-- `scripts/smoke_issue_repair.py`
+- `src/staadprep/orientation/__init__.py`
+- `src/staadprep/orientation/normalize.py`
+- `tests/unit/test_orientation.py`
+- `tests/unit/test_scene_orientation.py`
+- `tests/unit/test_orientation_invariants.py`
+- `tests/ui/test_orientation_ui.py`
+- `tests/ui/test_orientation_smoke.py`
+- `scripts/smoke_orientation.py`
 
 Modified:
+- `src/staadprep/viewer/scene.py`
+- `src/staadprep/viewer/widget.py`
 - `src/staadprep/ui/main_window.py`
 - `src/staadprep/ui/panels.py`
-- `src/staadprep/viewer/widget.py`
-- `scripts/smoke_viewport.py`
-- `tests/ui/test_structural_viewport.py`
-- Task/checklist/plan docs.
+- task/checklist/plan docs.
 
-Note: the original plan listed `viewer/scene.py` for T10. Camera focus and isolate behavior were implemented in `viewer/widget.py` instead because they are renderer state, not canonical scene-data transformation.
+## Locked T11 semantics
 
-## T10 behavior
+Canonical coordinates are Y-Up.
 
-Issue Console:
-- exact `Issue.id` stored on every row,
-- severity filter: ALL / ERROR / WARNING / INFO,
-- ERROR/WARNING/INFO counts,
-- selecting an issue highlights exact canonical node/member UUIDs,
-- selecting an issue fits the camera to its entities/location,
-- disconnected-structure issue can isolate the affected structure in the real viewport.
+`MemberClass`:
+- `COLUMN`: axis-aligned Y member within classification tolerance.
+- `BEAM_X`: axis-aligned X member within classification tolerance.
+- `BEAM_Z`: axis-aligned Z member within classification tolerance.
+- `BRACE`: non-axis-aligned / multi-axis member.
+- `OTHER`: zero/near-zero member at the supplied classification tolerance.
 
-Quick Fix dispatch uses only T09 `RepairCommand` objects through `RepairHistory`.
+Deterministic incidence/local-X direction rule:
+- dominant Y / columns: low Y -> high Y,
+- dominant X: low X -> high X,
+- dominant Z: low Z -> high Z,
+- dominant-axis magnitude ties use priority `X`, then `Y`, then `Z`,
+- zero-length member has no meaningful direction and is not reversed.
 
-Supported selected-issue quick fixes:
-- DUPLICATE_NODE -> `MergeNodes`,
-- NEAR_NODE -> `MergeNodes`,
-- UNCONNECTED_GAP -> `MergeNodes`,
-- ORPHAN_NODE -> `DeleteNode`,
-- ZERO_LENGTH_MEMBER -> `DeleteMember`,
-- SHORT_MEMBER -> `DeleteMember`,
-- DUPLICATE_MEMBER -> delete one duplicate member.
+T11 controls only member `i -> j` incidence, which defines analytical local-X.
 
-Delete commands require user confirmation before execution.
+T11 explicitly does **not** claim to normalize:
+- STAAD local-Y,
+- STAAD local-Z,
+- Beta angle,
+- section orientation,
+- releases,
+- supports,
+- node/member numbering.
 
-CROSSING_WITHOUT_NODE is inspect/highlight only in T10. It is intentionally not auto-fixed by a non-atomic UI sequence because a correct crossing repair requires two splits plus canonical-node unification; no composite STRICT repair command exists yet. Do not hide this limitation.
+Those must not be inferred from T11 behavior.
 
-Undo/Redo:
-- Ctrl+Z / Ctrl+Y actions exist,
-- Quick Fix panel exposes Undo / Redo buttons,
-- execute/undo/redo automatically re-renders and re-runs validation,
-- Project Explorer, Validation panel, status bar, issue counts and history controls refresh after every mutation.
+## Reversible normalization
 
-## Runtime issue found and fixed during T10
+`NormalizeMemberDirection(member_key)` is a factory that returns the already-STRICT-tested T09 `ReverseMember` command only when a member violates the deterministic rule.
 
-Real Qt/VTK smoke exposed a PyVista picking lifecycle bug after repair refresh:
+`normalization_commands(model)`:
+- returns only required `ReverseMember` commands,
+- sorts by stable member UUID integer order,
+- performs no mutation by itself.
 
-`PyVistaPickingError: Picking is already enabled`
+MainWindow `Normalize Axis` action now means **Normalize member incidence/local-X** while preserving the locked toolbar label.
 
-Root cause: `StructuralViewport.set_model()` rebound picking after every model refresh without disabling the prior picking session.
+When a canonical model is loaded:
+- local-X arrows are rendered at member midpoints,
+- Validation panel shows `N reverse / M total`,
+- toolbar tooltip shows the number requiring reversal,
+- Normalize action is enabled only when at least one member needs reversal.
 
-Fix: disable active picking before clearing/rebuilding the viewport, then enable picking on the new member actor.
+Normalize-all execution:
+- builds deterministic commands,
+- executes each command through existing `RepairHistory`,
+- therefore increments revision/audit per reversed member,
+- re-renders and re-runs validation once after the batch,
+- Undo/Redo continues to operate one reversible `ReverseMember` command at a time.
 
-Regression coverage is in the real Windows Qt/VTK issue-repair smoke test.
+No composite T11 repair command was introduced; existing T09 mutation semantics remain unchanged.
 
-## T10 verification evidence
+## Viewport local-X arrows
+
+`SceneData` now exposes arrays aligned with `member_keys`:
+- `member_midpoints`,
+- normalized `local_x_vectors`.
+
+Zero-length members use a zero vector.
+
+`StructuralViewport.show_local_x_arrows(True/False)`:
+- renders local-X arrows for nonzero members,
+- preserves the arrow preview across `set_model()` refreshes,
+- hides the global arrow actor during structure isolation and restores it afterward.
+
+## STRICT T11 verification evidence
 
 TDD RED evidence:
-- `staadprep.ui.issue_console` initially missing.
-- viewport focus/isolate smoke initially lacked required behavior markers.
-- combined dirty-model smoke initially failed because `smoke_issue_repair.py` did not exist.
-- after the smoke harness existed, it exposed the real repeated-picking lifecycle failure described above.
+- `staadprep.orientation` initially did not exist.
+- `SceneData.member_midpoints/local_x_vectors` initially did not exist.
+- MainWindow initially had no orientation preview count or normalize method.
+- real orientation smoke initially failed because `smoke_orientation.py` did not exist.
 
-Targeted UI verification:
-- 11 UI tests passed.
-- real viewport focus/isolate smoke passed.
-- combined dirty fixture real Qt/VTK repair smoke passed.
-
-Full regression before documentation update:
-- 116 tests passed.
+Targeted T11 verification before documentation update:
+- 25 T11 tests passed.
 - Ruff passed.
-- targeted mypy for T10 UI modules passed after adding Qt callback/variadic annotations.
+- real Windows Qt/VTK orientation smoke passed.
+- invariant tests proved node identity/positions, member keys, lengths, source metadata, connected components, and validation issue types are unchanged by normalization except intended `start/end` swaps.
+- normalize -> undo-all returns the exact original `ProjectModel`, including revision.
 
-## Current UI/product boundary
+Independent hand-case sanity:
+- X/Y magnitude tie chooses X.
+- Y/Z magnitude tie chooses Y.
+- 2 required reversals normalize to zero and undo back to revision 0.
+- evidence marker: `ORIENTATION_INDEPENDENT_PASS tie_xy=X tie_yz=Y normalized=2 undo_revision=0`.
 
-The app can now inspect, highlight, isolate, repair and undo/redo a canonical `ProjectModel` interactively.
+Full test execution is split because the combined suite plus three real Qt/VTK subprocess smokes exceeds the Serena shell execution window:
+- non-smoke suite: 138 passed,
+- T04 viewport smoke: 1 passed,
+- T10 issue-repair smoke: 1 passed,
+- T11 orientation smoke: 1 passed,
+- effective total: 141 passed.
 
-The raw DXF import path still stops at `RAW DXF PREVIEW — NOT VALIDATED`; Unit Check/reference-dimension UI has not yet been wired to convert raw DXF into canonical metre/Y-Up topology automatically. Do not silently assume source axis/scale to bypass that gate.
+Type checking:
+- Ruff is clean.
+- targeted mypy with `--follow-imports=silent` passes T11 orientation/scene/UI modules.
+- unrestricted mypy import traversal still surfaces pre-existing T05 `ezdxf` typing diagnostics and PyVista/VTK stub mismatches in the renderer; these are not T11 behavior failures and were not expanded into this task.
+
+## Current product boundary
+
+T01-T11 functionality is implemented.
+
+The app can inspect and repair canonical models, preview local-X arrows, deterministically normalize member incidence, and undo/redo those reversals.
+
+The raw DXF UI path still stops at `RAW DXF PREVIEW — NOT VALIDATED`; Unit Check/reference-dimension UI has not yet been wired into a complete raw-DXF -> canonical topology pipeline. Do not silently assume source unit/axis to bypass that gate.
 
 ## Next task
 
-**T11 — Member Incidence / Local-X Normalization**
+**T12 — Deterministic Node / Member Renumbering + Reference Rewrite**
 
-Risk: **STRICT HR-2 / Full TDD already approved by user.**
+Risk: **STRICT HR-4 / Full TDD already approved by user.**
 
-T11 owns deterministic member-direction classification/normalization and viewer direction arrows. It must not change T10 issue/repair semantics except where required to expose orientation-specific UI state.
+T12 may change only STAAD-facing `.number` attributes and numbering maps. Stable UUID identities and member endpoint UUID references must remain unchanged.
 
-Do not start T11 until the user explicitly requests it.
+Do not start T12 until the user explicitly requests it.

@@ -22,6 +22,7 @@ from staadprep.importers.contracts import ImportBatch
 from staadprep.importers.dxf_reader import DxfReader
 from staadprep.importers.raw_preview import raw_batch_to_preview_model
 from staadprep.model.project import ProjectModel
+from staadprep.orientation.normalize import normalization_commands
 from staadprep.repair.commands import DeleteMember, DeleteNode, MergeNodes, RepairCommand
 from staadprep.repair.history import RepairHistory
 from staadprep.topology.connectivity import connected_components
@@ -57,6 +58,7 @@ class MainWindow(QMainWindow):
         self.current_issues: list[Issue] = []
         self.repair_history: RepairHistory | None = None
         self._selected_issue_id: str | None = None
+        self.orientation_reverse_count = 0
 
         self.setWindowTitle("STAAD Model Preprocessor")
         self.resize(1480, 900)
@@ -77,9 +79,10 @@ class MainWindow(QMainWindow):
         self.repair_action.setEnabled(False)
         self.repair_action.setToolTip("Apply the selected issue's predefined repair")
         self.repair_action.triggered.connect(self.apply_selected_quick_fix)
-        self.normalize_axis_action = self._disabled_action(
-            "Normalize Axis", "Available in Task 11"
-        )
+        self.normalize_axis_action = QAction("Normalize Axis", self)
+        self.normalize_axis_action.setEnabled(False)
+        self.normalize_axis_action.setToolTip("Load a canonical model to preview member local-X")
+        self.normalize_axis_action.triggered.connect(self.normalize_member_directions)
         self.renumber_action = self._disabled_action("Renumber", "Available in Task 12")
         self.validate_action = QAction("Validate", self)
         self.validate_action.setEnabled(False)
@@ -205,6 +208,11 @@ class MainWindow(QMainWindow):
         self._update_history_actions()
         self.validate_action.setEnabled(False)
         self.repair_action.setEnabled(False)
+        self.orientation_reverse_count = 0
+        self.normalize_axis_action.setEnabled(False)
+        self.normalize_axis_action.setToolTip("Canonical metre/Y-Up model required")
+        self.validation_panel.set_local_x_preview(reverse_count=0, total=0)
+        self._call_viewport("show_local_x_arrows", False)
         self.model_status.setText("RAW DXF PREVIEW — NOT VALIDATED")
         unit = batch.declared_unit or "unknown"
         self.statusBar().showMessage(
@@ -233,6 +241,7 @@ class MainWindow(QMainWindow):
         self.quick_fix_panel.set_issue(None)
         self.repair_action.setEnabled(False)
         self._set_viewport_model(self.current_model)
+        self._refresh_orientation_preview()
 
         structures = connected_components(self.current_model)
         self.project_explorer.set_canonical_summary(
@@ -291,6 +300,46 @@ class MainWindow(QMainWindow):
                 return
         self.repair_history.execute(command)
         self.refresh_validation()
+
+    def normalize_member_directions(self) -> None:
+        """Normalize all member incidence/local-X through reversible repair history."""
+        if self.current_model is None or self.repair_history is None:
+            return
+        commands = normalization_commands(self.current_model)
+        if not commands:
+            self._refresh_orientation_preview()
+            self.statusBar().showMessage("Member incidence/local-X already normalized")
+            return
+        for command in commands:
+            self.repair_history.execute(command)
+        count = len(commands)
+        self.refresh_validation()
+        self.statusBar().showMessage(f"Normalized local-X incidence for {count} member(s)")
+
+    def _refresh_orientation_preview(self) -> None:
+        if self.current_model is None:
+            self.orientation_reverse_count = 0
+            self.normalize_axis_action.setEnabled(False)
+            self.validation_panel.set_local_x_preview(reverse_count=0, total=0)
+            self._call_viewport("show_local_x_arrows", False)
+            return
+        commands = normalization_commands(self.current_model)
+        self.orientation_reverse_count = len(commands)
+        total = len(self.current_model.members)
+        self.validation_panel.set_local_x_preview(
+            reverse_count=self.orientation_reverse_count,
+            total=total,
+        )
+        self._call_viewport("show_local_x_arrows", True)
+        if self.orientation_reverse_count:
+            self.normalize_axis_action.setEnabled(True)
+            self.normalize_axis_action.setToolTip(
+                f"{self.orientation_reverse_count} member(s) need reversal; "
+                "normalizes incidence/local-X only"
+            )
+        else:
+            self.normalize_axis_action.setEnabled(False)
+            self.normalize_axis_action.setToolTip("Member incidence/local-X already normalized")
 
     def undo_repair(self) -> None:
         if self.repair_history is None or not self.repair_history.undo_stack:

@@ -16,8 +16,8 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T08 | Geometry/topology validation detectors | **STRICT HR-2** | **COMPLETE** |
 | T09 | Repair commands + undo/redo + audit log | **STRICT HR-2** | **COMPLETE** |
 | T10 | Issue Console + inspect/zoom/quick-fix UI integration | STANDARD | **COMPLETE** |
-| T11 | Member incidence/local-X normalization | **STRICT HR-2** | **READY** |
-| T12 | Deterministic node/member renumber + reference rewrite | **STRICT HR-4** | BLOCKED by T11 |
+| T11 | Member incidence/local-X normalization | **STRICT HR-2** | **COMPLETE** |
+| T12 | Deterministic node/member renumber + reference rewrite | **STRICT HR-4** | **READY** |
 | T13 | STAAD `.STD` exporter | **STRICT HR-3** | BLOCKED by T12 |
 | T14 | Native SKP reader helper scaffold + metadata/edge extraction | STANDARD | BLOCKED by T03 |
 | T15 | SKP transforms → canonical raw geometry integration | **STRICT HR-1/HR-2** | BLOCKED by T06,T14 |
@@ -43,4 +43,4 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 
 ## Next Task
 
-**T11 — Member incidence / Local-X normalization**
+**T12 — Deterministic node/member renumber + reference rewrite**

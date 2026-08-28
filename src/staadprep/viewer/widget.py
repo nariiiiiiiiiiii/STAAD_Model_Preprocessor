@@ -32,6 +32,8 @@ class StructuralViewport(QWidget):
         self._node_actor = None
         self._member_highlight_actor = None
         self._node_highlight_actor = None
+        self._local_x_actor = None
+        self._show_local_x = False
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -63,6 +65,7 @@ class StructuralViewport(QWidget):
         self._node_actor = None
         self._member_highlight_actor = None
         self._node_highlight_actor = None
+        self._local_x_actor = None
 
         if self.scene.points.size == 0:
             self.plotter.render()
@@ -101,8 +104,35 @@ class StructuralViewport(QWidget):
                     start=False,
                 )
 
+        if self._show_local_x:
+            self._render_local_x_arrows()
         self.plotter.reset_camera()
         self.plotter.render()
+
+    def show_local_x_arrows(self, visible: bool) -> None:
+        """Show or hide analytical i->j local-X arrows for every nonzero member."""
+        self._show_local_x = bool(visible)
+        self._remove_actor(self._local_x_actor)
+        self._local_x_actor = None
+        if self._show_local_x:
+            self._render_local_x_arrows()
+        self.plotter.render()
+
+    def _render_local_x_arrows(self) -> None:
+        if self.scene is None or not len(self.scene.member_keys):
+            return
+        lengths = np.linalg.norm(self.scene.local_x_vectors, axis=1)
+        mask = lengths > 0.0
+        if not bool(np.any(mask)):
+            return
+        span = np.ptp(self.scene.points, axis=0) if len(self.scene.points) else np.zeros(3)
+        reference = max(float(np.max(span)), 1.0)
+        self._local_x_actor = self.plotter.add_arrows(
+            self.scene.member_midpoints[mask],
+            self.scene.local_x_vectors[mask],
+            mag=reference * 0.04,
+            color="#ffb347",
+        )
 
     def _on_cells_picked(self, picked) -> None:
         blocks = picked if isinstance(picked, pv.MultiBlock) else (picked,)
@@ -241,12 +271,14 @@ class StructuralViewport(QWidget):
         self.highlight_members(member_keys)
         self._set_actor_visibility(self._node_actor, False)
         self._set_actor_visibility(self._member_actor, False)
+        self._set_actor_visibility(self._local_x_actor, False)
         self.focus_entities(node_keys, member_keys)
         self.plotter.render()
 
     def clear_isolation(self) -> None:
         self._set_actor_visibility(self._node_actor, True)
         self._set_actor_visibility(self._member_actor, True)
+        self._set_actor_visibility(self._local_x_actor, self._show_local_x)
         self.highlight_nodes(())
         self.highlight_members(())
         if self.scene is not None and self.scene.points.size:

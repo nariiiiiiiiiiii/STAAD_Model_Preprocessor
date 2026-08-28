@@ -83,9 +83,9 @@
 - [x] Combined dirty fixture real Qt/VTK smoke flow.
 
 ## M7 — Normalize / renumber
-- [ ] Preview member directions.
-- [ ] Direction arrows in viewer.
-- [ ] Normalize incidence.
+- [x] Preview member directions.
+- [x] Direction arrows in viewer.
+- [x] Normalize incidence.
 - [ ] Deterministic node renumber.
 - [ ] Deterministic member renumber.
 - [ ] Old->new mapping report.

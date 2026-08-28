@@ -184,16 +184,29 @@ class ValidationPanel(SectionPanel):
         self.summary_label.setObjectName("muted_label")
         self.summary_label.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.body_layout.addWidget(self.summary_label, 1)
+        self._issues: list[Issue] = []
+        self._local_x_reverse_count = 0
+        self._local_x_total = 0
 
     def set_issues(self, issues: list[Issue]) -> None:
-        errors = sum(issue.severity is IssueSeverity.ERROR for issue in issues)
-        warnings = sum(issue.severity is IssueSeverity.WARNING for issue in issues)
-        infos = sum(issue.severity is IssueSeverity.INFO for issue in issues)
+        self._issues = list(issues)
+        self._render_summary()
+
+    def set_local_x_preview(self, *, reverse_count: int, total: int) -> None:
+        self._local_x_reverse_count = reverse_count
+        self._local_x_total = total
+        self._render_summary()
+
+    def _render_summary(self) -> None:
+        errors = sum(issue.severity is IssueSeverity.ERROR for issue in self._issues)
+        warnings = sum(issue.severity is IssueSeverity.WARNING for issue in self._issues)
+        infos = sum(issue.severity is IssueSeverity.INFO for issue in self._issues)
         self.summary_label.setText(
             f"Errors      {errors}\n"
             f"Warnings    {warnings}\n"
             f"Info        {infos}\n"
-            f"Total       {len(issues)}"
+            f"Total       {len(self._issues)}\n"
+            f"Local X     {self._local_x_reverse_count} reverse / {self._local_x_total} total"
         )
 
 
