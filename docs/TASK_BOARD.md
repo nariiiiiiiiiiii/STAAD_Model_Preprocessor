@@ -17,9 +17,9 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T11 | Member incidence/local-X normalization | **STRICT HR-2** | **COMPLETE** |
 | T12 | Deterministic node/member STAAD-facing numbering | **STRICT HR-4** | **COMPLETE** |
 | T13 | STAAD `.STD` geometry exporter | **STRICT HR-3** | **COMPLETE** |
-| T14 | SKP bridge contract + native helper capability probe | STANDARD | **READY** |
-| T15 | Direct SKP edge extraction + canonical transform/topology integration | **STRICT HR-1/HR-2** | BLOCKED by T14 |
-| T16 | SketchUp-style navigation + selection/filter/label foundation | STANDARD | BLOCKED by T04,T10 |
+| T14 | SKP bridge contract + native helper capability probe | STANDARD | **COMPLETE** |
+| T15 | Direct SKP edge extraction + canonical transform/topology integration | **STRICT HR-1/HR-2** | **READY** |
+| T16 | SketchUp-style navigation + selection/filter/label foundation | STANDARD | READY after scheduled T15 |
 | T17 | Snap/inference + working-plane + axis-lock engine | **STRICT HR-1/HR-2** | BLOCKED by T06,T07,T16 |
 | T18 | Manual Node/Member editing + atomic repair UI | **STRICT HR-2** | BLOCKED by T09,T16,T17 |
 | T19 | Exact/Relative Create Node + Translational Repeat | **STRICT HR-2** | BLOCKED by T18 |
@@ -59,4 +59,4 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 
 ## Next Task
 
-**T14 — SKP bridge contract + native helper capability probe**
+**T15 — Direct SKP edge extraction + canonical transform/topology integration**

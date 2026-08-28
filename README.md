@@ -11,7 +11,8 @@ Primary workflow:
 ## Current status
 
 - T01-T13 complete; deterministic minimal `.STD` geometry export is implemented.
-- T14 is next: isolated SKP bridge/helper capability probe.
+- T14 complete: isolated SKP process bridge, neutral protocol v1, capability probe, native CMake/C++ scaffold, and fail-soft DXF fallback UI.
+- T15 is next: official SketchUp C API edge extraction + canonical transform/topology integration.
 - V1 execution plan now runs through T24: Manual Editing T16-T20, READY/packaging/acceptance T21-T23, then non-destructive unused-file quarantine to project-local `DEL/` in T24.
 - Primary OS: Windows 11.
 - Primary language: Python.

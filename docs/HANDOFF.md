@@ -1,234 +1,127 @@
-Status: **T13 complete and merged to `master` at `d6dce33`; approved V1 plan has been expanded through T24, including post-acceptance unused-file quarantine. T14 is next and not started.**
+Status: **T14 complete on `task/14-skp-bridge`; T15 is next and not started. V1 plan includes T24 post-acceptance DEL quarantine.**
 
 ## Canonical project root
 
 `D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`
 
-HARD RULE: all source/temp/cache/log/build/test/generated/exported files remain inside this root.
+HARD RULE: all project-created source/temp/cache/log/build/test/generated/exported/quarantine files remain inside this root.
 
-## Product pipeline — approved V1 continuation
+## Completed baseline
 
-`SKP / DXF -> unit/axis -> canonical topology -> validate -> Quick Fix / Manual Edit -> direction -> numbering -> READY -> STAAD .STD -> STAAD.Pro`
+- T01-T13 completed through `d6dce33 feat: export validated STAAD geometry model`.
+- Manual Editing V1 expansion committed on master at `ae37884`.
+- T24 post-acceptance cleanup plan committed on master at `350c4ca`.
 
-The app is now explicitly planned as a **focused analytical line-model editor + preprocessor**, not only an issue console. It must still NOT become a general CAD/BIM/solver application.
+Canonical continuation documents:
+- main V1 plan: `docs/superpowers/plans/2026-08-28-staad-model-preprocessor-v1.md`;
+- Manual Editing T16-T20 plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md`;
+- Manual Editing design: `docs/superpowers/specs/2026-08-28-manual-model-editing-design.md`.
 
-Canonical model/editing space:
-- metre,
-- STAAD Y-Up (`Y` vertical),
-- stable Node/Member UUID identities,
-- STAAD-facing numbers are attributes only.
+## T14 — SKP Bridge Contract + Native Helper Capability Probe
 
-## Completed commits T01-T13
+Branch/worktree:
+- branch: `task/14-skp-bridge`
+- worktree: `.worktrees/task-14-skp-bridge`
+- base/planning commit: `350c4ca`
+- task commit subject: `feat: define isolated native SKP bridge contract`
 
-- T01 `4a7551b`
-- T02 `8e4c2f8`
-- T03 `f97bffe`
-- T04 `a38fc97`
-- T05 `9fcf6be`
-- T06 `8bf1b25`
-- T07 `ce24224`
-- T08 `adde44b`
-- T09 `7bfeb94`
-- T10 `b3e7d4e`
-- T11 `a4fc572`
-- T12 `9ab269f`
-- T13 `d6dce33` — `feat: export validated STAAD geometry model`
+Created:
+- `src/staadprep/importers/skp_bridge.py`
+- `native/skp_reader/CMakeLists.txt`
+- `native/skp_reader/include/neutral_contract.h`
+- `native/skp_reader/src/main.cpp`
+- `tests/unit/test_skp_bridge.py`
+- `tests/unit/test_skp_native_scaffold.py`
+- `tests/ui/test_skp_capability_ui.py`
 
-T13 was fast-forwarded into `master` before the V1 planning expansion.
+Modified:
+- `src/staadprep/ui/main_window.py`
+- `README.md`
+- `docs/CHECKLIST.md`
+- `docs/TASK_BOARD.md`
+- main V1 implementation plan status.
 
-## T13 locked exporter contract
+### Neutral process contract
 
-Minimal deterministic geometry subset:
+- protocol version: integer `1`;
+- helper capability probe: `skp_reader.exe --capabilities`;
+- read CLI: `skp_reader.exe --input <file.skp> --output <project-local-json>`;
+- neutral envelope: `protocol_version`, `source_file`, `source_unit`, `source_axis`, `points`, `segments`, `groups`, `tags`, `warnings`;
+- Python returns existing raw `ImportBatch`; no SketchUp SDK type crosses into the canonical Python model;
+- raw SKP coordinates stay source-space in T14; T06/T07 remain responsible for canonical transform/topology in T15.
 
-```text
-STAAD SPACE
-UNIT METER KN
-JOINT COORDINATES
-<node-number> <X> <Y> <Z>;
-MEMBER INCIDENCES
-<member-number> <start-node-number> <end-node-number>;
-FINISH
-```
+### Capability / failure behavior
 
-Exporter fails closed for empty model, invalid/missing/duplicate numbering, dangling references, or validation `ERROR`. It never auto-repairs or auto-renumbers. Warnings are reported but may export.
+`SkpBridge.capability()` probes without reading a model or downloading anything.
 
-Latest T13 completion evidence before commit:
-- 173 pytest regression tests passed in the fresh non-interactive run;
-- real Qt/VTK viewport / issue-repair / orientation smoke trio: 3 passed;
-- Ruff passed;
-- targeted mypy passed;
-- independent T12 -> T13 parse check passed;
-- T13 doc gate passed;
-- `git diff --check` passed.
+If helper/SDK reader is absent or not ready:
 
-Target STAAD.Pro open/acceptance is still intentionally pending and now belongs to **T23**.
+`SKP importer unavailable — DXF remains available`
 
-## Approved Manual Editing design
+The desktop app remains launchable and DXF Import remains enabled. Protocol mismatch and malformed neutral JSON fail closed with `SkpBridgeError` rather than silently accepting incompatible data.
 
-Canonical design:
-`docs/superpowers/specs/2026-08-28-manual-model-editing-design.md`
+Neutral helper outputs are generated only inside project-local `.tmp/skp_bridge/` (or another path validated by `ProjectPaths.assert_inside_project`). The bridge does not auto-delete those outputs.
 
-Detailed implementation plan:
-`docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md`
+### Native scaffold boundary
 
-### Navigation
+T14 C++ is capability-only. It intentionally does NOT guess SketchUp C API function/header signatures and contains no SDK download logic.
 
-SketchUp-style baseline:
-- Middle Mouse drag = Orbit
-- Shift + Middle Mouse drag = Pan
-- Wheel = Zoom
-- Shift+Z = Fit / Zoom Extents
+Expected official SDK staging root for T15:
 
-Navigation works as an override during edit tools and must not cancel active ghost preview.
+`vendor/sketchup-sdk/`
 
-**Critical safety rule:** default `SELECT` mode cannot move structural geometry by drag.
+`CMakeLists.txt` only advertises this project-local staging location. T15 must inspect the actual installed official SDK headers/libraries before adding any API calls/linking.
 
-### Editing modes
+### Native build verification
 
-- SELECT
-- CREATE NODE
-- DRAW MEMBER
-- MOVE / SNAP NODE
-- DELETE
-- MEASURE
-- SET DIRECTION
+On 2026-08-28, Visual Studio 2026 Build Tools became available and the T14 capability-only helper was configured and compiled successfully with:
+- CMake `4.3.1-msvc1`;
+- MSVC tools `14.51.36231` / compiler `19.51.36256.0`;
+- x64 host/target Developer Environment.
 
-Ghost preview is non-canonical. `Esc` cancels without model mutation. Commit always routes through reversible/auditable command/history and triggers revalidation/rerender.
+The native helper builds project-locally to `build/native/skp_reader/skp_reader.exe`, matching `SkpBridge`'s default helper path. Running `--capabilities` returned protocol `1`, `sketchup_sdk=false`, and `reader_ready=false`, which is the expected T14 state before the official SketchUp SDK is staged for T15.
 
-### Manual geometry baseline
+No toolchain or SketchUp SDK is downloaded automatically by the project.
 
-User must be able to:
-- draw a missing Member between existing Nodes;
-- draw from an existing Node to a newly created Node atomically;
-- move a Node;
-- drag/snap/merge a floating Node onto an existing Node;
-- select exact overlapping Member and delete only that Member;
-- split Member at midpoint/percentage/distance/intersection;
-- Undo/Redo manual operations.
+## T14 verification evidence
 
-### Snap / inference
+TDD/targeted evidence:
+- initial RED: `ModuleNotFoundError: staadprep.importers.skp_bridge`;
+- UI RED: old tooltip did not report the required SKP-unavailable/DXF-fallback state;
+- final targeted T14: 9 tests passed;
+- Ruff targeted passed;
+- targeted mypy (`skp_bridge.py`, `main_window.py`) passed.
+- native CMake configure/build passed with MSVC x64; capability-only helper executed successfully.
+- real built-helper -> `SkpBridge.capability()` integration passed (`protocol=1`, `sdk=False`, `ready=False`).
 
-Targets:
-- existing Node,
-- endpoint,
-- midpoint,
-- intersection,
-- X / Y / Z axis,
-- active working plane/grid.
+Regression split after implementation:
+- unit: 157 passed;
+- UI (includes real Qt/VTK subprocess smokes): 22 passed;
+- integration: 3 passed;
+- total evidence: 182 tests passed;
+- full Ruff `src tests scripts`: passed.
 
-Axis locks: X, Y (Vertical), Z. Unresolved 3D depth must not be guessed.
+## Important boundary
 
-### Create Node
+T14 does not read actual `.skp` files through the official SDK yet. `Native SKP edge extraction` and `native -> neutral -> canonical metre/Y-Up integration` remain unchecked in `CHECKLIST.md` and belong to T15.
 
-Supported:
-1. Click / Snap
-2. Exact STAAD XYZ
-3. Relative to selected reference Node
-4. Translational Repeat
+T14 does not change T13 `.STD` export semantics and does not implement manual editing.
 
-Relative dialog example:
+## Next Task
 
-```text
-Reference Node: 21
-X [ + ] [ 1.000 ] m
-Y [ - ] [ 0.000 ] m
-Z [ + ] [ 0.000 ] m
+**T15 — Direct SKP Edge Extraction + Transform Integration**
 
-[ ] Create Member
-```
+Risk: **STRICT HR-1 / HR-2 already covered by the user's approved high-risk envelope.**
 
-If `Create Member` is checked, Reference Node -> New Node is created atomically with the Node.
+T15 must:
+1. use/stage the official SketchUp C API only under `vendor/sketchup-sdk/`;
+2. inspect exact installed SDK headers/signatures rather than guessing;
+3. extract edges/groups/components in source space with composed instance transforms;
+4. reuse T06 unit/Z-Up -> Y-Up conversion and T07 topology builder;
+5. verify against hand-authored/golden known coordinates.
 
-### Translational Repeat
-
-- per-step ΔX/ΔY/ΔZ;
-- repeat count = NEW positions only, excluding reference Node;
-- optional member creation;
-- default `Connect Consecutive Nodes`;
-- optional `Connect From Reference Node`;
-- collision preview/resolution before commit;
-- one atomic history item / one Undo.
-
-This is intentionally narrow and is NOT a full CAD Copy Array.
-
-### Numbering controls
-
-- Auto Node Number
-- Auto Member Number
-- Auto Number All
-- Old -> New preview
-- reversible history operation
-
-Reuses T12 deterministic rules. UUID identities and endpoint UUID references never change.
-
-### Member direction controls
-
-- Auto Fix Axis All
-- Auto Fix Axis Selected
-- Flip Selected
-- Set Direction by selecting Member then clicking endpoint that shall become Start `(i)`
-
-Reuses T11 incidence/local-X logic; geometry does not move.
-
-### View / selection support
-
-- Node / Member selection filter
-- overlap candidate cycling/chooser
-- Ctrl additive selection
-- double-click Focus/Zoom
-- Node Number / Member Number / Local-X / Coordinates toggles
-- context menu by entity type
-
-## V1 scope boundary — explicitly remain OUT
-
-Do not add before V1 acceptance:
-- arbitrary Rotate geometry,
-- Mirror,
-- full Copy Array / radial/general transform array,
-- Trim,
-- Extend,
-- Offset,
-- 3D solids/surfaces,
-- section-shape modeling,
-- solver/FEM,
-- load/design systems,
-- BIM/IFC authoring.
-
-## Revised task sequence
-
-T01-T13 COMPLETE.
-
-Next sequence:
-- T14 — SKP bridge contract + native helper probe — STANDARD
-- T15 — Direct SKP extraction + transform/topology integration — STRICT HR-1/HR-2
-- T16 — SketchUp-style navigation + selection/labels — STANDARD
-- T17 — Snap/inference + working plane + axis locks — STRICT HR-1/HR-2
-- T18 — Manual Node/Member editing + atomic repair UI — STRICT HR-2
-- T19 — Exact/Relative Create Node + Translational Repeat — STRICT HR-2
-- T20 — Numbering + member-direction controls — STRICT HR-2/HR-4
-- T21 — End-to-End READY gate + golden suite + audit — STRICT HR-1..HR-4
-- T22 — Windows executable packaging — STANDARD
-- T23 — Real-project + target STAAD.Pro acceptance — STRICT acceptance
-- T24 — unused/superseded file audit + move to project-local `DEL/` for user deletion — STANDARD
-
-## Important risk/approval state
-
-The user's existing explicit STRICT approvals for HR-1 through HR-4 remain applicable. The new manual-editing tasks are classified within those existing risk domains:
-- coordinate/inference: HR-1/HR-2,
-- topology/manual repair: HR-2,
-- direction/incidence: HR-2,
-- numbering: HR-4.
-
-If implementation discovers a new high-risk behavior outside those approved categories, stop and request a new approval.
-
-## Next task
-
-**T14 — SKP Bridge Contract + Native Helper Capability Probe**
-
-Risk: STANDARD.
-
-T14 must remain isolated from exporter/manual-edit semantics. It defines the native-helper boundary and must fail gracefully if the official SketchUp SDK is absent.
+If the official SDK is not present when T15 starts, stop at that dependency rather than substituting an unofficial parser or network download.
 
 ## T24 cleanup boundary
 
-T24 runs only after T23 acceptance. It audits the accepted workspace, proves candidates unused/superseded, and moves only those candidates to `STAAD_Model_Preprocessor/DEL/`. It never deletes files. `DEL/UNUSED_FILES_MANIFEST.md` must preserve original paths/reasons/evidence so the user can review and delete later. Protected: `.git`, active `.worktrees`, current `.venv`, required `vendor` SDK, and acceptance evidence.
+T24 runs only after T23 acceptance. It moves only verified-unused/superseded files into project-local `DEL/`, writes `DEL/UNUSED_FILES_MANIFEST.md`, and never deletes files. Final deletion is user-controlled.

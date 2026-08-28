@@ -32,7 +32,7 @@
 - [x] Render imported members.
 - [x] Display node/member count.
 - [x] Source metadata.
-- [ ] SKP bridge contract.
+- [x] SKP bridge contract + protocol/capability probe (T14).
 - [ ] Native SKP edge extraction.
 - [ ] Native -> neutral -> canonical metre/Y-Up integration.
 

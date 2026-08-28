@@ -23,6 +23,12 @@ from staadprep.exporters.staad_std import ExportReport, StaadExportError, export
 from staadprep.importers.contracts import ImportBatch
 from staadprep.importers.dxf_reader import DxfReader
 from staadprep.importers.raw_preview import raw_batch_to_preview_model
+from staadprep.importers.skp_bridge import (
+    UNAVAILABLE_MESSAGE,
+    SkpBridge,
+    SkpBridgeError,
+    SkpCapability,
+)
 from staadprep.model.project import ProjectModel
 from staadprep.orientation.normalize import normalization_commands
 from staadprep.paths import ProjectPaths
@@ -55,11 +61,19 @@ class MainWindow(QMainWindow):
         project_root: Path | None = None,
     ) -> None:
         super().__init__()
-        configured_root = project_root or Path(
-            os.environ.get("STAADPREP_PROJECT_ROOT", Path.cwd())
-        )
+        configured_root = project_root or Path(os.environ.get("STAADPREP_PROJECT_ROOT", Path.cwd()))
         self._project_paths = ProjectPaths.from_root(configured_root)
         self._project_paths.ensure_layout()
+        self.skp_bridge = SkpBridge(self._project_paths.root)
+        try:
+            self.skp_capability = self.skp_bridge.capability()
+        except SkpBridgeError:
+            self.skp_capability = SkpCapability(
+                protocol_version=None,
+                sketchup_sdk=False,
+                reader_ready=False,
+                message=UNAVAILABLE_MESSAGE,
+            )
         self._viewport_factory = viewport_factory or StructuralViewport
         self._confirm_delete = confirm_delete or self._confirm_delete_dialog
         self.current_import_batch: ImportBatch | None = None
@@ -76,11 +90,13 @@ class MainWindow(QMainWindow):
         self._create_actions()
         self._create_toolbar()
         self._create_workspace()
-        self.statusBar().showMessage("Ready — no model loaded")
+        self.statusBar().showMessage(f"Ready — no model loaded | {self.skp_capability.message}")
 
     def _create_actions(self) -> None:
         self.import_action = QAction("Import Model", self)
-        self.import_action.setToolTip("Import raw DXF geometry (SKP support arrives later)")
+        self.import_action.setToolTip(
+            f"{self.skp_capability.message}; raw DXF import remains available"
+        )
         self.import_action.triggered.connect(self._choose_dxf)
 
         self.unit_check_action = self._disabled_action("Unit Check", "UI wiring pending")
@@ -252,9 +268,7 @@ class MainWindow(QMainWindow):
         self.validate_action.setEnabled(False)
         self.repair_action.setEnabled(False)
         self.export_std_action.setEnabled(False)
-        self.export_std_action.setToolTip(
-            "Canonical validated and numbered model required"
-        )
+        self.export_std_action.setToolTip("Canonical validated and numbered model required")
         self.orientation_reverse_count = 0
         self.normalize_axis_action.setEnabled(False)
         self.normalize_axis_action.setToolTip("Canonical metre/Y-Up model required")
@@ -323,9 +337,7 @@ class MainWindow(QMainWindow):
             return
         if any(issue.severity is IssueSeverity.ERROR for issue in self.current_issues):
             self.export_std_action.setEnabled(False)
-            self.export_std_action.setToolTip(
-                "Resolve validation ERROR issues before STAAD export"
-            )
+            self.export_std_action.setToolTip("Resolve validation ERROR issues before STAAD export")
             return
         node_numbers = [node.number for node in model.nodes.values()]
         member_numbers = [member.number for member in model.members.values()]
@@ -439,11 +451,15 @@ class MainWindow(QMainWindow):
         if self.current_model is None:
             return None
         node_keys, member_keys = self._partition_entity_keys(issue.entity_keys)
-        if issue.type in {
-            IssueType.DUPLICATE_NODE,
-            IssueType.NEAR_NODE,
-            IssueType.UNCONNECTED_GAP,
-        } and len(node_keys) >= 2:
+        if (
+            issue.type
+            in {
+                IssueType.DUPLICATE_NODE,
+                IssueType.NEAR_NODE,
+                IssueType.UNCONNECTED_GAP,
+            }
+            and len(node_keys) >= 2
+        ):
             return MergeNodes(node_keys[0], node_keys[1])
         if issue.type is IssueType.ORPHAN_NODE and node_keys:
             return DeleteNode(node_keys[0])

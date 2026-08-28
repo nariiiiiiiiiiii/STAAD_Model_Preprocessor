@@ -674,19 +674,19 @@ Commit: `feat: export validated STAAD geometry model`
 - JSON envelope fields: `protocol_version`, `source_file`, `source_unit`, `source_axis`, `points`, `segments`, `groups`, `tags`, `warnings`.
 - Produces: `SkpBridge.is_available() -> bool`; `SkpBridge.read(path) -> ImportBatch`.
 
-- [ ] **Step 1: Test Python bridge with a fake project-local helper executable/script fixture**
+- [x] **Step 1: Test Python bridge with a fake project-local helper executable/script fixture**
 
 Assert protocol-version mismatch fails closed and helper output outside the project is rejected.
 
-- [ ] **Step 2: Implement Python process bridge and capability status**
+- [x] **Step 2: Implement Python process bridge and capability status**
 
 If the official SketchUp SDK is absent, UI reports `SKP importer unavailable — DXF remains available`; no crash and no network download occurs automatically.
 
-- [ ] **Step 3: Add CMake scaffold that expects the official SDK only under `vendor/sketchup-sdk/`**
+- [x] **Step 3: Add CMake scaffold that expects the official SDK only under `vendor/sketchup-sdk/`**
 
 No SDK binaries are committed to Git.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Commit: `feat: define isolated native SKP bridge contract`
 
