@@ -1,174 +1,124 @@
-# HANDOFF — STAAD Model Preprocessor
-
 Date: 2026-08-28
-Status: **T11 implemented on `task/11-orientation`; awaiting user approval before T12.**
+Status: **T12 complete on `task/12-renumber`; awaiting user approval before T13.**
 
 ## Canonical project root
 
 `D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`
 
-HARD RULE: every project-created source file, worktree, temp, cache, log, build output, artifact, test output, generated report, and staged dependency must remain inside this root.
+HARD RULE: all source/temp/cache/log/build/test/generated files remain inside this root.
 
-## Product goal
+## Product pipeline
 
-`SketchUp SKP / DXF -> Preprocessor -> inspect/repair/normalize/renumber/validate -> STAAD .STD -> STAAD.Pro`
+`SketchUp SKP / DXF -> unit/axis gate -> canonical topology -> validate/repair -> normalize incidence -> renumber -> STAAD .STD -> STAAD.Pro`
 
-V1 prepares clean analytical geometry before STAAD.Pro. It is not a structural solver or mini STAAD.
+Canonical geometry entering T12 is metre / Y-Up. T12 MUST NOT transform axes or coordinates.
 
-## Completed task commits before T11
+## Completed task commits before T12
 
-- T01 `4a7551b` — project-local Python/runtime bootstrap and path guard.
-- T02 `8e4c2f8` — approved desktop UI shell.
-- T03 `f97bffe` — canonical Node/Member/Project model + serialization.
-- T04 `a38fc97` — real PyVista/VTK viewport + selection/highlight.
-- T05 `9fcf6be` — raw DXF import + preview.
-- T06 `8bf1b25` — STRICT unit/scale/axis transform engine.
-- T07 `ce24224` — STRICT canonical topology + connected structures.
-- T08 `adde44b` — STRICT read-only geometry/topology validators.
-- T09 `7bfeb94` — STRICT reversible repair commands + undo/redo + audit.
-- T10 `b3e7d4e` — Issue Console, viewport focus/isolate, Quick Fix and Undo/Redo UI.
+- T01 `4a7551b`
+- T02 `8e4c2f8`
+- T03 `f97bffe`
+- T04 `a38fc97`
+- T05 `9fcf6be`
+- T06 `8bf1b25`
+- T07 `ce24224`
+- T08 `adde44b`
+- T09 `7bfeb94`
+- T10 `b3e7d4e`
+- T11 `a4fc572`
 
-## T11 — Member Incidence / Local-X Normalization
+## T12 — Deterministic numbering
 
 Branch/worktree:
-- branch: `task/11-orientation`
-- worktree: `.worktrees/task-11-orientation`
-- base commit: `b3e7d4e`
+- branch: `task/12-renumber`
+- worktree: `.worktrees/task-12-renumber`
+- base: `a4fc572`
 
 Created:
-- `src/staadprep/orientation/__init__.py`
-- `src/staadprep/orientation/normalize.py`
-- `tests/unit/test_orientation.py`
-- `tests/unit/test_scene_orientation.py`
-- `tests/unit/test_orientation_invariants.py`
-- `tests/ui/test_orientation_ui.py`
-- `tests/ui/test_orientation_smoke.py`
-- `scripts/smoke_orientation.py`
+- `src/staadprep/numbering/__init__.py`
+- `src/staadprep/numbering/renumber.py`
+- `tests/unit/test_renumber.py`
+- `tests/unit/test_renumber_edges.py`
+- `tests/unit/test_numbering_policy.py`
 
-Modified:
-- `src/staadprep/viewer/scene.py`
-- `src/staadprep/viewer/widget.py`
-- `src/staadprep/ui/main_window.py`
-- `src/staadprep/ui/panels.py`
-- task/checklist/plan docs.
+`Node.number` and `Member.number` already existed from T03, so no entity-schema change was required despite the original plan listing `model/entities.py` as a modification target.
 
-## Locked T11 semantics
+### Node numbering
 
-Canonical coordinates are Y-Up.
+Default sort in canonical Y-Up coordinates:
+1. quantized elevation `Y`
+2. quantized `X`
+3. quantized `Z`
+4. stable UUID string
 
-`MemberClass`:
-- `COLUMN`: axis-aligned Y member within classification tolerance.
-- `BEAM_X`: axis-aligned X member within classification tolerance.
-- `BEAM_Z`: axis-aligned Z member within classification tolerance.
-- `BRACE`: non-axis-aligned / multi-axis member.
-- `OTHER`: zero/near-zero member at the supplied classification tolerance.
+Default coordinate precision: `1e-9 m`.
 
-Deterministic incidence/local-X direction rule:
-- dominant Y / columns: low Y -> high Y,
-- dominant X: low X -> high X,
-- dominant Z: low Z -> high Z,
-- dominant-axis magnitude ties use priority `X`, then `Y`, then `Z`,
-- zero-length member has no meaningful direction and is not reversed.
+### Member numbering
 
-T11 controls only member `i -> j` incidence, which defines analytical local-X.
+Default class order:
+1. COLUMN
+2. BEAM_X
+3. BEAM_Z
+4. BRACE
+5. OTHER
 
-T11 explicitly does **not** claim to normalize:
-- STAAD local-Y,
-- STAAD local-Z,
-- Beta angle,
-- section orientation,
-- releases,
-- supports,
-- node/member numbering.
+Within a class, sort by quantized midpoint:
+1. midpoint `Y`
+2. midpoint `X`
+3. midpoint `Z`
+4. stable UUID string
 
-Those must not be inferred from T11 behavior.
+Member classification reuses the T11 canonical orientation classifier.
 
-## Reversible normalization
+### Mutation / integrity contract
 
-`NormalizeMemberDirection(member_key)` is a factory that returns the already-STRICT-tested T09 `ReverseMember` command only when a member violates the deterministic rule.
+- numbering changes only STAAD-facing `.number` fields plus model `revision`;
+- node/member UUID dictionary keys never change;
+- member `start/end` UUID references never change;
+- geometry/source metadata never change;
+- mapping is precomputed before mutation, so missing member-node references fail before partial member numbering;
+- every numbering call returns `NumberingMap`, an auditable UUID -> STAAD-facing number mapping;
+- stale/duplicate/negative old numbers are overwritten with deterministic positive `1..N` sequences.
 
-`normalization_commands(model)`:
-- returns only required `ReverseMember` commands,
-- sorts by stable member UUID integer order,
-- performs no mutation by itself.
+### Policy safety
 
-MainWindow `Normalize Axis` action now means **Normalize member incidence/local-X** while preserving the locked toolbar label.
+`node_precision_m` must be finite and positive. `NaN`, `+inf`, `-inf`, zero and negative values fail closed.
 
-When a canonical model is loaded:
-- local-X arrows are rendered at member midpoints,
-- Validation panel shows `N reverse / M total`,
-- toolbar tooltip shows the number requiring reversal,
-- Normalize action is enabled only when at least one member needs reversal.
+`class_order` must contain every `MemberClass` exactly once.
 
-Normalize-all execution:
-- builds deterministic commands,
-- executes each command through existing `RepairHistory`,
-- therefore increments revision/audit per reversed member,
-- re-renders and re-runs validation once after the batch,
-- Undo/Redo continues to operate one reversible `ReverseMember` command at a time.
-
-No composite T11 repair command was introduced; existing T09 mutation semantics remain unchanged.
-
-## Viewport local-X arrows
-
-`SceneData` now exposes arrays aligned with `member_keys`:
-- `member_midpoints`,
-- normalized `local_x_vectors`.
-
-Zero-length members use a zero vector.
-
-`StructuralViewport.show_local_x_arrows(True/False)`:
-- renders local-X arrows for nonzero members,
-- preserves the arrow preview across `set_model()` refreshes,
-- hides the global arrow actor during structure isolation and restores it afterward.
-
-## STRICT T11 verification evidence
+## T12 verification evidence
 
 TDD RED evidence:
-- `staadprep.orientation` initially did not exist.
-- `SceneData.member_midpoints/local_x_vectors` initially did not exist.
-- MainWindow initially had no orientation preview count or normalize method.
-- real orientation smoke initially failed because `smoke_orientation.py` did not exist.
+- numbering package initially missing (`ModuleNotFoundError`).
+- non-finite precision tests initially showed `NaN` and `+inf` were accepted; guard was corrected to finite + positive.
 
-Targeted T11 verification before documentation update:
-- 25 T11 tests passed.
+Targeted T12 suite:
+- 12 tests passed.
 - Ruff passed.
-- real Windows Qt/VTK orientation smoke passed.
-- invariant tests proved node identity/positions, member keys, lengths, source metadata, connected components, and validation issue types are unchanged by normalization except intended `start/end` swaps.
-- normalize -> undo-all returns the exact original `ProjectModel`, including revision.
+- targeted mypy passed.
 
-Independent hand-case sanity:
-- X/Y magnitude tie chooses X.
-- Y/Z magnitude tie chooses Y.
-- 2 required reversals normalize to zero and undo back to revision 0.
-- evidence marker: `ORIENTATION_INDEPENDENT_PASS tie_xy=X tie_yz=Y normalized=2 undo_revision=0`.
+Independent HR-4 sanity:
+- 5,001 nodes / 5,000 members;
+- shuffled dictionary insertion order produced identical numbering maps;
+- node numbers were unique 1..5001;
+- member numbers were unique 1..5000;
+- endpoint UUID references were unchanged.
 
-Full test execution is split because the combined suite plus three real Qt/VTK subprocess smokes exceeds the Serena shell execution window:
-- non-smoke suite: 138 passed,
-- T04 viewport smoke: 1 passed,
-- T10 issue-repair smoke: 1 passed,
-- T11 orientation smoke: 1 passed,
-- effective total: 141 passed.
+Full regression before documentation update:
+- 150 non-smoke tests passed;
+- T04 real Qt/VTK viewport smoke passed;
+- T10 real issue/repair smoke passed;
+- T11 real orientation smoke passed;
+- total 153 tests passed.
 
-Type checking:
-- Ruff is clean.
-- targeted mypy with `--follow-imports=silent` passes T11 orientation/scene/UI modules.
-- unrestricted mypy import traversal still surfaces pre-existing T05 `ezdxf` typing diagnostics and PyVista/VTK stub mismatches in the renderer; these are not T11 behavior failures and were not expanded into this task.
+## Important boundary
 
-## Current product boundary
-
-T01-T11 functionality is implemented.
-
-The app can inspect and repair canonical models, preview local-X arrows, deterministically normalize member incidence, and undo/redo those reversals.
-
-The raw DXF UI path still stops at `RAW DXF PREVIEW — NOT VALIDATED`; Unit Check/reference-dimension UI has not yet been wired into a complete raw-DXF -> canonical topology pipeline. Do not silently assume source unit/axis to bypass that gate.
+T12 does not write `.STD` and does not rewrite canonical UUID identities. T13 consumes these deterministic positive numbers to emit STAAD `JOINT COORDINATES` and `MEMBER INCIDENCES`.
 
 ## Next task
 
-**T12 — Deterministic Node / Member Renumbering + Reference Rewrite**
+**T13 — Minimal STAAD `.STD` Geometry Exporter**
 
-Risk: **STRICT HR-4 / Full TDD already approved by user.**
+Risk: **STRICT HR-3 / Full TDD already approved by user.**
 
-T12 may change only STAAD-facing `.number` attributes and numbering maps. Stable UUID identities and member endpoint UUID references must remain unchanged.
-
-Do not start T12 until the user explicitly requests it.
+Do not start T13 until the user explicitly requests it.

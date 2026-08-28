@@ -86,9 +86,9 @@
 - [x] Preview member directions.
 - [x] Direction arrows in viewer.
 - [x] Normalize incidence.
-- [ ] Deterministic node renumber.
-- [ ] Deterministic member renumber.
-- [ ] Old->new mapping report.
+- [x] Deterministic node renumber.
+- [x] Deterministic member renumber.
+- [x] Old->new mapping report (`NumberingMap` UUID -> STAAD-facing number).
 
 ## M8 — STAAD export
 - [ ] Define supported `.STD` subset.

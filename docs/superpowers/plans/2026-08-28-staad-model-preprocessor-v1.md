@@ -586,23 +586,23 @@ Commit: `feat: normalize deterministic member incidence`
 - Produces: `renumber_members(model, policy) -> NumberingMap`
 - `NumberingMap` exposes `node_numbers: dict[UUID, int]`, `member_numbers: dict[UUID, int]`.
 
-- [ ] **Step 1: RED tests: node order**
+- [x] **Step 1: RED tests: node order**
 
 Default Y-Up sort is elevation `Y`, then `X`, then `Z`; ties are broken by stable UUID string only after coordinate equality at policy precision.
 
-- [ ] **Step 2: RED tests: member order**
+- [x] **Step 2: RED tests: member order**
 
 Class order: COLUMN, BEAM_X, BEAM_Z, BRACE, OTHER; then midpoint elevation/position; then stable UUID tie-break.
 
-- [ ] **Step 3: Implement numbering by changing only `.number` attributes**
+- [x] **Step 3: Implement numbering by changing only `.number` attributes**
 
 Stable node/member UUID keys and member endpoint UUID references MUST NOT change.
 
-- [ ] **Step 4: Determinism test**
+- [x] **Step 4: Determinism test**
 
 Clone same model with different dictionary insertion order; repeated renumbering must produce identical UUID→number maps.
 
-- [ ] **Step 5: Referential-integrity and audit tests, then commit**
+- [x] **Step 5: Referential-integrity and audit tests, then commit**
 
 Commit: `feat: add deterministic STAAD-facing numbering`
 
