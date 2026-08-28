@@ -326,3 +326,21 @@ After V1 begins real use:
 `Real project -> observed pain point -> narrowly scoped patch -> targeted regression fixture -> release`
 
 Do not turn later feedback into a full CAD rewrite. Add patches around stable canonical/editing interfaces.
+
+## K. Post-acceptance cleanup workflow (T24)
+
+After T23 succeeds:
+
+```text
+Accepted V1 workspace
+ -> inventory files
+ -> reference/import/config scan
+ -> classify KEEP / REGENERABLE / SUPERSEDED / UNUSED
+ -> preview quarantine manifest
+ -> move verified-unused items to project-local DEL/
+ -> regression/lint/type/build/package verification
+ -> final manifest + HANDOFF
+ -> user reviews DEL/ and deletes separately if desired
+```
+
+No file is deleted by T24. A candidate with uncertain ownership/reference remains in place.

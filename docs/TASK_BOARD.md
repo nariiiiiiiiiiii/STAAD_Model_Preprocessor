@@ -27,6 +27,7 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T21 | End-to-end READY gate + golden dirty-model suite + audit report | **STRICT HR-1..HR-4** | BLOCKED by T15,T18,T19,T20 |
 | T22 | Windows packaging (`.exe`) + production path/log policy | STANDARD | BLOCKED by T21 |
 | T23 | Real-project acceptance + target STAAD.Pro verification | **STRICT acceptance** | BLOCKED by T22 |
+| T24 | Post-acceptance unused-file audit + quarantine to project-local `DEL/` | STANDARD | BLOCKED by T23 |
 
 ## Operational rules
 
@@ -38,6 +39,7 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 6. `SELECT` mode must never mutate structural geometry from a mouse drag.
 7. Geometry edits commit only through reversible/auditable commands; ghost preview is not canonical state.
 8. If a new high-risk behavior outside approved HR-1..HR-4 appears, stop and request a new explicit approval before implementing it.
+9. T24 never deletes files. It moves only verified-unused candidates to project-local `DEL/` with a manifest; user performs any final deletion.
 
 ## Fastest usable checkpoints
 
@@ -47,6 +49,7 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 - **Checkpoint C2 — after T20:** user can directly edit analytical nodes/members and control numbering/direction in-app.
 - **Checkpoint D — after T21:** direct SKP/DXF -> repair/manual edit -> READY -> `.STD` V1 pipeline is functionally complete.
 - **Checkpoint E — after T23:** V1 accepted for real production use in target STAAD.Pro environment.
+- **Checkpoint F — after T24:** accepted V1 workspace is audited; verified-unused files are quarantined under project-local `DEL/` for user review/deletion.
 
 ## Detailed plans
 

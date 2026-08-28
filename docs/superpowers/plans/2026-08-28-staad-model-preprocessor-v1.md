@@ -896,6 +896,58 @@ Commit: `docs: record V1 real-project acceptance`
 
 ---
 
+### Task 24: Post-Acceptance Unused-File Audit + DEL Quarantine
+
+**Risk:** STANDARD
+
+**Files:**
+- Create: `DEL/UNUSED_FILES_MANIFEST.md`
+- Create/update: `artifacts/cleanup/` audit evidence as needed
+- Modify: `README.md`
+- Modify: `docs/HANDOFF.md`
+- Modify: `docs/CHECKLIST.md`
+- Modify: `docs/TASK_BOARD.md`
+- Move only verified-unused/superseded files into project-local `DEL/`
+
+**Interfaces:**
+- Input: the exact T23-accepted repository/workspace state.
+- Output: a lean working tree plus `DEL/UNUSED_FILES_MANIFEST.md` containing original path, quarantine path, classification, evidence, and restore instruction for every moved item.
+- T24 never deletes files and never changes structural behavior intentionally.
+
+- [ ] **Step 1: Inventory and classify candidates without moving anything**
+
+Enumerate tracked files plus relevant project-local untracked/generated paths. Classify candidates as `KEEP`, `REGENERABLE`, `SUPERSEDED`, or `UNUSED`. Protect `.git`, active `.worktrees`, current `.venv`, required `vendor` SDK, T23 acceptance evidence, and any file with uncertain ownership.
+
+- [ ] **Step 2: Build a reference/evidence map**
+
+Search Python imports, tests, scripts, docs links, package/build configuration, runtime path constants, fixtures/golden references, native CMake references, and README/HANDOFF references. A file may enter the move set only when this evidence demonstrates it is not required by current V1.
+
+- [ ] **Step 3: Write the pre-move manifest and review the exact move set**
+
+For every proposed move record: original path, target under `DEL/`, classification, reason, evidence/search result, and restoration command/path. Do not include ambiguous candidates.
+
+- [ ] **Step 4: Move verified candidates to project-local `DEL/` only**
+
+Preserve useful relative grouping under `DEL/` so restoration is obvious. Do not delete, overwrite, or move files outside the canonical project root.
+
+- [ ] **Step 5: Verify no live reference points to quarantined paths**
+
+Repeat reference/import/config search after the moves. Any broken or still-live reference means restore the affected file and remove it from the move set.
+
+- [ ] **Step 6: Run affected regression plus final project verification**
+
+Run full Python tests, Ruff, targeted/full mypy as applicable, native/build/package smoke where the move set touches those areas, and `git diff --check`. The accepted V1 behavior must remain unchanged.
+
+- [ ] **Step 7: Update final docs and commit**
+
+Document quarantine size/count, categories, remaining protected/regenerable directories, and explicit statement that the user—not T24—owns final deletion of `DEL/` contents.
+
+Commit: `chore: quarantine unused project files for review`
+
+**Checkpoint F:** accepted V1 workspace is audited and verified-unused files are isolated in `DEL/` for user-controlled deletion.
+
+---
+
 ## Per-Task Stop Protocol
 
 At the end of every Task the executor MUST:
@@ -909,7 +961,7 @@ At the end of every Task the executor MUST:
 
 ## Plan Self-Review Result
 
-- Spec coverage: all approved V1 functional requirements map to T01–T23; detailed Manual Editing T16–T20 plan is linked above.
+- Spec coverage: all approved V1 functional requirements map to T01–T24; detailed Manual Editing T16–T20 plan is linked above.
 - Project-boundary rule: enforced from T01 and carried through every Task.
 - UI baseline: T02/T04/T10 plus SketchUp-style/manual-edit interaction T16–T20.
 - Direct SKP path: T14/T15; DXF remains fallback through T05.

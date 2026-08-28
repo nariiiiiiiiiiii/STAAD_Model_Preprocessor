@@ -183,6 +183,19 @@
 - [ ] Open final `.STD` in target STAAD.Pro.
 - [ ] Update final HANDOFF.
 
+
+## M15 — Post-acceptance cleanup / DEL quarantine (T24)
+- [ ] Inventory tracked/untracked/generated project files after T23 acceptance.
+- [ ] Build reference map for source imports, tests, docs, scripts, packaging config, fixtures, and runtime paths.
+- [ ] Classify each candidate as KEEP / REGENERABLE / SUPERSEDED / UNUSED with evidence.
+- [ ] Do not move `.git`, active `.worktrees`, current runtime `.venv`, required `vendor` SDK, acceptance evidence, or any referenced file.
+- [ ] Move only verified-unused/superseded candidates to project-local `DEL/`; do not delete.
+- [ ] Write `DEL/UNUSED_FILES_MANIFEST.md` with original path, reason, evidence, and restore path.
+- [ ] Run regression/lint/type/build/package smoke appropriate to the moved files.
+- [ ] Confirm Git/reference scan contains no live path pointing to quarantined files.
+- [ ] Update README/HANDOFF/TASK_BOARD/CHECKLIST with final lean workspace state.
+- [ ] User performs final deletion from `DEL/` separately after review.
+
 # Golden fixtures
 
 Create/complete at minimum:

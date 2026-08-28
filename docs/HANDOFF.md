@@ -1,4 +1,4 @@
-Status: **T13 complete and merged to `master` at `d6dce33`; approved V1 Manual Editing plan has been expanded to T23. T14 is next and not started.**
+Status: **T13 complete and merged to `master` at `d6dce33`; approved V1 plan has been expanded through T24, including post-acceptance unused-file quarantine. T14 is next and not started.**
 
 ## Canonical project root
 
@@ -209,6 +209,7 @@ Next sequence:
 - T21 — End-to-End READY gate + golden suite + audit — STRICT HR-1..HR-4
 - T22 — Windows executable packaging — STANDARD
 - T23 — Real-project + target STAAD.Pro acceptance — STRICT acceptance
+- T24 — unused/superseded file audit + move to project-local `DEL/` for user deletion — STANDARD
 
 ## Important risk/approval state
 
@@ -227,3 +228,7 @@ If implementation discovers a new high-risk behavior outside those approved cate
 Risk: STANDARD.
 
 T14 must remain isolated from exporter/manual-edit semantics. It defines the native-helper boundary and must fail gracefully if the official SketchUp SDK is absent.
+
+## T24 cleanup boundary
+
+T24 runs only after T23 acceptance. It audits the accepted workspace, proves candidates unused/superseded, and moves only those candidates to `STAAD_Model_Preprocessor/DEL/`. It never deletes files. `DEL/UNUSED_FILES_MANIFEST.md` must preserve original paths/reasons/evidence so the user can review and delete later. Protected: `.git`, active `.worktrees`, current `.venv`, required `vendor` SDK, and acceptance evidence.

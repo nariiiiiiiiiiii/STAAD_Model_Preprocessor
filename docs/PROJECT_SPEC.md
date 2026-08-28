@@ -359,6 +359,7 @@ Milestones:
 - M12 numbering/member-direction controls
 - M13 end-to-end READY gate + golden suite
 - M14 Windows packaging + real-project acceptance
+- M15 post-acceptance workspace cleanup / unused-file quarantine
 
 ## 9. Explicitly out of V1
 
@@ -422,3 +423,19 @@ V1 is considered usable when a representative real SketchUp/DXF structural model
 10. export a `.STD` file that opens in the target STAAD.Pro environment with the intended node/member geometry,
 11. preserve repair/audit history and reversible manual operations,
 12. run as a normal Windows desktop application with SketchUp-style navigation.
+
+## 13. Post-acceptance workspace cleanup
+
+After T23 real-project/STAAD.Pro acceptance, T24 performs a non-destructive workspace audit to reduce stale project clutter.
+
+Rules:
+- quarantine root is `STAAD_Model_Preprocessor/DEL/`, never a parent/system folder;
+- T24 moves files only; it never deletes them;
+- every moved item must be verified unused/superseded by reference/import/config/search evidence;
+- a manifest records original path, quarantine path, reason, evidence, and restoration guidance;
+- `.git`, active `.worktrees`, the current runtime `.venv`, required `vendor` SDK contents, and T23 acceptance evidence are protected from quarantine;
+- generated/cache/build artifacts may be classified separately as regenerable, but must not be confused with obsolete source/documentation;
+- after quarantine, relevant regression/lint/type/build/package checks must still pass;
+- the user decides whether and when to delete files inside `DEL/`.
+
+T24 is housekeeping after V1 acceptance and must not weaken T23 acceptance criteria or alter structural behavior.

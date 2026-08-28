@@ -12,7 +12,7 @@ Primary workflow:
 
 - T01-T13 complete; deterministic minimal `.STD` geometry export is implemented.
 - T14 is next: isolated SKP bridge/helper capability probe.
-- V1 plan expanded to T23 with approved Manual Editing tasks T16-T20.
+- V1 execution plan now runs through T24: Manual Editing T16-T20, READY/packaging/acceptance T21-T23, then non-destructive unused-file quarantine to project-local `DEL/` in T24.
 - Primary OS: Windows 11.
 - Primary language: Python.
 - UI: PySide6.

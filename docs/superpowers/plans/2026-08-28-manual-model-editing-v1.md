@@ -398,3 +398,7 @@ After Task 20:
 - Type consistency: T16 interaction types feed T17/T18; T17 inference types feed T18/T19; T18 `CompositeRepair` is consumed by T19/T20; T20 wraps the existing T11/T12 algorithms.
 - Risk consistency: navigation-only T16 is STANDARD; coordinate/topology/direction/numbering mutation tasks remain STRICT under already approved HR-1/HR-2/HR-4.
 - No implementation placeholders are intended; each Task defines named interfaces, RED behavior, GREEN implementation boundary, independent verification, and commit boundary.
+
+## Downstream housekeeping
+
+After T23 acceptance, main V1 plan Task 24 performs a non-destructive unused-file audit and moves verified-unused/superseded files to project-local `DEL/` with a manifest. Manual-editing implementation artifacts are eligible only when reference scans prove they are superseded; active implementation/tests remain protected.

@@ -50,3 +50,13 @@ All geometry repairs that affect topology or coordinates must be explicit, logge
 ## Development-speed rule
 
 Prefer vertical slices, targeted tests, and stable interfaces over speculative infrastructure. Do not build future patch features before the V1 cleanup workflow works end-to-end.
+
+## DEL quarantine rule
+
+T24 uses `STAAD_Model_Preprocessor/DEL/` as a non-destructive quarantine area for files proven unused or superseded after final acceptance.
+
+- T24 MUST NOT delete files.
+- Every moved file requires a manifest entry with its original path and reason.
+- If a reference scan is ambiguous, keep the file in its original location.
+- Do not manually move `.git`, active `.worktrees`, the current `.venv`, required `vendor` SDK files, or acceptance evidence into `DEL/`.
+- Final deletion from `DEL/` is a separate user-controlled action and follows the project's delete-confirmation policy.
