@@ -8,8 +8,8 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 |---|---|---|---|
 | T01 | Python project bootstrap + project-local path guard | STANDARD | **COMPLETE** |
 | T02 | Desktop UI shell matching approved baseline | FAST/STANDARD | **COMPLETE** |
-| T03 | Canonical Node/Member/Project model + project serialization | STANDARD | **READY** |
-| T04 | 3D viewport + synthetic structural model + selection | STANDARD | BLOCKED by T03 |
+| T03 | Canonical Node/Member/Project model + project serialization | STANDARD | **COMPLETE** |
+| T04 | 3D viewport + synthetic structural model + selection | STANDARD | **READY** |
 | T05 | DXF raw-line import vertical slice | STANDARD | BLOCKED by T03,T04 |
 | T06 | Unit/scale/dimension + Z-Up→Y-Up engine | **STRICT HR-1** | BLOCKED by T03,T05 |
 | T07 | Canonical topology builder + connected structures | **STRICT HR-2** | BLOCKED by T06 |
@@ -43,4 +43,4 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 
 ## Next Task
 
-**T03 — Canonical Node/Member/Project model + project serialization**
+**T04 — 3D viewport + synthetic structural model + selection**

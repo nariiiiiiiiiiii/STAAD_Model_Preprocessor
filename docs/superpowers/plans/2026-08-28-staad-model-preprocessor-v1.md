@@ -237,7 +237,7 @@ Commit: `feat: add approved desktop UI shell`
 - Produces: `ProjectModel(nodes: dict[UUID, Node], members: dict[UUID, Member], metadata: ModelMetadata, revision: int)`
 - Produces: `save_project(model, path)` / `load_project(path) -> ProjectModel`
 
-- [ ] **Step 1: Write tests proving stable UUID identity is independent from STAAD number**
+- [x] **Step 1: Write tests proving stable UUID identity is independent from STAAD number**
 
 ```python
 def test_member_references_stable_node_keys():
@@ -250,15 +250,15 @@ def test_member_references_stable_node_keys():
     assert member.end == b.key
 ```
 
-- [ ] **Step 2: Write serialization round-trip test**
+- [x] **Step 2: Write serialization round-trip test**
 
 Save under `.tmp/tests/project.json`, reload, and assert node/member keys, positions, numbers, metadata schema version, and source refs are equal.
 
-- [ ] **Step 3: Run RED, implement minimal dataclasses and versioned JSON, run GREEN**
+- [x] **Step 3: Run RED, implement minimal dataclasses and versioned JSON, run GREEN**
 
 Project JSON schema version starts at integer `1`. Non-finite coordinates are rejected by constructors; topology semantics are not implemented here.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Commit: `feat: add canonical structural model contract`
 

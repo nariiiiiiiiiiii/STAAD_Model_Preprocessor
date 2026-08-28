@@ -1,168 +1,108 @@
 # HANDOFF — STAAD Model Preprocessor
 
 Date: 2026-08-28
-Status: **T02 implemented on `task/02-ui`; awaiting user approval before T03.**
+Status: **T03 complete on `task/03-model`; T04 authorized by user and next in this execution.**
 
 ## Canonical project root
 
 `D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`
 
-HARD RULE: all project-created source files, worktrees, temp, logs, cache, build output, artifacts, test output, generated reports, and staged dependencies must remain inside this root.
+HARD RULE: every project-created source file, worktree, temp, cache, log, build output, artifact, test output, generated report, and staged dependency must remain inside this root.
 
 ## Product goal
 
-Eliminate repetitive structural-geometry cleanup between SketchUp and STAAD.Pro.
-
-Primary workflow:
-
 `SketchUp SKP / DXF -> Preprocessor -> inspect/repair/normalize/renumber/validate -> STAAD .STD -> STAAD.Pro`
 
-V1 is a geometry/topology preprocessor, not a solver or mini STAAD.
+V1 prepares clean analytical geometry; it is not a structural solver or mini STAAD.
 
 ## Locked baselines
 
-Technology:
 - Python 3.12+ application target.
 - PySide6 desktop UI.
-- PyVista/VTK real 3D viewport planned for T04.
-- NumPy/SciPy for indexed numerical/spatial work.
+- PyVista/VTK 3D viewport.
+- NumPy/SciPy for numerical/spatial work.
 - ezdxf for DXF.
 - C++ + official SketchUp C API helper behind an isolated SKP bridge.
-- Nuitka preferred for Windows packaging after compatibility is proven.
+- UI baseline: `docs/UI_BASELINE.md` and `docs/ui/*.svg`.
+- STRICT approval already granted for HR-1 through HR-4.
 
-UI references:
-- `docs/UI_BASELINE.md`
-- `docs/ui/main_dashboard.svg`
-- `docs/ui/unit_check.svg`
-- `docs/ui/issue_repair.svg`
+## Execution rule
 
-Do not redesign V1 unless explicitly requested.
-
-## Approval state
-
-User explicitly approved on 2026-08-28:
-1. current Project Spec,
-2. STRICT / Full TDD for HR-1 through HR-4.
-
-Approved high-risk areas:
-- HR-1 unit/scale/coordinate/axis transformations,
-- HR-2 topology/connectivity detection and structural graph repair,
-- HR-3 STAAD `.STD` exporter semantics,
-- HR-4 deterministic node/member numbering and mapping integrity.
-
-Do not request this approval again for the same scoped V1 behavior. Request a new approval only for a new high-risk area outside HR-1..HR-4.
-
-## Execution mode
-
-Execute exactly one numbered Task at a time.
-
-Detailed plan:
-`docs/superpowers/plans/2026-08-28-staad-model-preprocessor-v1.md`
-
-Operational board:
-`docs/TASK_BOARD.md`
-
-End-of-Task sequence:
-1. targeted verification,
-2. update TASK_BOARD/CHECKLIST/HANDOFF,
-3. Git commit,
-4. report to user,
-5. STOP until explicit instruction to run the next Task.
+Normally execute one Task at a time. For the current run, the user explicitly requested `Task 3 + 4`; therefore T03 and T04 may execute sequentially, each with its own verification and commit. Stop after T04.
 
 ## Completed T01
 
-Commit merged into master before T02:
-- `4a7551b chore: bootstrap project-local Python runtime`
+Commit: `4a7551b chore: bootstrap project-local Python runtime`
 
-Delivered:
-- `pyproject.toml`,
-- `src/staadprep/paths.py`,
-- project-local runtime path guard,
-- project-local `.venv` workflow,
+Key outputs:
+- project-local Python/runtime path guard,
+- `.tmp/.cache/.logs/artifacts/build/dist/vendor` ownership,
 - path escape tests,
 - `scripts/run_dev.ps1`.
 
-## T02 — completed deliverables
+## Completed T02
+
+Commit: `8e4c2f8 feat: add approved desktop UI shell`
+
+Key outputs:
+- locked desktop shell layout,
+- toolbar/project explorer/viewport host/right panels/issue console/status,
+- engineering actions disabled until backing Tasks exist,
+- PySide6 6.11.2 verified on current Python 3.14.3 environment.
+
+## T03 — completed deliverables
 
 Branch/worktree:
-- branch: `task/02-ui`
-- worktree: `.worktrees/task-02-ui`
-- base commit: `4a7551b`
+- branch: `task/03-model`
+- worktree: `.worktrees/task-03-model`
+- base commit: `8e4c2f8`
 
 Created:
-- `src/staadprep/app.py`
-- `src/staadprep/ui/__init__.py`
-- `src/staadprep/ui/main_window.py`
-- `src/staadprep/ui/theme.py`
-- `src/staadprep/ui/panels.py`
-- `tests/ui/test_main_window.py`
+- `src/staadprep/model/__init__.py`
+- `src/staadprep/model/geometry.py`
+- `src/staadprep/model/entities.py`
+- `src/staadprep/model/project.py`
+- `src/staadprep/model/serialization.py`
+- `tests/unit/test_model.py`
+- `tests/unit/test_serialization.py`
 
-Updated:
-- `scripts/run_dev.ps1`
-- `docs/TASK_BOARD.md`
-- `docs/CHECKLIST.md`
-- implementation-plan T02 checkboxes
-- this handoff
+Canonical contracts:
+- `Vec3(x, y, z)` rejects NaN/Infinity.
+- `Node.key` and `Member.key` are stable UUID identities.
+- STAAD-facing `.number` is independent from UUID identity.
+- Members reference node UUIDs, not node numbers.
+- `ProjectModel` stores node/member dictionaries, metadata, and revision.
+- project JSON schema version is `1`.
+- project JSON preserves identities, source refs, numbers, coordinates, metadata, and revision.
 
-UI shell includes:
-- top toolbar: Import Model / Unit Check / Repair / Normalize Axis / Renumber / Validate / Export STD,
-- left Project Explorer + model summary,
-- central dark structural viewport placeholder,
-- right Properties / Validation / Quick Fix panels,
-- bottom Issue Console,
-- persistent `MODEL STATUS: NO MODEL` summary.
+Important scope boundary:
+- T03 does **not** merge nodes, determine connectivity, repair topology, convert units, transform axes, or assign engineering semantics.
 
-All engineering actions remain intentionally disabled until the corresponding functional Tasks are implemented.
+## T03 verification
 
-The temporary viewport is a lightweight painted structural frame/grid only. The real PyVista/VTK 3D viewport belongs to T04.
+TDD RED observed:
+- `ModuleNotFoundError: No module named 'staadprep.model'` before implementation.
 
-## T02 runtime verification
+GREEN targeted verification:
+- model/serialization tests: 5 passed.
+- Ruff: pass.
 
-Observed environment:
-- Windows Python: `3.14.3`
-- PySide6: `6.11.2`
-- Qt runtime: `6.11.2`
-
-PySide6 imports and runs on the current Python 3.14.3 environment.
-
-Verification performed:
-- UI tests for approved regions,
-- disabled-action safety test,
-- QApplication factory reuse test,
-- T01 path regression tests,
-- Ruff lint,
-- headless app launch with timed auto-exit,
-- `scripts/run_dev.ps1` launch path,
-- project-local UI screenshot generation.
-
-Generated review artifact (ignored by Git, remains inside project):
-- `artifacts/t02_ui_shell.png`
-
-Important test-environment note:
-- Qt tests must set `QT_QPA_PLATFORM=offscreen` when run non-interactively.
-- An early shell command failed to pass the setting correctly and displayed a Qt window; the corrected PowerShell environment syntax is now used for automated smoke tests.
-
-## Known constraints
-
-- No real model data exists yet.
-- No importer is enabled yet.
-- No structural or engineering semantics were added in T02.
-- PyVista/VTK were not exercised in T02; their runtime compatibility is verified in T04.
-- Toolbar/Quick Fix controls are visible but disabled until their backing Tasks exist.
+Environment/setup note:
+- worktree dependencies are installed in project-local `.venv`.
+- all subsequent install/build/test commands must explicitly use project-local `TEMP/TMP`; an early pip build used a parent-workshop temporary cache which pip removed automatically (`OUTSIDE_TEMP_CLEAN` confirmed). Do not repeat this.
 
 ## Next Task
 
-**T03 — Canonical Node/Member/Project Model + Project Serialization**
+**T04 — 3D Viewport + Synthetic Frame + Selection**
 
 Risk: STANDARD.
 
-T03 will define stable internal identities and versioned project serialization. It must not implement topology merge/repair semantics; those remain under later STRICT Tasks.
+T04 must:
+- create deterministic `SceneData` from `ProjectModel`,
+- embed a PyVista/VTK Qt viewport,
+- render a synthetic frame only in development/demo mode,
+- provide Y-Up axes,
+- support member selection/highlighting interfaces,
+- replace the temporary painted viewport host from T02.
 
-Do not start T03 until the user explicitly says `เริ่ม Task 3` / `Run T03`.
-
-## Resume instruction
-
-1. Review branch `task/02-ui` / worktree `.worktrees/task-02-ui` if needed.
-2. When the user approves by starting T03, integrate T02 into master.
-3. Create a new isolated T03 worktree.
-4. Execute only Task 03 from the detailed implementation plan.
+After T04 verification + commit: STOP. Do not begin T05.

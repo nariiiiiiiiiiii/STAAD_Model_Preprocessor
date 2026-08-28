@@ -25,10 +25,10 @@
 - [x] Model summary/status.
 
 ## M2 — Canonical model
-- [ ] Define ProjectModel/Node/Member/Issue contracts.
-- [ ] Define model serialization version.
-- [ ] Define coordinate/unit metadata.
-- [ ] Define deterministic IDs and source mapping.
+- [x] Define ProjectModel/Node/Member contracts.
+- [x] Define model serialization version.
+- [x] Define coordinate/unit metadata container (no conversion semantics yet).
+- [x] Define stable UUID identities and source mapping.
 
 ## M3 — Import vertical slice
 - [ ] DXF line import.
