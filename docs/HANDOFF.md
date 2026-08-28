@@ -1,7 +1,7 @@
 # HANDOFF — STAAD Model Preprocessor
 
 Date: 2026-08-28
-Status: **T06 implemented on `task/06-units`; awaiting user approval before T07.**
+Status: **T07 implemented on `task/07-topology`; awaiting user approval before T08.**
 
 ## Canonical project root
 
@@ -18,109 +18,97 @@ V1 prepares clean analytical geometry before STAAD.Pro. It is not a structural s
 ## Locked baselines
 
 - Python 3.12+ target; current machine Python 3.14.3.
-- PySide6 desktop UI.
-- PyVista + pyvistaqt + VTK 3D viewport.
-- ezdxf DXF input.
-- C++ + official SketchUp C API helper planned for direct SKP input.
-- STRICT/Full TDD approval already granted for HR-1 through HR-4.
+- PySide6 + PyVista/pyvistaqt/VTK desktop stack.
+- ezdxf raw import.
+- Canonical analytical coordinate space: metre + Y-Up.
+- STRICT approval already granted for HR-1 through HR-4.
 
-## Completed task commits before T06
+## Completed tasks
 
 - T01 `4a7551b` — project-local runtime/path guard.
 - T02 `8e4c2f8` — approved desktop UI shell.
-- T03 `f97bffe` — canonical model + project serialization.
-- T04 `a38fc97` — real 3D viewport + synthetic frame + selection/highlight.
+- T03 `f97bffe` — canonical Node/Member/Project model + serialization.
+- T04 `a38fc97` — real 3D structural viewport + selection/highlight.
 - T05 `9fcf6be` — raw DXF import + real 3D preview.
+- T06 `8bf1b25` — verified unit/scale/dimension and Z-Up->Y-Up engine.
 
-## T06 — Unit / Scale / Dimension / Axis Engine
+## T07 — Canonical Topology Builder + Structure Count
 
-Risk: **STRICT HR-1**.
 Branch/worktree:
-- branch: `task/06-units`
-- worktree: `.worktrees/task-06-units`
-- base commit: `9fcf6be`
+- branch: `task/07-topology`
+- worktree: `.worktrees/task-07-topology`
+- base commit: `8bf1b25`
 
 Created:
-- `src/staadprep/units/__init__.py`
-- `src/staadprep/units/transforms.py`
-- `tests/unit/test_units_transforms.py`
-- `tests/unit/test_import_batch_axis_contract.py`
-- `tests/golden_models/07_wrong_scale/case.json`
-- `tests/golden_models/08_wrong_axis/case.json`
+- `src/staadprep/topology/__init__.py`
+- `src/staadprep/topology/builder.py`
+- `src/staadprep/topology/connectivity.py`
+- `tests/unit/test_topology_builder.py`
+- `tests/unit/test_connectivity.py`
+- `tests/integration/test_canonical_topology_pipeline.py`
+- `tests/golden_models/06_disconnected_structures/case.json`
 
-Modified:
-- `src/staadprep/importers/contracts.py` adds `ImportBatch.source_axis`.
-- task/checklist/plan/handoff docs.
+### T07 behavior
 
-### Verified public behavior
+`TopologyPolicy`:
+- default `coincident_tolerance_m = 1e-9 m`.
+- non-finite or non-positive tolerance fails closed.
 
-Length units:
-- `LengthUnit.METER`
-- `LengthUnit.MILLIMETER`
-- `LengthUnit.CENTIMETER`
-- `LengthUnit.INCH`
-- `LengthUnit.FOOT`
-- `LengthUnit.UNKNOWN`
-- `to_meters(value, unit)` fails closed for UNKNOWN.
+`build_project()`:
+- accepts only canonical metre/Y-Up coordinate batches.
+- recognizes canonical coordinate metadata from T06 while preserving original source unit/axis for audit.
+- uses quantized 3D spatial buckets and searches only the 27 neighboring buckets.
+- confirms true Euclidean distance before merging an endpoint.
+- points within tolerance become one canonical Node.
+- a 0.5 mm gap remains separate; near-node repair is not performed in T07.
+- raw POINT entities are retained as Nodes so T08 can identify orphan nodes.
+- zero-length segments are deliberately retained as Members so T08 can flag them; T07 does not silently delete them.
+- Node source references aggregate deterministically and Member source refs/layers remain auditable.
 
-Reference conversions independently checked:
-- 1000 mm = 1 m
-- 100 cm = 1 m
-- 39.37007874015748 in = 1 m
-- 3.280839895013123 ft = 1 m
+`connected_components()`:
+- validates all member start/end references exist.
+- returns every connected graph component, including isolated zero-member nodes.
+- zero-length members remain attached to their one-node component.
+- components are ordered with larger member-bearing structures first, then deterministically by geometry.
 
-Coordinate convention:
-- SketchUp/source Z-Up -> STAAD Y-Up exactly `(x, y, z) -> (x, z, -y)`.
-- basis mapping: X -> +X, Y -> -Z, Z -> +Y.
-- mapping is right-handed and preserves Euclidean distance.
+## STRICT T07 verification evidence
 
-Dimension utilities:
-- `measure(a, b)` Euclidean 3D distance.
-- `model_extents(points)` -> minimum / maximum / size.
-- empty extents fail closed.
+TDD RED evidence:
+- topology builder initially failed with `ModuleNotFoundError: staadprep.topology`.
+- connectivity initially failed with `ModuleNotFoundError: staadprep.topology.connectivity`.
 
-Reference-scale workflow:
-- `reference_scale_ratio = measured / expected`.
-- suspicious factors near 10, 25.4, 100, 304.8, 1000 produce warnings.
-- warnings never rescale geometry automatically.
-- invalid expected reference length fails closed.
+Targeted verification:
+- T07 topology/connectivity/cross-task suite: 12 passed.
+- Ruff: pass.
+- mypy on `src/staadprep/topology`: pass.
 
-Batch transform:
-- `transform_batch(batch, source_unit, source_axis)` converts unit to canonical metres first.
-- Z-Up then maps to Y-Up; Y-Up remains oriented and is only unit-scaled.
-- source refs, layers, source format, warnings, and metadata are preserved.
-- transformed batch records source unit/axis and canonical `m` / `Y-UP` metadata.
-- source batch is immutable/not mutated.
-- unknown unit or unsupported axis fails closed.
-- T06 does not merge/snap endpoints or create topology.
+Independent checks:
+- hand-authored disconnected golden model: main frame 4 members + detached member -> exactly 2 components with `(4 nodes,4 members)` and `(2 nodes,1 member)`.
+- T05 DXF -> T06 mm/Z-Up transform -> T07 canonical topology: raw 7 preview nodes collapse to exactly 5 canonical nodes / 3 members / 2 components, with hand-calculated metre/Y-Up coordinates.
+- negative spatial-bucket boundary case within tolerance merges correctly.
+- 5,000-member chain sanity: `TOPOLOGY_SCALE_PASS nodes=5001 members=5000 structures=1`.
 
-## STRICT TDD evidence
+Final regression before status update:
+- full pytest: 60 passed.
+- Ruff full source/tests: pass.
 
-Observed RED stages:
-1. unit engine missing: `ModuleNotFoundError: staadprep.units`.
-2. axis function missing: import failure for `sketchup_z_up_to_staad_y_up`.
-3. extents/measurement/reference/batch interfaces missing: import failure for `Extents` and related APIs.
-4. `ImportBatch.source_axis` missing: constructor rejected `source_axis`.
+## Important T07 boundaries
 
-Final targeted HR-1 suite:
-- 30/30 tests passed before full regression.
+T07 does NOT:
+- merge near nodes beyond the strict coincident tolerance,
+- detect duplicate/short/orphan/crossing issues,
+- repair geometry,
+- normalize member direction,
+- renumber nodes/members.
 
-Final repository regression:
-- 48/48 tests passed.
-- Ruff: PASS.
-- mypy strict targeted check: PASS on `units/transforms.py` + `importers/contracts.py`.
-- independent sanity: `HR1_INDEPENDENT_PASS right_handed=True inch_to_m=1 ratio=1000 warning=True`.
-
-## Important scope boundary
-
-T06 is the verified engine layer only. The existing Unit Check toolbar action is still not wired to a dedicated dimension/reference-length UI. The checklist records this explicitly so the project does not claim UI functionality that is not implemented.
-
-T07 must consume metre/Y-Up geometry and is responsible for canonical endpoint identity and connected structures. It must not reimplement unit or axis conversion.
+Those behaviors remain T08 onward.
 
 ## Next task
 
-**T07 — Canonical Topology Builder + Structure Count**
+**T08 — Geometry / Topology Validation Detectors**
 
 Risk: **STRICT HR-2 / Full TDD already approved by user.**
 
-Do not begin T07 until the user explicitly asks to continue/run Task 7.
+T08 will detect invalid/duplicate/near/orphan/zero-length/short/duplicate-member/unconnected-gap/crossing/disconnected-structure issues without mutating the model.
+
+Do not start T08 until the user explicitly asks to continue/run Task 8.

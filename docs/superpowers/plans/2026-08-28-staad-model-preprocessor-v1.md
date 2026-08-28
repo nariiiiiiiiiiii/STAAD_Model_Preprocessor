@@ -407,25 +407,25 @@ Commit: `feat: add verified unit and coordinate transform engine`
 - Produces: `build_project(batch: ImportBatch, policy: TopologyPolicy) -> ProjectModel`
 - Produces: `connected_components(model) -> list[StructureComponent]`
 
-- [ ] **Step 1: Write RED tests for exact/coincident endpoint identity**
+- [x] **Step 1: Write RED tests for exact/coincident endpoint identity**
 
 Endpoints sharing the same coordinate become one canonical node. A 0.5 mm gap MUST remain two nodes at import because meaningful near-node repair is explicit later.
 
-- [ ] **Step 2: Implement deterministic spatial bucket lookup**
+- [x] **Step 2: Implement deterministic spatial bucket lookup**
 
 Avoid O(N²). Use quantized neighboring buckets while comparing true Euclidean distance against `coincident_tolerance_m`.
 
-- [ ] **Step 3: Write RED connected-component fixtures**
+- [x] **Step 3: Write RED connected-component fixtures**
 
 A main 4-member frame plus a detached 1-member segment must return exactly two components with expected node/member counts.
 
-- [ ] **Step 4: Implement graph traversal and run GREEN**
+- [x] **Step 4: Implement graph traversal and run GREEN**
 
-- [ ] **Step 5: Assert graph invariants**
+- [x] **Step 5: Assert graph invariants**
 
 Every member start/end UUID exists; no member references the same node at both ends unless deliberately retained as a zero-length issue; source refs remain auditable.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Commit: `feat: build canonical topology and connected structures`
 

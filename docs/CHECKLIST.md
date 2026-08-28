@@ -58,7 +58,7 @@
 - [ ] Duplicate member.
 - [ ] Unconnected gap.
 - [ ] Crossing without node.
-- [ ] Connected-component count.
+- [x] Connected-component count.
 
 ## M6 — Repair
 - [ ] Command interface.
