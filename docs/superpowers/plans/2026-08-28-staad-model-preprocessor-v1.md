@@ -487,23 +487,23 @@ Commit: `feat: detect structural geometry and topology issues`
 - Produces: `RepairHistory.execute(command)`, `undo()`, `redo()`
 - Produces: append-only `AuditEntry(command_type, before_revision, after_revision, affected_keys, parameters, timestamp)`
 
-- [ ] **Step 1: RED test each graph mutation on a tiny model**
+- [x] **Step 1: RED test each graph mutation on a tiny model**
 
 Assert exact nodes/members before and after each command.
 
-- [ ] **Step 2: Implement minimal commands with snapshot/inverse data sufficient for exact revert**
+- [x] **Step 2: Implement minimal commands with snapshot/inverse data sufficient for exact revert**
 
-- [ ] **Step 3: RED/GREEN undo round-trip tests**
+- [x] **Step 3: RED/GREEN undo round-trip tests**
 
 For every command: serialize model before, apply, undo, serialize again; byte-normalized model payload must equal the original except audit/history metadata.
 
-- [ ] **Step 4: Assert graph referential integrity after every command**
+- [x] **Step 4: Assert graph referential integrity after every command**
 
 No member may reference a missing node. Merge/split commands must update all affected members atomically.
 
-- [ ] **Step 5: Re-run affected validation automatically and test revision increments**
+- [x] **Step 5: Re-run affected validation automatically and test revision increments**
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Commit: `feat: add reversible structural repair commands`
 

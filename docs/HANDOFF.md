@@ -1,7 +1,7 @@
 # HANDOFF — STAAD Model Preprocessor
 
 Date: 2026-08-28
-Status: **T08 implemented on `task/08-validation`; awaiting user approval before T09.**
+Status: **T09 complete on `task/09-repair`; T10 is next and not started.**
 
 ## Canonical project root
 
@@ -15,134 +15,117 @@ HARD RULE: every project-created source file, worktree, temp, cache, log, build 
 
 V1 prepares clean analytical geometry before STAAD.Pro. It is not a structural solver or mini STAAD.
 
-## Locked baselines
-
-- Python 3.12+ application target; current machine is Python 3.14.3.
-- PySide6 desktop UI.
-- PyVista + pyvistaqt + VTK 3D viewport.
-- NumPy/SciPy for numerical/spatial work.
-- ezdxf for DXF.
-- C++ + official SketchUp C API helper behind an isolated SKP bridge.
-- STRICT approval already granted for HR-1 through HR-4.
-
 ## Completed tasks
 
-- T01 `4a7551b` — project-local Python/runtime bootstrap and path guard.
+- T01 `4a7551b` — project-local bootstrap/path guard.
 - T02 `8e4c2f8` — approved desktop UI shell.
 - T03 `f97bffe` — canonical Node/Member/Project model + serialization.
-- T04 `a38fc97` — real PyVista/VTK viewport + synthetic frame + selection/highlight.
-- T05 `9fcf6be` — raw DXF import + real 3D preview.
-- T06 `8bf1b25` — verified metre conversion, scale/reference checks, Z-Up -> Y-Up transform.
-- T07 `ce24224` — canonical topology + connected structure count.
+- T04 `a38fc97` — PyVista/VTK 3D viewport + selection/highlight.
+- T05 `9fcf6be` — raw DXF import/preview.
+- T06 `8bf1b25` — STRICT unit/scale/axis engine.
+- T07 `ce24224` — STRICT topology + connected structures.
+- T08 `adde44b` — STRICT validation detectors.
 
-## T08 — Geometry / Topology Validation Detectors
+## T09 — Repair Commands + Undo/Redo + Audit
 
 Branch/worktree:
-- branch: `task/08-validation`
-- worktree: `.worktrees/task-08-validation`
-- base commit: `ce24224`
+- branch: `task/09-repair`
+- worktree: `.worktrees/task-09-repair`
+- base commit: `adde44b`
 
 Created:
-- `src/staadprep/validation/__init__.py`
-- `src/staadprep/validation/issues.py`
-- `src/staadprep/validation/validators.py`
-- `tests/unit/test_validators.py`
-- `tests/unit/test_validation_edges.py`
-- golden cases:
-  - `02_orphan_node`
-  - `03_near_nodes`
-  - `04_duplicate_member`
-  - `05_short_member`
-  - `09_crossing_without_node`
-  - `10_combined_dirty_frame`
+- `src/staadprep/repair/__init__.py`
+- `src/staadprep/repair/commands.py`
+- `src/staadprep/repair/history.py`
+- `src/staadprep/repair/audit.py`
+- `tests/unit/test_repair_commands.py`
+- `tests/unit/test_repair_history.py`
+- `tests/unit/test_repair_edges.py`
 
-### T08 contracts
+### Repair command contract
 
-`IssueSeverity`:
-- ERROR
-- WARNING
-- INFO
+Every command mutates `ProjectModel` in place, increments revision once on successful apply, validates graph integrity, reruns T08 validation, and returns `RepairResult` containing affected UUIDs and current issues.
 
-`IssueType`:
-- INVALID_COORDINATE
-- DUPLICATE_NODE
-- NEAR_NODE
-- ORPHAN_NODE
-- ZERO_LENGTH_MEMBER
-- SHORT_MEMBER
-- DUPLICATE_MEMBER
-- UNCONNECTED_GAP
-- CROSSING_WITHOUT_NODE
-- DISCONNECTED_STRUCTURE
+Implemented commands:
+- `MergeNodes`
+- `SnapNode`
+- `DeleteNode`
+- `DeleteMember`
+- `ConnectNodes`
+- `SplitMember`
+- `ReverseMember`
+- `ScaleModel`
+- `TransformModel`
 
-`ValidationPolicy` V1 defaults:
-- `near_node_m = 0.001` (1 mm)
-- `short_member_m = 0.010` (10 mm)
-- `intersection_m = 1e-6` (1 micrometre)
-- exact duplicate-node tolerance remains `1e-9 m`, aligned with T07 topology identity.
+Safety semantics:
+- `DeleteNode` rejects connected nodes; core repair never creates dangling references intentionally.
+- `MergeNodes` redirects every affected member atomically and retains zero-length outcomes for validator visibility rather than silently deleting them.
+- `SplitMember` requires a point on the member and strictly inside its endpoints.
+- `ConnectNodes` requires two existing distinct nodes.
+- `ScaleModel` rejects non-finite/non-positive factors.
+- command failures before mutation do not advance revision/history/audit.
 
-### Detector behavior
+### Undo / redo
 
-- Invalid coordinate: ERROR.
-- Duplicate node: ERROR.
-- Near node: WARNING.
-- Orphan node: ERROR.
-- Zero-length member: ERROR.
-- Short member: WARNING.
-- Duplicate/reversed-incidence member: ERROR.
-- Unconnected near-node gap across different connected components: ERROR.
-- Crossing without canonical node: ERROR.
-- Secondary member-bearing disconnected structure: WARNING.
+`RepairHistory`:
+- `execute()` applies command, clears redo stack, appends audit entry.
+- `undo()` restores exact pre-command model state including revision.
+- `redo()` reuses the same command-created UUID identities and reproduces the same serialized result.
+- undo/redo stack movement happens only after mutation succeeds; a failed revert does not lose the recovery entry.
 
-Near-node detection uses `scipy.spatial.cKDTree`.
+For all nine commands, serialized JSON after `execute -> undo` equals the original byte-normalized project payload. `redo` reproduces the original post-command payload.
 
-Crossing detection uses sweep-style AABB candidate filtering and 3D closest-points-on-segments math. A crossing is reported only when:
-- closest separation <= `intersection_m`,
-- both closest parameters are interior to their members,
-- members do not share a canonical endpoint,
-- no canonical node exists at the crossing location.
+### Audit
 
-Parallel members, endpoint-only contacts, and crossings already split by a canonical node are not reported as crossing-without-node.
+`AuditLog` is append-only through its public API and exposes entries as a tuple.
+Each `AuditEntry` records:
+- command type,
+- before/after revision,
+- affected UUIDs,
+- command parameters,
+- timezone-aware UTC timestamp.
 
-### Important scope boundary
+Undo/redo are also logged as `UNDO:<Command>` / `REDO:<Command>` events without embedding audit state into `ProjectModel`.
 
-T08 is read-only. It must not:
-- merge/snap nodes,
-- delete members/nodes,
-- split members,
-- connect gaps,
-- modify UUID identities,
-- alter model revision/topology.
-
-Those operations belong to T09.
-
-## STRICT T08 verification evidence
+## STRICT T09 verification evidence
 
 TDD RED evidence:
-- validator tests initially failed with `ModuleNotFoundError: staadprep.validation`.
+- repair tests initially failed with `ModuleNotFoundError: staadprep.repair`.
+- edge regression later caught an undo-stack atomicity bug where a failed revert removed the undo entry; fixed by peek -> revert -> stack move.
 
-Targeted detector suite:
-- 15 tests passed after implementation and edge checks.
-
-Full regression before task close:
-- 75 tests passed.
+Targeted T09 suite:
+- 35 tests passed.
 - Ruff passed.
-- targeted mypy for validation module passed.
+- mypy passed for `commands.py`, `history.py`, `audit.py`.
 
-Independent scale/false-positive sanity:
-- clean 5,001-node / 5,000-member chain -> `issues=0`.
-- output: `VALIDATION_SCALE_PASS nodes=5001 members=5000 issues=0`.
+Independent repair check:
+- two structures separated by a 0.5 mm near-node gap.
+- before repair: 2 structures + NEAR_NODE issue.
+- `MergeNodes`: 1 structure, NEAR_NODE and DISCONNECTED_STRUCTURE removed.
+- undo: 2 structures restored.
+- redo: 1 structure restored again.
+- audit entries after execute/undo/redo: 3.
 
-Golden combined dirty frame confirms the expected detector families are all present without mutating the model.
+Full project regression before documentation update:
+- 110 tests passed.
+- Ruff passed.
 
-## Environment note
+## Important T10 boundary
 
-The shared project-local venv used for development contains SciPy 1.18.1 and NumPy 2.5.2. A transient first import attempt reported SciPy missing, but a direct interpreter import confirmed SciPy exists in the project-local venv; subsequent validator runs were stable.
+T09 provides only safe core mutations/history/audit. It does **not** wire destructive actions to UI yet.
+
+T10 owns:
+- Issue Console rows bound to exact Issue IDs,
+- selecting issue -> highlight/zoom,
+- Quick Fix buttons dispatching predefined `RepairCommand` objects only,
+- confirmation before destructive delete actions,
+- Undo/Redo UI,
+- re-render/revalidate after command completion.
+
+Do not implement T11 orientation normalization during T10.
 
 ## Next task
 
-**T09 — Repair Commands + Undo/Redo + Audit Log**
+**T10 — Issue Console + inspect/zoom/quick-fix UI integration**
 
-Risk: **STRICT HR-2 / Full TDD already approved by user.**
-
-T09 owns actual graph mutation and must preserve exact undo/redo and auditability. Do not start T09 until the user explicitly requests it.
+Risk: STANDARD for UI integration; mutation safety remains covered by STRICT T09 tests.

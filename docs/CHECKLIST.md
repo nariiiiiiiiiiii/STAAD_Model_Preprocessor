@@ -61,16 +61,16 @@
 - [x] Connected-component count.
 
 ## M6 — Repair
-- [ ] Command interface.
-- [ ] Undo/redo stack.
-- [ ] Merge nodes.
-- [ ] Snap nodes.
-- [ ] Delete node/member.
-- [ ] Connect nodes.
-- [ ] Split at intersection.
-- [ ] Reverse member.
-- [ ] Scale model.
-- [ ] Audit log.
+- [x] Command interface.
+- [x] Undo/redo stack.
+- [x] Merge nodes.
+- [x] Snap nodes.
+- [x] Delete node/member.
+- [x] Connect nodes.
+- [x] Split at intersection.
+- [x] Reverse member.
+- [x] Scale model.
+- [x] Audit log.
 
 ## M7 — Normalize / renumber
 - [ ] Preview member directions.
