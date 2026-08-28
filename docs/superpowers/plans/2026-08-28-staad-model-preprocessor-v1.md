@@ -6,14 +6,14 @@
 
 **Architecture:** File-format adapters produce a format-neutral raw geometry batch. Strictly tested unit/coordinate and topology engines convert it into a canonical graph whose entities use stable UUID keys and separate STAAD-facing integer numbers. UI, 3D rendering, repair commands, validation, numbering, and exporters consume that canonical graph; no engineering-semantic logic lives in the GUI.
 
-**Tech Stack:** Python 3.12+, PySide6, PyVista/VTK, NumPy, SciPy, ezdxf, pytest/pytest-qt; C++ + official SketchUp C API for the later SKP helper; Nuitka for production packaging after compatibility is proven.
+**Tech Stack:** Python 3.12+, PySide6, PyVista/VTK, NumPy, SciPy, ezdxf, pytest/pytest-qt; public SketchUp Ruby API for the V1 SketchUp bridge; T14 C++ native bridge retained as future optional direct-SKP backend; Nuitka for production packaging after compatibility is proven.
 
 **Spec:** `docs/superpowers/specs/2026-08-28-staad-model-preprocessor-design.md` and `docs/PROJECT_SPEC.md`
 
 ## Global Constraints
 
 - Windows 11 is the V1 target platform.
-- Primary input: SketchUp `.skp`; compatibility input: `.dxf`.
+- V1 first-class inputs: SketchUp Ruby Bridge Neutral JSON and Direct DXF `.dxf`; neither route blocks the other. Direct `.skp` C-SDK import is future optional.
 - Primary output: STAAD `.std`.
 - Canonical working unit: metre.
 - Canonical axis: STAAD Y-Up.
@@ -45,7 +45,8 @@ STAAD_Model_Preprocessor/
 │   ├── importers/
 │   │   ├── contracts.py
 │   │   ├── dxf_reader.py
-│   │   └── skp_bridge.py
+│   │   ├── skp_bridge.py          # T14 future-optional direct-SKP bridge
+│   │   └── neutral_reader.py      # T15 V1 SketchUp Ruby neutral import
 │   ├── units/
 │   │   └── transforms.py
 │   ├── topology/
@@ -72,7 +73,8 @@ STAAD_Model_Preprocessor/
 │       ├── theme.py
 │       ├── issue_console.py
 │       └── panels.py
-├── native/skp_reader/
+├── extensions/sketchup_staadprep/
+├── native/skp_reader/             # future optional direct-SKP backend
 │   ├── CMakeLists.txt
 │   ├── include/neutral_contract.h
 │   └── src/main.cpp
@@ -692,39 +694,58 @@ Commit: `feat: define isolated native SKP bridge contract`
 
 ---
 
-### Task 15: Direct SKP Edge Extraction + Transform Integration
+### Task 15: SketchUp Ruby Extension + Neutral Import Integration
 
 **Risk:** **STRICT HR-1 / HR-2**
 
+**Spec:** `docs/superpowers/specs/2026-08-28-sketchup-ruby-bridge-design.md`
+
 **Files:**
-- Modify: `native/skp_reader/src/main.cpp`
-- Modify: `src/staadprep/importers/skp_bridge.py`
-- Create: `tests/integration/test_skp_import.py`
-- Create: `tests/golden_models/11_skp_simple_frame/expected.json`
+- Create: `extensions/sketchup_staadprep/staadprep_loader.rb`
+- Create: `extensions/sketchup_staadprep/staadprep/exporter.rb`
+- Create: `src/staadprep/importers/neutral_reader.py`
+- Create: `tests/unit/test_neutral_reader.py`
+- Create: `tests/integration/test_sketchup_ruby_pipeline.py`
+- Create: `tests/golden_models/11_sketchup_ruby_simple_frame/expected.json`
+- Modify: `src/staadprep/ui/main_window.py`
+- Preserve/regress: `src/staadprep/importers/dxf_reader.py` and existing DXF tests
 
 **Interfaces:**
-- C++ helper recursively walks model entities/groups/component instances, composes instance transforms, and emits structural edges as raw source-space segments plus tag/group metadata.
-- Python then applies the already-tested T06 unit/axis engine and T07 topology builder; C++ does not duplicate canonical conversion logic.
+- Ruby extension command: `Send to STAAD Prep`.
+- Project-local inbox: `artifacts/sketchup_bridge/inbox/`.
+- Neutral protocol remains integer version `1` with T14 envelope fields.
+- Ruby exporter emits source/world SketchUp coordinates, `source_axis=Z-UP`, source unit, segment/group/component/tag metadata; it does NOT apply STAAD conversion.
+- Python `NeutralReader.read(path: Path) -> ImportBatch` validates protocol/schema/project-local path.
+- Both SketchUp-neutral and Direct DXF routes reuse T06 unit/axis conversion and T07 topology builder.
+- T14 C++/C-SDK helper is retained but not required by T15/V1.
 
-- [ ] **Step 1: Obtain/use official SketchUp C API from `vendor/sketchup-sdk/` and verify exact API signatures against installed SDK headers**
+- [ ] **Step 1: RED neutral-reader and hand-authored transform fixtures**
 
-Do not guess SDK function signatures.
+Create protocol/schema/path tests and a nested group/component transform fixture with independently hand-calculated source/world coordinates. Protocol mismatch, malformed coordinates and paths outside the project root fail closed.
 
-- [ ] **Step 2: RED fixture for one line, one group transform, one nested component transform**
+- [ ] **Step 2: Implement `NeutralReader` and project-local inbox contract**
 
-Expected world-space source coordinates are hand-calculated and stored in the golden expected JSON.
+Neutral reader maps protocol-v1 points/segments/metadata to `ImportBatch` only. It must not merge, repair, transform or renumber geometry.
 
-- [ ] **Step 3: Implement recursive edge extraction with transform composition**
+- [ ] **Step 3: Implement the SketchUp Ruby extension exporter contract**
 
-Ignore faces for V1. Preserve group/component/tag names as metadata only. Structural member inference from solids is explicitly excluded.
+Use only the public SketchUp Ruby API. Recursively walk supported edges, groups and component instances; compose nested instance transforms; preserve useful tag/group/component metadata; report source units and Z-Up. Output uses atomic temporary-write -> rename inside the configured project-local inbox. No C SDK and no network download.
 
-- [ ] **Step 4: Run native→neutral→Python transform→topology end-to-end test**
+- [ ] **Step 4: STRICT transform/topology verification**
 
-Assert known final Y-Up metre coordinates and member count.
+Run Neutral JSON -> `ImportBatch` -> T06 metre/Y-Up -> T07 topology. Compare exact expected canonical coordinates/incidences against the hand-authored fixture. Ensure the Ruby layer never duplicates T06 coordinate mapping.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Wire V1 import choices and preserve Direct DXF**
 
-Commit: `feat: import SketchUp structural edges directly`
+UI exposes SketchUp Bridge inbox import/status and Direct DXF Import as independent choices. Missing SketchUp/extension must not disable DXF. Run existing DXF import/preview regression plus the new neutral route.
+
+- [ ] **Step 6: SketchUp runtime check when available**
+
+If SketchUp is available locally, install/load the development extension and export a simple real line/group/component fixture. If runtime is unavailable, record the limitation explicitly and defer real SketchUp runtime acceptance; do not substitute guessed API behavior.
+
+- [ ] **Step 7: Commit**
+
+Commit: `feat: bridge SketchUp Ruby geometry into canonical import`
 
 ---
 
@@ -830,7 +851,7 @@ Direction changes incidence only; numbering changes `.number` only; stable UUID 
 
 Commit: `test: verify end-to-end clean model readiness`
 
-**Checkpoint D:** direct SKP/DXF -> Quick Fix/manual edit -> validated `.STD` V1 pipeline is functionally complete.
+**Checkpoint D:** SketchUp-Ruby/Direct-DXF -> Quick Fix/manual edit -> validated `.STD` V1 pipeline is functionally complete.
 
 ---
 
@@ -871,7 +892,7 @@ Commit: `build: package Windows desktop application`
 - Modify: `docs/HANDOFF.md`, `docs/CHECKLIST.md`, `docs/TASK_BOARD.md`
 
 **Interfaces:**
-- Acceptance input: representative real user SKP/DXF structural model.
+- Acceptance input: representative real SketchUp model handed off through the Ruby bridge and/or representative direct DXF structural model.
 - Acceptance outputs: preprocessor report, exported `.STD`, screenshots/logs as needed, target STAAD.Pro open result.
 
 - [ ] **Step 1: Copy/reference a real test model into the project-local acceptance area without modifying the user's source file**
@@ -964,7 +985,7 @@ At the end of every Task the executor MUST:
 - Spec coverage: all approved V1 functional requirements map to T01–T24; detailed Manual Editing T16–T20 plan is linked above.
 - Project-boundary rule: enforced from T01 and carried through every Task.
 - UI baseline: T02/T04/T10 plus SketchUp-style/manual-edit interaction T16–T20.
-- Direct SKP path: T14/T15; DXF remains fallback through T05.
+- V1 import paths: T15 SketchUp Ruby bridge + Direct DXF; T14 direct-SKP C-SDK bridge is future optional.
 - HR-1: T06/T15/T17/T21.
 - HR-2: T07/T08/T09/T11/T15/T17/T18/T19/T20/T21.
 - HR-3: T13/T21/T23.

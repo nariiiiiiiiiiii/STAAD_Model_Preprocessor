@@ -1,4 +1,4 @@
-Status: APPROVED FOR IMPLEMENTATION — task-gated execution; STRICT approved for HR-1 through HR-4; Manual Editing V1 expansion approved 2026-08-28.
+Status: APPROVED FOR IMPLEMENTATION — task-gated execution; STRICT approved for HR-1 through HR-4; Manual Editing V1 expansion approved 2026-08-28; SketchUp Ruby Bridge + Direct DXF V1 import architecture approved 2026-08-28.
 Date: 2026-08-28
 
 ## 1. Problem statement
@@ -40,13 +40,14 @@ The first production target is not feature breadth. It is a fast, reliable clean
 
 `Import -> Inspect -> Unit/Dimension Check -> Validate -> Quick Fix / Manual Edit -> Connectivity -> Normalize / Direction Control -> Renumber -> Final Validate -> Export .STD`
 
-### Inputs
+### Inputs / import routes
 
-Primary:
-- SketchUp `.skp`
+V1 first-class routes:
+- **SketchUp Ruby Extension** — `Send to STAAD Prep` exports Neutral JSON v1 from the active SketchUp model into the configured project-local inbox.
+- **Direct DXF Import** — open AutoCAD/ZWCAD/other `.dxf` line geometry directly in the app without requiring SketchUp.
 
-Compatibility/fallback:
-- AutoCAD `.dxf`
+Future optional:
+- Direct `.skp` file import through the T14 native C-SDK bridge if official SketchUp C SDK access becomes available. This is not a V1 dependency.
 
 ### Output
 
@@ -61,10 +62,12 @@ Optional/audit:
 ## 5. V1 functional scope
 
 ### Import
-- Import SKP structural edge geometry.
-- Import DXF line geometry.
-- Preserve usable groups/tags/component metadata where available.
-- Convert source coordinates into the canonical coordinate system.
+- Receive SketchUp structural edge geometry from the public SketchUp Ruby API through Neutral JSON protocol v1.
+- Import DXF line geometry directly and independently of SketchUp.
+- Preserve usable groups/components/tags/layers/source metadata where available.
+- SketchUp bridge output stays source-space/Z-Up; canonical conversion occurs only in the shared T06 transform layer.
+- Convert both import routes into the same canonical structural model before validation/repair.
+- Direct `.skp` C-SDK reading remains a future optional backend, not a V1 blocker.
 
 ### Units and dimensions
 - Detect/read source unit where reliable.
@@ -331,9 +334,14 @@ Primary application:
 - SciPy spatial/KD-tree where useful
 - ezdxf
 
-SKP adapter:
-- C++ helper executable using official SketchUp C API.
-- Communicates with Python through a versioned neutral interchange contract.
+SketchUp bridge (V1):
+- SketchUp Ruby Extension using the public SketchUp Ruby API.
+- Emits versioned Neutral JSON v1 into project-local `artifacts/sketchup_bridge/inbox/`.
+- Python neutral reader converts the envelope into the same raw `ImportBatch` pipeline used before T06/T07.
+
+Direct SKP adapter (future optional):
+- T14 C++ helper/native contract is preserved for use with the official SketchUp C API if access is granted later.
+- It is not required to ship or accept V1.
 
 Packaging:
 - development: normal Python virtual environment,
@@ -341,7 +349,7 @@ Packaging:
 
 ## 8. Development priority
 
-Internal implementation order may use DXF first to prove the canonical model/validator faster, but V1 release target keeps SKP as primary user input.
+V1 treats **SketchUp Ruby Bridge** and **Direct DXF Import** as independent first-class input routes. Neither route may block the other. Direct `.skp` C-SDK import is outside the V1 critical path.
 
 Milestones:
 - M0 project foundation and UI shell
@@ -352,7 +360,7 @@ Milestones:
 - M5 3D issue inspection UI
 - M6 normalize + deterministic renumber
 - M7 STAAD `.STD` exporter
-- M8 SKP native importer adapter
+- M8 SketchUp Ruby bridge + direct-DXF canonical import integration
 - M9 SketchUp-style navigation + selection/inference
 - M10 manual analytical node/member editing
 - M11 precision Create Node + Translational Repeat
@@ -410,8 +418,8 @@ Manual editing must use explicit modes so camera/navigation/select actions canno
 
 ## 12. Definition of V1 done
 
-V1 is considered usable when a representative real SketchUp/DXF structural model can:
-1. import without losing structural line geometry,
+V1 is considered usable when representative SketchUp-via-Ruby and/or direct-DXF structural geometry can:
+1. enter the app without losing supported structural line geometry,
 2. verify units/reference dimension,
 3. expose disconnected/dirty topology visually,
 4. repair common topology errors through Quick Fix and direct viewport editing,

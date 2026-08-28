@@ -33,8 +33,10 @@
 - [x] Display node/member count.
 - [x] Source metadata.
 - [x] SKP bridge contract + protocol/capability probe (T14).
-- [ ] Native SKP edge extraction.
-- [ ] Native -> neutral -> canonical metre/Y-Up integration.
+- [ ] SketchUp Ruby Extension exports supported edges/groups/components/tags/units to Neutral JSON v1.
+- [ ] Project-local SketchUp inbox handoff works without C SDK.
+- [ ] SketchUp Neutral JSON -> T06/T07 -> canonical metre/Y-Up integration.
+- [ ] Direct DXF -> T06/T07 -> canonical metre/Y-Up integration remains green.
 
 ## M4 — Unit / dimension
 - [x] Source unit metadata + verified LengthUnit conversion engine.
@@ -175,7 +177,7 @@
 - [ ] Save/open project workflow completed as required by final product.
 - [ ] Crash-safe audit/logging.
 - [ ] Complete golden dirty-model fixtures.
-- [ ] Full SKP/DXF -> repair/manual edit -> normalize -> numbering -> READY -> STD pipeline.
+- [ ] Full SketchUp-Ruby and Direct-DXF -> repair/manual edit -> normalize -> numbering -> READY -> STD pipeline.
 - [ ] READY gate report JSON.
 - [ ] Large-model smoke test.
 - [ ] Package Windows executable.
@@ -209,11 +211,11 @@ Create/complete at minimum:
 - [ ] 08_wrong_axis
 - [ ] 09_crossing_without_node
 - [ ] 10_combined_dirty_frame
-- [ ] 11_skp_simple_frame
+- [ ] 11_sketchup_ruby_simple_frame
 - [ ] manual-edit clean/dirty expected canonical fixtures for T18-T21
 
 # V1 acceptance
-- [ ] Real SketchUp/DXF model imports.
+- [ ] Real SketchUp model can hand off through Ruby bridge and real DXF can import directly.
 - [ ] Units/reference dimension can be verified.
 - [ ] Dirty topology is visible and actionable.
 - [ ] Common errors can be repaired through Quick Fix.

@@ -14,6 +14,7 @@ HARD RULE: all project-created source/temp/cache/log/build/test/generated/export
 
 Canonical continuation documents:
 - main V1 plan: `docs/superpowers/plans/2026-08-28-staad-model-preprocessor-v1.md`;
+- SketchUp Ruby Bridge design: `docs/superpowers/specs/2026-08-28-sketchup-ruby-bridge-design.md`;
 - Manual Editing T16-T20 plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md`;
 - Manual Editing design: `docs/superpowers/specs/2026-08-28-manual-model-editing-design.md`.
 
@@ -66,11 +67,11 @@ Neutral helper outputs are generated only inside project-local `.tmp/skp_bridge/
 
 T14 C++ is capability-only. It intentionally does NOT guess SketchUp C API function/header signatures and contains no SDK download logic.
 
-Expected official SDK staging root for T15:
+Future optional official C-SDK staging root remains:
 
 `vendor/sketchup-sdk/`
 
-`CMakeLists.txt` only advertises this project-local staging location. T15 must inspect the actual installed official SDK headers/libraries before adding any API calls/linking.
+`CMakeLists.txt` advertises this project-local staging location only for a future direct-SKP backend. The approved V1 T15 Ruby path does not require this SDK.
 
 ### Native build verification
 
@@ -79,7 +80,7 @@ On 2026-08-28, Visual Studio 2026 Build Tools became available and the T14 capab
 - MSVC tools `14.51.36231` / compiler `19.51.36256.0`;
 - x64 host/target Developer Environment.
 
-The native helper builds project-locally to `build/native/skp_reader/skp_reader.exe`, matching `SkpBridge`'s default helper path. Running `--capabilities` returned protocol `1`, `sketchup_sdk=false`, and `reader_ready=false`, which is the expected T14 state before the official SketchUp SDK is staged for T15.
+The native helper builds project-locally to `build/native/skp_reader/skp_reader.exe`, matching `SkpBridge`'s default helper path. Running `--capabilities` returned protocol `1`, `sketchup_sdk=false`, and `reader_ready=false`. This is a valid preserved future-optional backend state and no longer blocks V1.
 
 No toolchain or SketchUp SDK is downloaded automatically by the project.
 
@@ -103,24 +104,24 @@ Regression split after implementation:
 
 ## Important boundary
 
-T14 does not read actual `.skp` files through the official SDK yet. `Native SKP edge extraction` and `native -> neutral -> canonical metre/Y-Up integration` remain unchecked in `CHECKLIST.md` and belong to T15.
+T14 native direct-SKP capability remains preserved, but V1 no longer depends on official C SDK access. The approved T15 path is SketchUp Ruby Extension -> Neutral JSON v1 plus independent Direct DXF Import.
 
 T14 does not change T13 `.STD` export semantics and does not implement manual editing.
 
 ## Next Task
 
-**T15 — Direct SKP Edge Extraction + Transform Integration**
+**T15 — SketchUp Ruby Extension + Neutral Import Integration**
 
 Risk: **STRICT HR-1 / HR-2 already covered by the user's approved high-risk envelope.**
 
-T15 must:
-1. use/stage the official SketchUp C API only under `vendor/sketchup-sdk/`;
-2. inspect exact installed SDK headers/signatures rather than guessing;
-3. extract edges/groups/components in source space with composed instance transforms;
-4. reuse T06 unit/Z-Up -> Y-Up conversion and T07 topology builder;
-5. verify against hand-authored/golden known coordinates.
+Approved V1 input architecture:
+- SketchUp open model -> public Ruby Extension `Send to STAAD Prep` -> Neutral JSON v1 -> project-local `artifacts/sketchup_bridge/inbox/` -> shared T06/T07 canonical pipeline;
+- Direct DXF Import -> existing `DxfReader` -> shared T06/T07 canonical pipeline;
+- Direct `.skp` through T14 C++/C SDK is future optional and no longer blocks V1.
 
-If the official SDK is not present when T15 starts, stop at that dependency rather than substituting an unofficial parser or network download.
+Detailed spec: `docs/superpowers/specs/2026-08-28-sketchup-ruby-bridge-design.md`.
+
+T15 must preserve the existing DXF route and independently verify nested SketchUp transform coordinates before canonical conversion.
 
 ## T24 cleanup boundary
 

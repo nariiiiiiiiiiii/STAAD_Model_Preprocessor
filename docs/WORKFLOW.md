@@ -2,7 +2,7 @@
 
 ```text
 1. Open project
-2. Import SKP (primary) or DXF (fallback)
+2. Bring geometry in through SketchUp `Send to STAAD Prep` or Direct DXF Import
 3. Confirm unit + model extents
 4. Verify one known/reference length
 5. Inspect validation summary
@@ -18,16 +18,25 @@
 ## B. Import workflow
 
 ```text
-Source file
-  -> adapter read
+Route A — SketchUp
+Active SketchUp model
+  -> Ruby Extension `Send to STAAD Prep`
+  -> Neutral JSON v1 in project-local inbox
+  -> neutral reader -> ImportBatch
+
+Route B — Direct DXF
+DXF file
+  -> DxfReader -> ImportBatch
+
+Both routes
   -> source metadata/unit
-  -> coordinate transform to Y-Up
-  -> canonical nodes/members
+  -> T06 coordinate/unit transform to metre/Y-Up
+  -> T07 canonical topology
   -> initial validation
   -> render
 ```
 
-Importer must not silently merge, split, delete, or repair structural geometry.
+Importer/exporter bridge stages must not silently merge, split, delete, or repair structural geometry. Direct DXF remains usable when SketchUp/extension is unavailable. Direct `.skp` C-SDK import is future optional.
 
 ## C. Unit / dimension workflow
 

@@ -5,14 +5,12 @@ Keep the application fast to develop, safe to edit, and easy to patch without co
 ## High-level architecture
 
 ```text
-SKP ---------\
-              > Import Adapters -> Canonical Structural Model -> Validation -> Repair/Edit Commands -> Normalize/Direction -> Renumber -> Export
-DXF ---------/                                 |                    |                     |                    |          |
-                                                +-> 3D Viewer        +-> Audit/Undo         +-> Local-X         +-> Maps  +-> .STD
-                                                      |
-                                                      +-> Interaction State
-                                                      +-> Snap/Inference
-                                                      +-> Ghost Preview
+SketchUp open model -> Ruby Extension -> Neutral JSON v1 --\
+                                                         > Shared raw/canonical pipeline -> Validation -> Repair/Edit -> Normalize/Direction -> Renumber -> Export
+DXF file ---------------------------> Direct DXF Reader --/                                  |                                         |
+                                                                                              +-> 3D Viewer / Audit / Undo               +-> .STD
+
+Future optional: `.skp` -> T14 native C-SDK helper -> Neutral JSON v1 -> same shared pipeline
 ```
 
 The 3D viewer never becomes the source of truth. It emits interaction intent and previews; commands mutate the canonical model only on commit.
@@ -96,13 +94,18 @@ Stable UUID identities are independent from STAAD-facing numbers.
 - Extract supported line geometry and metadata.
 - Convert to neutral/canonical model through a well-defined adapter contract.
 
-#### SKP importer
-- C++ helper using official SketchUp C API.
-- Reads SKP without requiring SketchUp to be open.
-- Emits versioned neutral interchange data.
-- Python adapter converts interchange data into the same canonical model used by DXF.
+#### SketchUp Ruby bridge — V1
+- Runs inside SketchUp using the public Ruby API.
+- Recursively exports supported structural edges plus group/component/tag/unit metadata.
+- Emits Neutral JSON protocol v1 to project-local `artifacts/sketchup_bridge/inbox/`.
+- Does not perform STAAD axis conversion or topology repair.
+- A Python neutral reader converts the envelope into the same raw import contract used before T06/T07.
 
-The rest of the application must not depend on SKP SDK types.
+#### Direct SKP native bridge — future optional
+- T14 C++ helper/capability contract remains available for an official SketchUp C SDK backend later.
+- Direct `.skp` reading is not a V1 dependency.
+
+Downstream canonical/validation/repair code must not depend on SketchUp Ruby or C-SDK types.
 
 ### 6. Validation engine
 Produces `Issue` objects only. It must not silently mutate geometry.
@@ -218,8 +221,10 @@ STAAD_Model_Preprocessor/
 │       ├── numbering/
 │       ├── exporters/
 │       └── paths.py
+├── extensions/
+│   └── sketchup_staadprep/
 ├── native/
-│   └── skp_reader/
+│   └── skp_reader/              # future optional direct-SKP backend
 ├── tests/
 │   ├── unit/
 │   ├── ui/

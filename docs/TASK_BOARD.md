@@ -1,6 +1,6 @@
 Execution policy: **run exactly one Task at a time**. Every Task must end with its verification, Git commit, documentation/status update, and a hard stop for user review before the next Task begins.
 
-Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 through HR-4 on 2026-08-28. Manual Editing + SketchUp-style controls expansion approved on 2026-08-28.**
+Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 through HR-4 on 2026-08-28. Manual Editing + SketchUp-style controls and SketchUp Ruby Bridge + Direct DXF V1 import architecture approved on 2026-08-28.**
 
 | Task | Deliverable | Risk | Status |
 |---|---|---|---|
@@ -18,7 +18,7 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T12 | Deterministic node/member STAAD-facing numbering | **STRICT HR-4** | **COMPLETE** |
 | T13 | STAAD `.STD` geometry exporter | **STRICT HR-3** | **COMPLETE** |
 | T14 | SKP bridge contract + native helper capability probe | STANDARD | **COMPLETE** |
-| T15 | Direct SKP edge extraction + canonical transform/topology integration | **STRICT HR-1/HR-2** | **READY** |
+| T15 | SketchUp Ruby Extension -> Neutral JSON + shared canonical import integration; preserve Direct DXF | **STRICT HR-1/HR-2** | **READY** |
 | T16 | SketchUp-style navigation + selection/filter/label foundation | STANDARD | READY after scheduled T15 |
 | T17 | Snap/inference + working-plane + axis-lock engine | **STRICT HR-1/HR-2** | BLOCKED by T06,T07,T16 |
 | T18 | Manual Node/Member editing + atomic repair UI | **STRICT HR-2** | BLOCKED by T09,T16,T17 |
@@ -47,7 +47,7 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 - **Checkpoint B — after T10:** app can detect/inspect/Quick-Fix the main dirty-geometry issues.
 - **Checkpoint C — after T13:** canonical clean model can generate deterministic `.STD` geometry.
 - **Checkpoint C2 — after T20:** user can directly edit analytical nodes/members and control numbering/direction in-app.
-- **Checkpoint D — after T21:** direct SKP/DXF -> repair/manual edit -> READY -> `.STD` V1 pipeline is functionally complete.
+- **Checkpoint D — after T21:** SketchUp-Ruby/Direct-DXF -> repair/manual edit -> READY -> `.STD` V1 pipeline is functionally complete.
 - **Checkpoint E — after T23:** V1 accepted for real production use in target STAAD.Pro environment.
 - **Checkpoint F — after T24:** accepted V1 workspace is audited; verified-unused files are quarantined under project-local `DEL/` for user review/deletion.
 
@@ -59,4 +59,4 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 
 ## Next Task
 
-**T15 — Direct SKP edge extraction + canonical transform/topology integration**
+**T15 — SketchUp Ruby Extension + Neutral Import Integration (Direct DXF remains first-class)**

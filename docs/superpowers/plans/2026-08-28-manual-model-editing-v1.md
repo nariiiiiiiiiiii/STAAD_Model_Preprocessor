@@ -387,7 +387,7 @@ Commit:
 
 After Task 20:
 
-- **T21 — End-to-End READY Gate + Golden Suite + Audit Report** (renumbered from former T16). It must now exercise SKP/DXF -> validate -> manual repair -> normalize/direction controls -> renumber controls -> READY -> `.STD` independent parser round-trip.
+- **T21 — End-to-End READY Gate + Golden Suite + Audit Report** (renumbered from former T16). It must now exercise SketchUp-Ruby/Direct-DXF -> validate -> manual repair -> normalize/direction controls -> renumber controls -> READY -> `.STD` independent parser round-trip.
 - **T22 — Windows Executable Packaging** (renumbered from former T17).
 - **T23 — Real-Project Acceptance + STAAD.Pro Verification** (renumbered from former T18). Acceptance must include at least one manual geometry repair and confirm no unintended geometry edit from navigation/select operations.
 
