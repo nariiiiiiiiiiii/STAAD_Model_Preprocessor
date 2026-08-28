@@ -30,3 +30,5 @@ desktop.ini
 # Local SDK/vendor binaries may be staged in-project but are not committed by default
 vendor/**/bin/
 vendor/**/lib/
+# Local isolated task worktrees
+.worktrees/
