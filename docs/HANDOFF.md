@@ -1,36 +1,36 @@
 # HANDOFF — STAAD Model Preprocessor
 
 Date: 2026-08-28
-Status: **T01 implemented on `task/01-bootstrap`; awaiting user approval before T02.**
+Status: **T02 implemented on `task/02-ui`; awaiting user approval before T03.**
 
 ## Canonical project root
 
 `D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`
 
-HARD RULE: all project-created source files, temp, logs, cache, build output, artifacts, test output, generated reports, worktrees, and staged dependencies must remain inside this root.
+HARD RULE: all project-created source files, worktrees, temp, logs, cache, build output, artifacts, test output, generated reports, and staged dependencies must remain inside this root.
 
-## User goal
+## Product goal
 
-Eliminate repetitive structural-geometry cleanup between SketchUp and STAAD.Pro so design work can begin with little or no manual model cleanup in STAAD.Pro.
+Eliminate repetitive structural-geometry cleanup between SketchUp and STAAD.Pro.
 
 Primary workflow:
 
 `SketchUp SKP / DXF -> Preprocessor -> inspect/repair/normalize/renumber/validate -> STAAD .STD -> STAAD.Pro`
 
-V1 is a geometry/topology preprocessor, not a structural solver or mini STAAD.
+V1 is a geometry/topology preprocessor, not a solver or mini STAAD.
 
-## Approved baselines
+## Locked baselines
 
 Technology:
-- Python 3.12+ primary application language.
+- Python 3.12+ application target.
 - PySide6 desktop UI.
-- PyVista/VTK 3D viewport.
+- PyVista/VTK real 3D viewport planned for T04.
 - NumPy/SciPy for indexed numerical/spatial work.
 - ezdxf for DXF.
 - C++ + official SketchUp C API helper behind an isolated SKP bridge.
-- Nuitka preferred for Windows packaging after runtime compatibility is proven.
+- Nuitka preferred for Windows packaging after compatibility is proven.
 
-UI:
+UI references:
 - `docs/UI_BASELINE.md`
 - `docs/ui/main_dashboard.svg`
 - `docs/ui/unit_check.svg`
@@ -50,7 +50,7 @@ Approved high-risk areas:
 - HR-3 STAAD `.STD` exporter semantics,
 - HR-4 deterministic node/member numbering and mapping integrity.
 
-Do not request this approval again for the same scoped V1 behavior. Request a new approval only if a new high-risk area outside HR-1..HR-4 appears.
+Do not request this approval again for the same scoped V1 behavior. Request a new approval only for a new high-risk area outside HR-1..HR-4.
 
 ## Execution mode
 
@@ -69,85 +69,100 @@ End-of-Task sequence:
 4. report to user,
 5. STOP until explicit instruction to run the next Task.
 
-## T01 — completed deliverables
+## Completed T01
+
+Commit merged into master before T02:
+- `4a7551b chore: bootstrap project-local Python runtime`
+
+Delivered:
+- `pyproject.toml`,
+- `src/staadprep/paths.py`,
+- project-local runtime path guard,
+- project-local `.venv` workflow,
+- path escape tests,
+- `scripts/run_dev.ps1`.
+
+## T02 — completed deliverables
 
 Branch/worktree:
-- branch: `task/01-bootstrap`
-- worktree: `.worktrees/task-01-bootstrap`
-- base commit: `d897b91`
+- branch: `task/02-ui`
+- worktree: `.worktrees/task-02-ui`
+- base commit: `4a7551b`
 
 Created:
-- `pyproject.toml` with src-layout package/test/tool configuration,
-- `src/staadprep/__init__.py`,
-- `src/staadprep/paths.py`,
-- `tests/unit/test_paths.py`,
-- `scripts/run_dev.ps1`,
-- tracked `.tmp/.gitkeep` parent anchor for project-local pytest temp.
+- `src/staadprep/app.py`
+- `src/staadprep/ui/__init__.py`
+- `src/staadprep/ui/main_window.py`
+- `src/staadprep/ui/theme.py`
+- `src/staadprep/ui/panels.py`
+- `tests/ui/test_main_window.py`
 
 Updated:
-- `.gitignore`,
-- `docs/TASK_BOARD.md`,
-- `docs/CHECKLIST.md`,
-- this handoff,
-- T01 checkboxes in the detailed implementation plan.
+- `scripts/run_dev.ps1`
+- `docs/TASK_BOARD.md`
+- `docs/CHECKLIST.md`
+- implementation-plan T02 checkboxes
+- this handoff
 
-`ProjectPaths` contract now provides:
-- `ProjectPaths.from_root(root: Path) -> ProjectPaths`,
-- `ProjectPaths.ensure_layout() -> None`,
-- `ProjectPaths.assert_inside_project(path: Path) -> Path`.
+UI shell includes:
+- top toolbar: Import Model / Unit Check / Repair / Normalize Axis / Renumber / Validate / Export STD,
+- left Project Explorer + model summary,
+- central dark structural viewport placeholder,
+- right Properties / Validation / Quick Fix panels,
+- bottom Issue Console,
+- persistent `MODEL STATUS: NO MODEL` summary.
 
-Owned runtime directories:
-- `.tmp/`,
-- `.cache/`,
-- `.logs/`,
-- `artifacts/`,
-- `build/`,
-- `dist/`,
-- `vendor/`.
+All engineering actions remain intentionally disabled until the corresponding functional Tasks are implemented.
 
-Relative paths are interpreted from the canonical project root. Paths are resolved before the containment check so `..` traversal cannot escape the project.
+The temporary viewport is a lightweight painted structural frame/grid only. The real PyVista/VTK 3D viewport belongs to T04.
 
-## T01 verification
+## T02 runtime verification
 
-Required test command:
-`python -m pytest tests/unit/test_paths.py -v --basetemp=.tmp/pytest`
+Observed environment:
+- Windows Python: `3.14.3`
+- PySide6: `6.11.2`
+- Qt runtime: `6.11.2`
 
-Required lint command:
-`python -m ruff check src tests`
+PySide6 imports and runs on the current Python 3.14.3 environment.
 
-Additional smoke checks:
-- instantiate `ProjectPaths` against the real task worktree and create the runtime layout,
-- verify all owned generated directories resolve under the project root,
-- parse `scripts/run_dev.ps1` as a PowerShell script block.
+Verification performed:
+- UI tests for approved regions,
+- disabled-action safety test,
+- QApplication factory reuse test,
+- T01 path regression tests,
+- Ruff lint,
+- headless app launch with timed auto-exit,
+- `scripts/run_dev.ps1` launch path,
+- project-local UI screenshot generation.
 
-Environment observation:
-- only Python `3.14.3` is currently registered through the Windows `py` launcher,
-- T01 uses a project-local `.venv`,
-- only `pytest` and `ruff` were needed/used for T01 verification,
-- PySide6/PyVista/VTK compatibility with Python 3.14 has not yet been exercised; T02 must verify this before UI implementation proceeds.
+Generated review artifact (ignored by Git, remains inside project):
+- `artifacts/t02_ui_shell.png`
 
-## Known issues / constraints
+Important test-environment note:
+- Qt tests must set `QT_QPA_PLATFORM=offscreen` when run non-interactively.
+- An early shell command failed to pass the setting correctly and displayed a Qt window; the corrected PowerShell environment syntax is now used for automated smoke tests.
 
-- `scripts/run_dev.ps1` intentionally targets `python -m staadprep.app`; the `staadprep.app` entry point belongs to T02 and therefore is not created in T01.
-- No engineering/geometry semantics were implemented in T01.
-- No files were intentionally created outside the canonical project root.
+## Known constraints
+
+- No real model data exists yet.
+- No importer is enabled yet.
+- No structural or engineering semantics were added in T02.
+- PyVista/VTK were not exercised in T02; their runtime compatibility is verified in T04.
+- Toolbar/Quick Fix controls are visible but disabled until their backing Tasks exist.
 
 ## Next Task
 
-**T02 — Approved Desktop UI Shell**
+**T03 — Canonical Node/Member/Project Model + Project Serialization**
 
-Risk: FAST/STANDARD.
+Risk: STANDARD.
 
-T02 must:
-- verify/install compatible UI dependencies inside the project-local `.venv`,
-- create the desktop entry point,
-- reproduce the approved dark engineering shell,
-- keep engineering actions disabled until their backing Tasks exist.
+T03 will define stable internal identities and versioned project serialization. It must not implement topology merge/repair semantics; those remain under later STRICT Tasks.
 
-Do not start T02 until the user explicitly says `เริ่ม Task 2` / `Run T02`.
+Do not start T03 until the user explicitly says `เริ่ม Task 3` / `Run T03`.
 
 ## Resume instruction
 
-1. Open the canonical project root.
-2. Use the T01 worktree/branch for review: `.worktrees/task-01-bootstrap`, branch `task/01-bootstrap`.
-3. After user approval, integrate T01 as appropriate and execute only T02 from the detailed plan.
+1. Review branch `task/02-ui` / worktree `.worktrees/task-02-ui` if needed.
+2. When the user approves by starting T03, integrate T02 into master.
+3. Create a new isolated T03 worktree.
+4. Execute only Task 03 from the detailed implementation plan.

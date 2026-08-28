@@ -13,15 +13,16 @@
 - [x] Add smoke-launch script.
 
 ## M1 — UI shell
-- [ ] Reproduce approved dark engineering layout.
-- [ ] Toolbar: Import Model / Unit Check / Repair / Normalize Axis / Renumber / Validate / Export STD.
-- [ ] Project Explorer.
-- [ ] 3D viewport placeholder -> real viewer.
-- [ ] Properties panel.
-- [ ] Validation panel.
-- [ ] Quick Fix panel.
-- [ ] Issue Console.
-- [ ] Model summary/status.
+- [x] Reproduce approved dark engineering layout.
+- [x] Toolbar: Import Model / Unit Check / Repair / Normalize Axis / Renumber / Validate / Export STD.
+- [x] Project Explorer.
+- [x] 3D viewport placeholder.
+- [ ] Replace placeholder with real viewer (T04).
+- [x] Properties panel.
+- [x] Validation panel.
+- [x] Quick Fix panel.
+- [x] Issue Console.
+- [x] Model summary/status.
 
 ## M2 — Canonical model
 - [ ] Define ProjectModel/Node/Member/Issue contracts.

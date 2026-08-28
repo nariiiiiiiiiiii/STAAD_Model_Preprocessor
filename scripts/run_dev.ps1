@@ -24,9 +24,11 @@ foreach ($Dir in $RuntimeDirs) {
 $env:TEMP = Join-Path $TmpRoot "temp"
 $env:TMP = Join-Path $TmpRoot "temp"
 $env:PYTHONPYCACHEPREFIX = Join-Path $CacheRoot "pycache"
+$env:STAADPREP_PROJECT_ROOT = $ProjectRoot
 $env:STAADPREP_CACHE_DIR = $CacheRoot
 $env:STAADPREP_LOG_DIR = $LogRoot
 $env:PYTHONPATH = Join-Path $ProjectRoot "src"
+$env:PYTHONUTF8 = "1"
 
 $VenvPython = Join-Path $ProjectRoot ".venv\Scripts\python.exe"
 $Python = if (Test-Path $VenvPython) { $VenvPython } else { "python" }

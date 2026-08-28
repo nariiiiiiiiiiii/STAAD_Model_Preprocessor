@@ -187,7 +187,7 @@ Commit: `chore: bootstrap project-local Python runtime`
 - Produces: `create_application() -> QApplication`
 - Produces: `MainWindow(QMainWindow)` with named widgets `project_explorer`, `viewport_host`, `properties_panel`, `validation_panel`, `quick_fix_panel`, `issue_console`, `model_status`.
 
-- [ ] **Step 1: Write UI smoke test**
+- [x] **Step 1: Write UI smoke test**
 
 ```python
 def test_main_window_has_approved_regions(qtbot):
@@ -200,19 +200,19 @@ def test_main_window_has_approved_regions(qtbot):
     assert window.model_status.text() == "MODEL STATUS: NO MODEL"
 ```
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 Run: `python -m pytest tests/ui/test_main_window.py -v --basetemp=.tmp/pytest`
 
-- [ ] **Step 3: Implement the dark engineering shell**
+- [x] **Step 3: Implement the dark engineering shell**
 
 Match `docs/UI_BASELINE.md`: ribbon actions `Import Model`, `Unit Check`, `Repair`, `Normalize Axis`, `Renumber`, `Validate`, `Export STD`; left explorer; central viewport host; right properties/validation/quick-fix; bottom issue console; persistent summary/status. Engineering actions remain disabled until their backing Tasks exist.
 
-- [ ] **Step 4: Run test and launch smoke check**
+- [x] **Step 4: Run test and launch smoke check**
 
 Run test above, then run `powershell -ExecutionPolicy Bypass -File scripts/run_dev.ps1` and visually compare against `docs/ui/main_dashboard.svg`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Commit: `feat: add approved desktop UI shell`
 
