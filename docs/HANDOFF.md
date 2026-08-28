@@ -1,25 +1,24 @@
-Date: 2026-08-28
-Status: **T13 complete on `task/13-std`; T14 is next and not started.**
+Status: **T13 complete and merged to `master` at `d6dce33`; approved V1 Manual Editing plan has been expanded to T23. T14 is next and not started.**
 
 ## Canonical project root
 
 `D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`
 
-HARD RULE: all source/temp/cache/log/build/test/generated/exported files remain inside this root. Test `.STD` outputs are under `.tmp/tests/t13/`; user-facing export is guarded by `ProjectPaths.assert_inside_project()`.
+HARD RULE: all source/temp/cache/log/build/test/generated/exported files remain inside this root.
 
-## Product pipeline
+## Product pipeline — approved V1 continuation
 
-`SketchUp SKP / DXF -> unit/axis gate -> canonical topology -> validate/repair -> normalize incidence -> renumber -> STAAD .STD -> STAAD.Pro`
+`SKP / DXF -> unit/axis -> canonical topology -> validate -> Quick Fix / Manual Edit -> direction -> numbering -> READY -> STAAD .STD -> STAAD.Pro`
 
-Canonical export contract entering T13:
+The app is now explicitly planned as a **focused analytical line-model editor + preprocessor**, not only an issue console. It must still NOT become a general CAD/BIM/solver application.
+
+Canonical model/editing space:
 - metre,
-- Y-Up,
-- deterministic member incidence/local-X from T11,
-- positive deterministic STAAD-facing node/member numbers from T12.
+- STAAD Y-Up (`Y` vertical),
+- stable Node/Member UUID identities,
+- STAAD-facing numbers are attributes only.
 
-T13 does not transform axes, renumber, repair, analyze, or design the structure.
-
-## Completed task commits through T12
+## Completed commits T01-T13
 
 - T01 `4a7551b`
 - T02 `8e4c2f8`
@@ -33,30 +32,13 @@ T13 does not transform axes, renumber, repair, analyze, or design the structure.
 - T10 `b3e7d4e`
 - T11 `a4fc572`
 - T12 `9ab269f`
+- T13 `d6dce33` — `feat: export validated STAAD geometry model`
 
-## T13 — Minimal STAAD `.STD` geometry exporter
+T13 was fast-forwarded into `master` before the V1 planning expansion.
 
-Branch/worktree:
-- branch: `task/13-std`
-- worktree: `.worktrees/task-13-std`
-- base: `9ab269f`
+## T13 locked exporter contract
 
-Created:
-- `src/staadprep/exporters/__init__.py`
-- `src/staadprep/exporters/staad_std.py`
-- `tests/unit/test_staad_exporter.py`
-- `tests/ui/test_export_ui.py`
-- `tests/golden_models/01_clean_frame/expected.std`
-
-Modified:
-- `src/staadprep/ui/main_window.py`
-- `docs/CHECKLIST.md`
-- `docs/TASK_BOARD.md`
-- implementation plan status.
-
-## Locked exported subset
-
-T13 emits exactly this geometry-level subset:
+Minimal deterministic geometry subset:
 
 ```text
 STAAD SPACE
@@ -68,85 +50,175 @@ MEMBER INCIDENCES
 FINISH
 ```
 
-No supports, properties, materials, loads, load combinations, analysis commands, design commands, Beta angles, releases, or section definitions are emitted in T13.
+Exporter fails closed for empty model, invalid/missing/duplicate numbering, dangling references, or validation `ERROR`. It never auto-repairs or auto-renumbers. Warnings are reported but may export.
 
-## Export safety / validation contract
-
-`export_staad_std(model, path) -> ExportReport` fails closed before writing when:
-- model has no nodes,
-- any node/member STAAD number is missing,
-- any number is non-integer, non-positive, or duplicated within its namespace,
-- any member references a missing canonical node,
-- final T08 validation contains any `ERROR` issue.
-
-Validation `WARNING` issues do not block export; their issue IDs are returned in `ExportReport.warning_issue_ids`.
-
-Exporter does not auto-renumber or auto-repair. T12/T08/T09 remain the authorities for those operations.
-
-## Numeric formatting
-
-Coordinates are emitted as locale-independent fixed decimal text:
-- no locale thousands/decimal commas,
-- no NaN/Infinity,
-- negative zero becomes `0`,
-- no scientific notation,
-- insignificant fractional trailing zeros are stripped,
-- conversion uses the shortest Python float decimal representation as input to `Decimal`, then fixed-decimal rendering, preserving tested float round-trip values.
-
-Output ordering is by STAAD-facing `.number`, never dictionary insertion order.
-
-## UI export gate
-
-`Export STD` is enabled only when:
-- a canonical model is loaded,
-- the model is non-empty,
-- current validation has no `ERROR`,
-- node numbering is complete, positive, integer and unique,
-- member numbering is complete, positive, integer and unique.
-
-Warnings are allowed.
-
-The Save dialog defaults to project-local `artifacts/model.std`. `export_current_std()` guards the selected path through `ProjectPaths.assert_inside_project()`, so paths outside the project root are rejected before file creation.
-
-## T13 STRICT verification evidence
-
-TDD RED evidence:
-- exporter package initially missing (`ModuleNotFoundError`).
-- UI action initially stayed disabled and `export_current_std()` did not exist.
-- empty model initially enabled the UI export action and was corrected.
-- empty model initially exported and was corrected to fail closed.
-- initial numeric formatter emitted exponent notation; fixed-decimal tests forced the final canonical formatter.
-
-Targeted T13 suite after all edge fixes:
-- 20 tests passed.
-- Ruff passed.
-- targeted mypy passed.
-
-Independent HR-3 verification:
-- T12 numbering -> T13 export -> independent test-only section parser;
-- 4 canonical nodes / 4 members parsed back exactly to canonical coordinates/incidences;
-- output subset headers/terminator verified independently;
-- result: `STAAD_EXPORT_INDEPENDENT_PASS nodes=4 members=4 subset=5 deterministic=True`.
-
-Final regression after implementation/docs status update:
-- 170 non-smoke tests passed;
-- T04 real Qt/VTK viewport smoke passed;
-- T10 real issue/repair smoke passed;
-- T11 real orientation smoke passed;
-- total: 173 tests passed;
+Latest T13 completion evidence before commit:
+- 173 pytest regression tests passed in the fresh non-interactive run;
+- real Qt/VTK viewport / issue-repair / orientation smoke trio: 3 passed;
 - Ruff passed;
 - targeted mypy passed;
-- `git diff --check` passed before HANDOFF write.
+- independent T12 -> T13 parse check passed;
+- T13 doc gate passed;
+- `git diff --check` passed.
 
-## Important acceptance limitation
+Target STAAD.Pro open/acceptance is still intentionally pending and now belongs to **T23**.
 
-T13 verifies deterministic syntax and independently parses its own locked geometry subset, but **the generated `.STD` has not yet been opened/accepted in the target STAAD.Pro installation**.
+## Approved Manual Editing design
 
-`Verify with target STAAD.Pro environment` remains intentionally unchecked in `CHECKLIST.md` and belongs to T18 real-project acceptance. Do not claim STAAD.Pro acceptance before T18 evidence exists.
+Canonical design:
+`docs/superpowers/specs/2026-08-28-manual-model-editing-design.md`
 
-## Checkpoint C
+Detailed implementation plan:
+`docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md`
 
-The canonical cleaned/normalized/numbered model can now generate deterministic minimal STAAD `.STD` geometry. The current raw DXF UI path still has the previously documented Unit/Axis-to-canonical wiring gap; full direct workflow closure is handled by later integration tasks.
+### Navigation
+
+SketchUp-style baseline:
+- Middle Mouse drag = Orbit
+- Shift + Middle Mouse drag = Pan
+- Wheel = Zoom
+- Shift+Z = Fit / Zoom Extents
+
+Navigation works as an override during edit tools and must not cancel active ghost preview.
+
+**Critical safety rule:** default `SELECT` mode cannot move structural geometry by drag.
+
+### Editing modes
+
+- SELECT
+- CREATE NODE
+- DRAW MEMBER
+- MOVE / SNAP NODE
+- DELETE
+- MEASURE
+- SET DIRECTION
+
+Ghost preview is non-canonical. `Esc` cancels without model mutation. Commit always routes through reversible/auditable command/history and triggers revalidation/rerender.
+
+### Manual geometry baseline
+
+User must be able to:
+- draw a missing Member between existing Nodes;
+- draw from an existing Node to a newly created Node atomically;
+- move a Node;
+- drag/snap/merge a floating Node onto an existing Node;
+- select exact overlapping Member and delete only that Member;
+- split Member at midpoint/percentage/distance/intersection;
+- Undo/Redo manual operations.
+
+### Snap / inference
+
+Targets:
+- existing Node,
+- endpoint,
+- midpoint,
+- intersection,
+- X / Y / Z axis,
+- active working plane/grid.
+
+Axis locks: X, Y (Vertical), Z. Unresolved 3D depth must not be guessed.
+
+### Create Node
+
+Supported:
+1. Click / Snap
+2. Exact STAAD XYZ
+3. Relative to selected reference Node
+4. Translational Repeat
+
+Relative dialog example:
+
+```text
+Reference Node: 21
+X [ + ] [ 1.000 ] m
+Y [ - ] [ 0.000 ] m
+Z [ + ] [ 0.000 ] m
+
+[ ] Create Member
+```
+
+If `Create Member` is checked, Reference Node -> New Node is created atomically with the Node.
+
+### Translational Repeat
+
+- per-step ΔX/ΔY/ΔZ;
+- repeat count = NEW positions only, excluding reference Node;
+- optional member creation;
+- default `Connect Consecutive Nodes`;
+- optional `Connect From Reference Node`;
+- collision preview/resolution before commit;
+- one atomic history item / one Undo.
+
+This is intentionally narrow and is NOT a full CAD Copy Array.
+
+### Numbering controls
+
+- Auto Node Number
+- Auto Member Number
+- Auto Number All
+- Old -> New preview
+- reversible history operation
+
+Reuses T12 deterministic rules. UUID identities and endpoint UUID references never change.
+
+### Member direction controls
+
+- Auto Fix Axis All
+- Auto Fix Axis Selected
+- Flip Selected
+- Set Direction by selecting Member then clicking endpoint that shall become Start `(i)`
+
+Reuses T11 incidence/local-X logic; geometry does not move.
+
+### View / selection support
+
+- Node / Member selection filter
+- overlap candidate cycling/chooser
+- Ctrl additive selection
+- double-click Focus/Zoom
+- Node Number / Member Number / Local-X / Coordinates toggles
+- context menu by entity type
+
+## V1 scope boundary — explicitly remain OUT
+
+Do not add before V1 acceptance:
+- arbitrary Rotate geometry,
+- Mirror,
+- full Copy Array / radial/general transform array,
+- Trim,
+- Extend,
+- Offset,
+- 3D solids/surfaces,
+- section-shape modeling,
+- solver/FEM,
+- load/design systems,
+- BIM/IFC authoring.
+
+## Revised task sequence
+
+T01-T13 COMPLETE.
+
+Next sequence:
+- T14 — SKP bridge contract + native helper probe — STANDARD
+- T15 — Direct SKP extraction + transform/topology integration — STRICT HR-1/HR-2
+- T16 — SketchUp-style navigation + selection/labels — STANDARD
+- T17 — Snap/inference + working plane + axis locks — STRICT HR-1/HR-2
+- T18 — Manual Node/Member editing + atomic repair UI — STRICT HR-2
+- T19 — Exact/Relative Create Node + Translational Repeat — STRICT HR-2
+- T20 — Numbering + member-direction controls — STRICT HR-2/HR-4
+- T21 — End-to-End READY gate + golden suite + audit — STRICT HR-1..HR-4
+- T22 — Windows executable packaging — STANDARD
+- T23 — Real-project + target STAAD.Pro acceptance — STRICT acceptance
+
+## Important risk/approval state
+
+The user's existing explicit STRICT approvals for HR-1 through HR-4 remain applicable. The new manual-editing tasks are classified within those existing risk domains:
+- coordinate/inference: HR-1/HR-2,
+- topology/manual repair: HR-2,
+- direction/incidence: HR-2,
+- numbering: HR-4.
+
+If implementation discovers a new high-risk behavior outside those approved categories, stop and request a new approval.
 
 ## Next task
 
@@ -154,6 +226,4 @@ The canonical cleaned/normalized/numbered model can now generate deterministic m
 
 Risk: STANDARD.
 
-T14 must not modify T13 export semantics. It defines an isolated SKP helper contract and must fail gracefully when the official SketchUp SDK is absent.
-
-Do not start T14 until the user explicitly requests it.
+T14 must remain isolated from exporter/manual-edit semantics. It defines the native-helper boundary and must fail gracefully if the official SketchUp SDK is absent.

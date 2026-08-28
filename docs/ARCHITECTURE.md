@@ -1,17 +1,21 @@
-# ARCHITECTURE
-
 ## Goal
 
-Keep the application fast to develop, easy to patch, and safe to evolve without coupling file formats, UI, or STAAD export logic together.
+Keep the application fast to develop, safe to edit, and easy to patch without coupling file formats, viewport interaction, canonical topology, or STAAD export logic together.
 
 ## High-level architecture
 
 ```text
 SKP ---------\
-              > Import Adapters -> Canonical Structural Model -> Validation -> Repair Commands -> Normalize -> Renumber -> Export
-DXF ---------/                                 |                    |                                 |            |
-                                                +-> 3D Viewer        +-> Issue Console                 +-> Audit    +-> .STD
+              > Import Adapters -> Canonical Structural Model -> Validation -> Repair/Edit Commands -> Normalize/Direction -> Renumber -> Export
+DXF ---------/                                 |                    |                     |                    |          |
+                                                +-> 3D Viewer        +-> Audit/Undo         +-> Local-X         +-> Maps  +-> .STD
+                                                      |
+                                                      +-> Interaction State
+                                                      +-> Snap/Inference
+                                                      +-> Ghost Preview
 ```
+
+The 3D viewer never becomes the source of truth. It emits interaction intent and previews; commands mutate the canonical model only on commit.
 
 ## Layers
 
@@ -26,11 +30,14 @@ Responsibilities:
 - Quick Fix panel,
 - Issue Console,
 - status/model summary,
-- dialogs for unit/reference-length/repair confirmation.
+- Create Node / Repeat / numbering preview dialogs,
+- edit-mode controls,
+- selection filters and view toggles,
+- confirmation dialogs.
 
-The UI must not own topology or export algorithms.
+The UI must not own topology, inference math, numbering algorithms, or export formatting.
 
-### 2. Viewer layer
+### 2. Viewer / interaction layer
 Technology: PyVista / VTK.
 
 Responsibilities:
@@ -39,9 +46,31 @@ Responsibilities:
 - highlight issue locations,
 - isolate structures,
 - display local-X direction arrows,
-- camera presets and fit/zoom.
+- display node/member numbers and coordinate labels,
+- SketchUp-style orbit/pan/zoom/fit,
+- maintain explicit edit mode,
+- ghost node/member previews,
+- emit model-space interaction requests.
 
-### 3. Canonical model layer
+Interaction invariants:
+- `SELECT` drag never changes geometry;
+- Middle Mouse navigation temporarily overrides editing without cancelling it;
+- preview actors are disposable and non-authoritative;
+- `Esc` clears current preview/gesture without model mutation.
+
+### 3. Snap / inference layer
+
+Responsibilities:
+- existing-node snap,
+- endpoint/midpoint inference,
+- member-intersection inference,
+- axis constraints X/Y/Z,
+- working-plane/grid resolution,
+- deterministic candidate tie-breaking.
+
+It operates in canonical metre / STAAD Y-Up coordinates. It does not mutate the model.
+
+### 4. Canonical model layer
 Format-independent source of truth.
 
 Core entities:
@@ -58,7 +87,9 @@ Canonical coordinate system:
 Canonical working length unit:
 - metre.
 
-### 4. Import adapters
+Stable UUID identities are independent from STAAD-facing numbers.
+
+### 5. Import adapters
 
 #### DXF importer
 - Python + ezdxf.
@@ -69,11 +100,11 @@ Canonical working length unit:
 - C++ helper using official SketchUp C API.
 - Reads SKP without requiring SketchUp to be open.
 - Emits versioned neutral interchange data.
-- Python adapter converts the interchange data into the same canonical model used by DXF.
+- Python adapter converts interchange data into the same canonical model used by DXF.
 
 The rest of the application must not depend on SKP SDK types.
 
-### 5. Validation engine
+### 6. Validation engine
 Produces `Issue` objects only. It must not silently mutate geometry.
 
 Validators:
@@ -89,37 +120,62 @@ Validators:
 - incidence/direction consistency,
 - numbering readiness.
 
-### 6. Repair engine
+### 7. Repair / editing engine
 Command-based architecture.
 
-Candidate commands:
-- `MergeNodesCommand`
-- `SnapNodesCommand`
-- `DeleteNodeCommand`
-- `DeleteMemberCommand`
-- `ConnectNodesCommand`
-- `SplitMemberCommand`
-- `ReverseMemberCommand`
-- `ScaleModelCommand`
-- `TransformAxisCommand`
-- `RenumberNodesCommand`
-- `RenumberMembersCommand`
+Existing/reused commands include:
+- `MergeNodes`
+- `SnapNode`
+- `DeleteNode`
+- `DeleteMember`
+- `ConnectNodes`
+- `SplitMember`
+- `ReverseMember`
+- `ScaleModel`
+- `TransformModel`
 
-Each command records before/after data required for audit and undo where practical.
+Manual-editing additions include:
+- `CreateNode`
+- `MoveNode`
+- atomic `CompositeRepair`
+- reversible numbering commands wrapping T12
+- explicit member-start/direction commands wrapping T11 reversal semantics.
 
-### 7. Normalization / numbering
+Every successful mutation records sufficient before/after state for audit and undo. Multi-step operations such as create-node+member, split-at-intersection, or Translational Repeat commit as one atomic history item.
+
+### 8. Manual editing orchestration
+
+The editing layer converts validated user intent into command objects; it does not directly write `model.nodes`, `model.members`, coordinates, numbers, or incidences.
+
+Examples:
+
+```text
+DRAW MEMBER
+Viewer click intent -> InferenceHit -> editing factory -> ConnectNodes / CompositeRepair -> RepairHistory
+
+MOVE / SNAP NODE
+Ghost drag -> final InferenceHit -> MoveNode or MergeNodes -> RepairHistory
+
+TRANSLATIONAL REPEAT
+Dialog spec -> deterministic proposal -> collision resolution -> CompositeRepair -> RepairHistory
+```
+
+### 9. Normalization / numbering
 Deterministic transformations only.
 
 Default Y-Up direction rules:
 - columns: low Y -> high Y,
 - dominant-X members: low X -> high X,
 - dominant-Z members: low Z -> high Z,
-- diagonal members: deterministic dominant-axis/elevation rule.
+- diagonal members: deterministic dominant-axis rule.
+
+Direction UI reuses these rules and adds explicit `Flip Selected` / `Set Direction` without moving geometry.
 
 Default node ordering:
 - elevation Y,
 - X,
-- Z.
+- Z,
+- UUID tie-break at precision equality.
 
 Default member ordering:
 - columns,
@@ -129,16 +185,18 @@ Default member ordering:
 - others,
 then level/position.
 
-### 8. Export adapters
+Numbering UI wraps these deterministic functions in reversible history commands. UUID identities/member endpoint UUID references never change during renumbering.
+
+### 10. Export adapters
 
 Primary V1 exporter:
 - STAAD `.STD`.
 
-Optional:
+Optional/audit outputs:
 - cleaned DXF,
 - JSON audit/project data.
 
-Export consumes the canonical model only.
+Export consumes the canonical model only and never repairs/renumbers it silently.
 
 ## Project layout target
 
@@ -148,24 +206,26 @@ STAAD_Model_Preprocessor/
 ├── README.md
 ├── docs/
 ├── src/
-│   └── staad_preprocessor/
-│       ├── app/
+│   └── staadprep/
 │       ├── ui/
 │       ├── viewer/
+│       ├── editing/
 │       ├── model/
 │       ├── importers/
 │       ├── validation/
 │       ├── repair/
-│       ├── normalize/
+│       ├── orientation/
 │       ├── numbering/
 │       ├── exporters/
-│       └── paths/
+│       └── paths.py
 ├── native/
 │   └── skp_reader/
 ├── tests/
 │   ├── unit/
+│   ├── ui/
 │   ├── integration/
 │   └── golden_models/
+├── scripts/
 ├── .tmp/
 ├── .cache/
 ├── .logs/
@@ -177,10 +237,13 @@ STAAD_Model_Preprocessor/
 
 ## Architectural invariants
 
-1. UI never becomes the source of truth for geometry.
+1. UI/viewer never becomes the source of truth for geometry.
 2. Importers never perform hidden structural repairs.
-3. Validators report; repair commands mutate.
-4. Exporters do not repair models during export.
-5. Writable development paths remain inside the canonical project root.
-6. File-format adapters can be replaced without changing the canonical model API.
-7. V1 must remain focused on cleanup/preparation, not structural design or analysis.
+3. Validators report; repair/edit commands mutate.
+4. Ghost previews never mutate canonical state.
+5. Select/navigation actions never mutate geometry.
+6. Exporters do not repair/renumber models during export.
+7. Writable development/runtime paths remain inside the canonical project root.
+8. File-format adapters can be replaced without changing the canonical model API.
+9. Stable UUID identity survives numbering changes.
+10. V1 remains focused on analytical line-model cleanup/preparation, not structural design, analysis, or general CAD authoring.

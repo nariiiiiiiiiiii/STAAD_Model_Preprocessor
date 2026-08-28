@@ -1,37 +1,53 @@
-# STAAD Model Preprocessor
-
-Desktop preprocessor for cleaning analytical structural geometry before STAAD.Pro.
+Desktop preprocessor and focused analytical line-model editor for cleaning structural geometry before STAAD.Pro.
 
 ## Product goal
 
-Reduce manual cleanup inside STAAD.Pro by converting SketchUp/DXF geometry into a clean, validated analytical model before export.
+Reduce repeated cleanup inside STAAD.Pro by converting SketchUp/DXF geometry into a clean, validated analytical model before export, while allowing routine Node/Member corrections directly in the app.
 
 Primary workflow:
 
-`SketchUp (.skp) / DXF -> Import -> Unit/Scale -> Clean -> Connectivity -> Repair -> Normalize -> Renumber -> Validate -> Export .STD -> STAAD.Pro`
+`SketchUp (.skp) / DXF -> Import -> Unit/Scale -> Validate -> Quick Fix / Manual Edit -> Connectivity -> Direction -> Renumber -> READY -> Export .STD -> STAAD.Pro`
 
-## Status
+## Current status
 
-- Phase: Design baseline / pre-implementation
-- UI baseline: locked from the approved dark desktop mockup
-- Primary OS: Windows 11
-- Primary language: Python
-- UI: PySide6
-- 3D: PyVista/VTK
-- DXF: ezdxf
-- SKP: SketchUp C API helper (C++) behind an importer adapter
-- STAAD output: `.STD`
+- T01-T13 complete; deterministic minimal `.STD` geometry export is implemented.
+- T14 is next: isolated SKP bridge/helper capability probe.
+- V1 plan expanded to T23 with approved Manual Editing tasks T16-T20.
+- Primary OS: Windows 11.
+- Primary language: Python.
+- UI: PySide6.
+- 3D: PyVista/VTK.
+- DXF: ezdxf.
+- SKP: official SketchUp C API helper (C++) behind an importer adapter.
+- STAAD output: `.STD`.
+
+## Approved V1 manual-editing direction
+
+V1 will add:
+- SketchUp-style Middle-Mouse Orbit / Shift+Middle Pan / Wheel Zoom,
+- explicit Select/Create Node/Draw Member/Move-Snap/Delete edit modes,
+- snap/inference + X/Y/Z axis locks,
+- exact/relative Create Node,
+- optional Create Member,
+- STAAD-like Translational Repeat for analytical nodes/members,
+- Auto Node Number / Auto Member Number / Auto Number All,
+- Auto Fix Axis / Flip Selected / Set Direction,
+- entity labels, selection filters, ghost preview, atomic Undo/Redo.
+
+V1 intentionally does NOT become a general CAD package: no arbitrary Rotate/Mirror/full Copy Array/Trim/Extend/Offset/solids/section modeling.
 
 ## Canonical documents
 
-- `docs/PROJECT_SPEC.md` — requirements and scope
-- `docs/ARCHITECTURE.md` — system boundaries and modules
-- `docs/WORKFLOW.md` — user and data workflows
+- `docs/PROJECT_SPEC.md` — requirements and V1 scope
+- `docs/ARCHITECTURE.md` — system boundaries/modules
+- `docs/WORKFLOW.md` — user/data/editing workflows
 - `docs/CHECKLIST.md` — delivery checklist
-- `docs/RISK_GATES.md` — verification level and approval gates
-- `docs/UI_BASELINE.md` — approved UI behavior/layout
+- `docs/RISK_GATES.md` — verification levels and approval gates
+- `docs/UI_BASELINE.md` — approved layout/interaction behavior
 - `docs/HANDOFF.md` — continuation context
+- `docs/superpowers/specs/2026-08-28-manual-model-editing-design.md` — approved manual-editing design
+- `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md` — T16-T20 implementation plan
 
 ## Development rule
 
-Do not turn this into a mini STAAD solver. V1 exists to clean and organize analytical geometry so engineering design can start faster in STAAD.Pro.
+Do not turn this into a mini STAAD solver or a second SketchUp. V1 exists to clean, inspect, directly correct, and organize analytical line geometry so engineering design can start faster in STAAD.Pro.

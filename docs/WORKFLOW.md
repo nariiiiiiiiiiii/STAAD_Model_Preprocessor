@@ -1,5 +1,3 @@
-# WORKFLOW
-
 ## A. User workflow — V1
 
 ```text
@@ -8,11 +6,11 @@
 3. Confirm unit + model extents
 4. Verify one known/reference length
 5. Inspect validation summary
-6. Resolve geometry/topology issues
+6. Resolve geometry/topology issues with Quick Fix and/or Manual Edit
 7. Confirm expected structure count
-8. Normalize member incidence/local-X direction
+8. Normalize/control member incidence/local-X direction
 9. Renumber nodes/members
-10. Run final validation
+10. Run final READY validation
 11. Export .STD
 12. Open in STAAD.Pro and start section/load/design work
 ```
@@ -29,7 +27,7 @@ Source file
   -> render
 ```
 
-Importer must not silently merge, split, or delete structural geometry.
+Importer must not silently merge, split, delete, or repair structural geometry.
 
 ## C. Unit / dimension workflow
 
@@ -70,8 +68,8 @@ Issue Console row
  -> zoom/highlight
  -> show properties/context
  -> recommended actions
- -> user chooses action
- -> execute RepairCommand
+ -> user chooses Quick Fix or Manual Edit
+ -> execute Repair/Edit Command
  -> record audit
  -> revalidate affected scope
  -> refresh issue/status
@@ -80,13 +78,13 @@ Issue Console row
 Examples:
 
 ### Near nodes
-`Inspect -> Measure gap -> Merge / Snap / Ignore`
+`Inspect -> Measure gap -> Merge / Snap / Manual Move-Snap / Ignore`
 
 ### Orphan node
-`Inspect -> Delete / Connect / Ignore`
+`Inspect -> Delete / Draw Member / Move-Snap / Ignore`
 
 ### Detached structure
-`Isolate -> show closest candidate connection -> Merge/Connect where appropriate -> recompute structures`
+`Isolate -> show closest candidate connection -> user chooses connection -> recompute structures`
 
 ### Crossing without node
 `Inspect -> Split at intersection -> recompute topology`
@@ -94,10 +92,172 @@ Examples:
 ### Short member
 `Inspect length -> Delete / Keep`
 
-### Wrong member direction
-`Show local-X arrow -> Reverse -> revalidate`
+### Duplicate overlapping member
+`Cycle exact member under cursor -> select unwanted member -> Delete -> revalidate`
 
-## F. Structure-count workflow
+### Wrong member direction
+`Show local-X arrow -> Auto Fix / Flip / Set Start (i) -> revalidate`
+
+## F. SketchUp-style navigation workflow
+
+Navigation is always available, including while an edit tool is active:
+
+```text
+Middle Mouse drag         -> Orbit
+Shift + Middle Mouse drag -> Pan
+Mouse Wheel               -> Zoom
+Shift + Z                 -> Fit / Zoom Extents
+```
+
+Navigation temporarily overrides the edit gesture but does not cancel it. Releasing Middle Mouse returns to the active edit preview.
+
+Select mode never moves structural geometry.
+
+## G. Selection / identity workflow
+
+1. Default mode = `SELECT`.
+2. Selection filter chooses `Node`, `Member`, or both.
+3. Left click selects exact entity.
+4. Ctrl+click toggles additive selection.
+5. If entities overlap, cycle/choose exact candidate.
+6. Double-click focuses/zooms selected entity.
+7. Optional labels show Node Number, Member Number, Local-X, Coordinates.
+8. Context menu shows only valid operations for the selected entity.
+
+## H. Manual geometry editing workflow
+
+All manual geometry edits use explicit modes and ghost previews.
+
+### Draw missing Member
+
+```text
+DRAW MEMBER
+ -> click Start Node
+ -> ghost member follows inference target
+ -> click existing End Node OR valid new-node position
+ -> build command/composite
+ -> commit through RepairHistory
+ -> revalidate + rerender
+```
+
+If a new endpoint is created, node+member creation commits atomically. Failure leaves no orphan new node.
+
+### Move / Snap Node
+
+```text
+MOVE / SNAP NODE
+ -> left-drag selected Node
+ -> ghost preview only
+ -> release in valid free space = MoveNode
+ -> release on existing Node = Merge/Snap semantics
+ -> commit
+ -> revalidate + rerender
+```
+
+`Esc` cancels without changing canonical coordinates.
+
+### Delete selected Node/Member
+
+```text
+Select exact entity
+ -> Delete
+ -> destructive confirmation
+ -> Delete command
+ -> revalidate + rerender
+```
+
+Deleting one of multiple overlapping members affects only the selected UUID.
+
+### Split Member
+
+Selected Member can create a canonical split:
+- midpoint,
+- percentage,
+- exact distance from Start,
+- detected intersection.
+
+The split is atomic and undoable.
+
+## I. Snap / inference workflow
+
+Manual draw/move/create uses canonical-space inference:
+- Existing Node,
+- Member endpoint,
+- Member midpoint,
+- Member intersection,
+- X axis,
+- STAAD Y axis (Vertical),
+- Z axis,
+- active working plane/grid.
+
+Axis locks:
+
+```text
+X -> constrain to canonical X
+Y -> constrain to canonical Y (Vertical)
+Z -> constrain to canonical Z
+Esc -> cancel edit/lock
+```
+
+If a valid 3D position cannot be inferred, the app shows preview as non-committable rather than guessing depth.
+
+## J. Create Node workflow
+
+### Click / Snap
+
+`CREATE NODE -> valid inference point -> ghost preview -> Create`
+
+- existing Node hit: use existing; no duplicate Node;
+- Member hit: split Member correctly;
+- Intersection hit: create/split affected topology atomically;
+- free-space hit: requires active working plane/inference.
+
+### Exact XYZ
+
+Dialog uses canonical metre coordinates:
+- STAAD X
+- STAAD Y (Vertical)
+- STAAD Z
+
+Preview appears before commit.
+
+### Relative to selected Node
+
+Example:
+
+```text
+Reference Node: 21
+X [ + ] [ 1.000 ] m
+Y [ - ] [ 0.000 ] m
+Z [ + ] [ 0.000 ] m
+
+[ ] Create Member
+```
+
+The dialog shows reference and result XYZ. If `Create Member` is checked, `Reference Node -> New Node` is created atomically with the new node.
+
+If result matches an existing Node within tolerance, the app reports that Node and asks whether to use it or cancel; it never silently creates a duplicate.
+
+### Translational Repeat
+
+```text
+Reference Node
+ + ΔX/ΔY/ΔZ per step
+ + Repeat Count (new positions only)
+ + optional Create Member
+ + Connection Mode
+ -> Preview all ghost Nodes/Members
+ -> resolve existing-node collisions
+ -> one atomic commit
+```
+
+Connection modes:
+- `Connect Consecutive Nodes` — default;
+- `Connect From Reference Node`.
+
+One Undo reverts the entire repeat.
+
+## K. Structure-count workflow
 
 1. Calculate connected components.
 2. Display total structures.
@@ -107,36 +267,40 @@ Examples:
 6. User decides repair.
 7. Recalculate component count.
 
-## G. Normalize workflow
+## L. Member direction workflow
 
-Normalization happens after topology cleanup.
+Normalization happens after topology cleanup, but the user can also correct selected members explicitly.
 
 ```text
 Topology clean
- -> classify member orientation
- -> preview direction changes
- -> reverse incidence where required
- -> show local-X arrows
+ -> show Local-X arrows
+ -> Auto Fix All / Auto Fix Selected
+ OR Flip Selected
+ OR Set Direction: click endpoint that shall be Start (i)
+ -> incidence/local-X changes only
  -> validate direction consistency
 ```
 
-## H. Renumber workflow
+No coordinate movement occurs during Set Direction.
 
-Renumber happens after cleanup and normalization.
+## M. Numbering workflow
+
+Renumber happens after cleanup/direction review.
 
 ```text
-Clean topology
- -> deterministic node sort
- -> assign node IDs
- -> deterministic member classification/sort
- -> assign member IDs
- -> update references atomically
- -> audit mapping old -> new
+Clean canonical model
+ -> Auto Node Number / Auto Member Number / Auto Number All
+ -> preview UUID: Old -> New mapping
+ -> apply deterministic numbering
+ -> preserve UUID keys and member endpoint UUID references
+ -> audit mapping
 ```
 
-## I. Final export workflow
+Numbering changes only STAAD-facing `.number` attributes.
 
-Normal export requires critical validation PASS.
+## N. Final export workflow
+
+Normal export requires critical validation PASS / READY gate.
 
 Pre-export summary:
 - source file,
@@ -146,19 +310,19 @@ Pre-export summary:
 - nodes/members,
 - structure count,
 - critical issues = 0,
-- normalization status,
+- direction status,
 - numbering status.
 
 Then:
 
 `Canonical Model -> STAAD exporter -> .STD -> export report`
 
-Exporter must not modify or repair the model.
+Exporter must not modify, renumber, or repair the model.
 
-## J. Real-project feedback loop
+## O. Real-project feedback loop
 
 After V1 begins real use:
 
-`Real project -> observed pain point -> small patch -> targeted regression fixture -> release`
+`Real project -> observed pain point -> narrowly scoped patch -> targeted regression fixture -> release`
 
-Do not redesign the entire application for each new case. Add patches around stable canonical interfaces.
+Do not turn later feedback into a full CAD rewrite. Add patches around stable canonical/editing interfaces.

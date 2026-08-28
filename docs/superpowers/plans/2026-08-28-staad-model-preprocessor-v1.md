@@ -728,47 +728,113 @@ Commit: `feat: import SketchUp structural edges directly`
 
 ---
 
-### Task 16: End-to-End READY Gate + Golden Suite + Audit Report
+### Task 16: SketchUp-Style Navigation + Selection Foundation
+
+**Risk:** STANDARD
+
+Detailed executable plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md` Task 16.
+
+**Deliverable:** Explicit edit modes with safe default SELECT, SketchUp-style Middle-Mouse Orbit / Shift+Middle Pan / Wheel Zoom / Shift+Z Fit, selection filters, overlap cycling, focus, context actions, and Node/Member/Local-X/Coordinate labels. Navigation/select actions MUST NOT mutate canonical geometry.
+
+Commit: `feat: add safe SketchUp-style viewport controls`
+
+---
+
+### Task 17: Snap / Inference + Axis Lock Engine
+
+**Risk:** **STRICT HR-1 / HR-2**
+
+Detailed executable plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md` Task 17.
+
+**Deliverable:** Deterministic canonical-space inference for existing Node, endpoint, midpoint, intersection, X/Y/Z constraints, working plane/grid, and keyboard axis locks. Unresolved 3D depth is non-committable rather than guessed.
+
+Commit: `feat: add deterministic structural snap inference`
+
+---
+
+### Task 18: Manual Node / Member Editing
+
+**Risk:** **STRICT HR-2**
+
+Detailed executable plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md` Task 18.
+
+**Deliverable:** Reversible CreateNode/MoveNode + atomic composite repair; viewport Draw Member, Move/Snap Node, Delete exact selected entity, Split Member, ghost preview, Esc cancel, one-step atomic Undo, and real Qt/VTK manual-edit smoke. SELECT drag remains non-mutating.
+
+Commit: `feat: edit analytical nodes and members in viewport`
+
+---
+
+### Task 19: Precision Create Node + Translational Repeat
+
+**Risk:** **STRICT HR-2**
+
+Detailed executable plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md` Task 19.
+
+**Deliverable:** Create Node by exact XYZ or relative to selected Node, optional Create Member, collision preview, STAAD-like Translational Repeat with ΔX/ΔY/ΔZ, repeat count excluding reference Node, Consecutive / From Reference member modes, and one atomic history item.
+
+Commit: `feat: create precise repeated structural nodes`
+
+---
+
+### Task 20: Numbering + Member Direction Controls
+
+**Risk:** **STRICT HR-2 / HR-4**
+
+Detailed executable plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md` Task 20.
+
+**Deliverable:** Reversible Auto Node Number / Auto Member Number / Auto Number All with Old->New preview; Auto Fix Axis All/Selected, Flip Selected, and Set Direction by clicking the desired Start `(i)` endpoint. Reuse T11/T12 algorithms; do not duplicate orientation/numbering logic.
+
+Commit: `feat: control STAAD numbering and member direction`
+
+**Checkpoint C2:** user can directly correct analytical line geometry, create repeated nodes/members, and control numbering/direction without returning to SketchUp for routine cleanup.
+
+---
+
+### Task 21: End-to-End READY Gate + Golden Suite + Audit Report
 
 **Risk:** **STRICT HR-1 through HR-4**
 
 **Files:**
 - Create: `src/staadprep/validation/ready_gate.py`
 - Create: `tests/integration/test_full_pipeline.py`
-- Complete: `tests/golden_models/01..11`
+- Complete: `tests/golden_models/01..11` plus manual-edit expected canonical fixtures
 - Modify: `src/staadprep/ui/main_window.py`
 - Modify: `src/staadprep/repair/audit.py`
 
 **Interfaces:**
 - Produces: `ReadyGate.evaluate(model, issues) -> ReadyStatus`
 - `ReadyStatus.ready` is false when any critical ERROR exists, unit/reference dimension is unverified when required by policy, or numbering is incomplete.
-- Produces project-local validation report JSON with import metadata, transforms, issue summary, repairs, numbering maps, and export status.
+- Produces project-local validation report JSON with import metadata, transforms, issue summary, repairs/manual edits, numbering maps, direction status, and export status.
 
 - [ ] **Step 1: Define exact gate tests**
 
-Clean model = READY. Orphan, disconnected critical component, invalid coordinate, zero-length, unresolved crossing, or missing numbering = NOT READY. Warnings alone do not block unless policy says otherwise.
+Clean model = READY. Orphan, disconnected critical component, invalid coordinate, zero-length, unresolved crossing, or missing numbering = NOT READY. Warnings alone do not block unless policy says otherwise. SELECT/navigation-only actions must not alter readiness/model revision.
 
-- [ ] **Step 2: Execute all golden fixtures through import→transform→topology→validate**
+- [ ] **Step 2: Execute all golden fixtures through import -> transform -> topology -> validate**
 
-Dirty fixtures must produce exact expected issue sets. Clean/repaired variants must converge to expected structure count and geometry.
+Dirty fixtures must produce exact expected issue sets. Clean/repaired/manual-edited variants must converge to expected structure count and geometry.
 
-- [ ] **Step 3: Repair combined dirty fixture through commands and verify final model graph independently**
+- [ ] **Step 3: Repair combined dirty fixture through Quick Fix + manual commands and verify final model graph independently**
 
-Compare node/member coordinate/incidence sets against a hand-authored expected canonical fixture before export.
+The integration fixture must include at least: draw one missing member, move/snap one Node, delete one exact duplicate Member, create one relative Node/member, and apply one Translational Repeat. Compare exact node/member coordinate/incidence sets against hand-authored canonical expectations before export.
 
-- [ ] **Step 4: Export and test model→STD→independent test parser round-trip**
+- [ ] **Step 4: Apply direction/numbering controls and independently verify invariants**
 
-- [ ] **Step 5: Update UI status to `READY FOR STAAD` only from `ReadyGate` result**
+Direction changes incidence only; numbering changes `.number` only; stable UUID identities and endpoint references remain valid.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Export and test model -> STD -> independent test parser round-trip**
+
+- [ ] **Step 6: Update UI status to `READY FOR STAAD` only from `ReadyGate` result**
+
+- [ ] **Step 7: Commit**
 
 Commit: `test: verify end-to-end clean model readiness`
 
-**Checkpoint D:** direct SKP/DXF→repair→validated `.STD` V1 pipeline is functionally complete.
+**Checkpoint D:** direct SKP/DXF -> Quick Fix/manual edit -> validated `.STD` V1 pipeline is functionally complete.
 
 ---
 
-### Task 17: Windows Executable Packaging
+### Task 22: Windows Executable Packaging
 
 **Risk:** STANDARD
 
@@ -780,7 +846,7 @@ Commit: `test: verify end-to-end clean model readiness`
 
 **Interfaces:**
 - Output only under `dist/` and `build/`.
-- Runtime logs/cache/temp remain under the application/project-owned directories, never system temp by app choice.
+- Runtime logs/cache/temp remain under application/project-owned directories, never system temp by app choice.
 
 - [ ] **Step 1: Add packaging-path test**
 
@@ -788,7 +854,7 @@ Commit: `test: verify end-to-end clean model readiness`
 
 - [ ] **Step 3: Build from clean environment and launch executable**
 
-- [ ] **Step 4: Import a golden DXF, validate, export `.STD`, close/reopen app**
+- [ ] **Step 4: Import a golden model, perform one manual edit, validate, export `.STD`, close/reopen app**
 
 - [ ] **Step 5: Commit**
 
@@ -796,7 +862,7 @@ Commit: `build: package Windows desktop application`
 
 ---
 
-### Task 18: Real-Project Acceptance + STAAD.Pro Verification
+### Task 23: Real-Project Acceptance + STAAD.Pro Verification
 
 **Risk:** **STRICT acceptance**
 
@@ -810,11 +876,13 @@ Commit: `build: package Windows desktop application`
 
 - [ ] **Step 1: Copy/reference a real test model into the project-local acceptance area without modifying the user's source file**
 
-- [ ] **Step 2: Run full import/repair/normalize/renumber/validate/export workflow and preserve audit report**
+- [ ] **Step 2: Run full import/Quick Fix/manual-edit/direction/renumber/validate/export workflow and preserve audit report**
+
+Acceptance must exercise at least one manual Draw Member or Move/Snap Node action and verify one Select/navigation gesture cannot mutate geometry.
 
 - [ ] **Step 3: Open exported `.STD` in target STAAD.Pro environment**
 
-Verify: intended node coordinates, member incidences, structure count, member local-X incidence direction, numbering, and absence of parser/import geometry errors.
+Verify intended node coordinates, member incidences, structure count, member local-X incidence direction, numbering, and absence of parser/import geometry errors.
 
 - [ ] **Step 4: Record any discrepancy as a narrowly scoped patch item; do not silently change acceptance criteria**
 
@@ -841,13 +909,13 @@ At the end of every Task the executor MUST:
 
 ## Plan Self-Review Result
 
-- Spec coverage: all V1 functional requirements map to T01–T18.
+- Spec coverage: all approved V1 functional requirements map to T01–T23; detailed Manual Editing T16–T20 plan is linked above.
 - Project-boundary rule: enforced from T01 and carried through every Task.
-- UI baseline: T02/T04/T10.
+- UI baseline: T02/T04/T10 plus SketchUp-style/manual-edit interaction T16–T20.
 - Direct SKP path: T14/T15; DXF remains fallback through T05.
-- HR-1: T06/T15/T16.
-- HR-2: T07/T08/T09/T11/T15/T16.
-- HR-3: T13/T16/T18.
-- HR-4: T12/T16/T18.
+- HR-1: T06/T15/T17/T21.
+- HR-2: T07/T08/T09/T11/T15/T17/T18/T19/T20/T21.
+- HR-3: T13/T21/T23.
+- HR-4: T12/T20/T21/T23.
 - Stable identity strategy prevents renumbering from rewriting canonical graph references.
-- No V1 out-of-scope solver/design/BIM/cloud features are scheduled.
+- Manual editing remains analytical-line focused; arbitrary Rotate/Mirror/full Copy Array/Trim/Extend/Offset/solids/section modeling and solver/design/BIM/cloud features are not scheduled.
