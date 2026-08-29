@@ -24,8 +24,8 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T18 | Manual Node/Member editing + atomic repair UI | **STRICT HR-2** | **COMPLETE** |
 | T19 | Exact/Relative Create Node + Translational Repeat | **STRICT HR-2** | **COMPLETE** |
 | T20 | Auto numbering + member direction controls | **STRICT HR-2/HR-4** | **COMPLETE** |
-| T21 | End-to-end READY gate + golden dirty-model suite + audit report | **STRICT HR-1..HR-4** | **READY — not started** |
-| T22 | Windows packaging (`.exe`) + production path/log policy | STANDARD | BLOCKED by T21 |
+| T21 | End-to-end READY gate + golden dirty-model suite + audit report | **STRICT HR-1..HR-4** | **COMPLETE** |
+| T22 | Windows packaging (`.exe`) + production path/log policy | STANDARD | **READY — not started** |
 | T23 | Real-project acceptance + target STAAD.Pro verification | **STRICT acceptance** | BLOCKED by T22 |
 | T24 | Post-acceptance unused-file audit + quarantine to project-local `DEL/` | STANDARD | BLOCKED by T23 |
 
@@ -77,6 +77,23 @@ Final verified state:
 - `git diff --check`: passed.
 - Feature commit subject: `feat: control STAAD numbering and member direction`.
 
+## Completed checkpoint — T21
+
+**T21 — End-to-End READY Gate + Golden Suite + Audit Report** is **COMPLETE** on `task/21-ready-gate`.
+
+Final verified state:
+- authoritative `ReadyGate` controls `READY FOR STAAD` and export availability;
+- golden fixtures 01-11 plus the hand-authored manual-edit canonical expectation are covered;
+- combined dirty-model repair/manual-edit flow converges to the expected graph before direction/numbering/export;
+- independent direction/numbering invariants and independent `.STD` parser round-trip passed;
+- validation/audit JSON is emitted project-locally after successful UI export;
+- permanent MCP-safe UI runner verifies **62 lightweight + 30 VTK/renderer = 92 UI tests** without long multi-renderer MCP calls;
+- fresh final regression: **275 unit+integration + 92 UI = 367 passed**;
+- Ruff: passed;
+- T21-local strict mypy: **0 issues in 4 affected source/runner files** using `--follow-imports=silent`;
+- `git diff --check`: passed;
+- feature commit: `bddd177` — `test: verify end-to-end clean model readiness`.
+
 ## Next Task
 
-**T21 — End-to-End READY Gate + Golden Suite + Audit Report** is READY but **not started**. Stop here until the user explicitly requests T21.
+**T22 — Windows Executable Packaging** is READY but **not started**. Stop here until the user explicitly requests T22.

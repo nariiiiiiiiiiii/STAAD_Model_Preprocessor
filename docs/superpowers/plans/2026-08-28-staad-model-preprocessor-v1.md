@@ -839,27 +839,41 @@ Commit: `feat: control STAAD numbering and member direction`
 - `ReadyStatus.ready` is false when any critical ERROR exists, unit/reference dimension is unverified when required by policy, or numbering is incomplete.
 - Produces project-local validation report JSON with import metadata, transforms, issue summary, repairs/manual edits, numbering maps, direction status, and export status.
 
-- [ ] **Step 1: Define exact gate tests**
+- [x] **Step 1: Define exact gate tests**
 
 Clean model = READY. Orphan, disconnected critical component, invalid coordinate, zero-length, unresolved crossing, or missing numbering = NOT READY. Warnings alone do not block unless policy says otherwise. SELECT/navigation-only actions must not alter readiness/model revision.
 
-- [ ] **Step 2: Execute all golden fixtures through import -> transform -> topology -> validate**
+- [x] **Step 2: Execute all golden fixtures through import -> transform -> topology -> validate**
 
-Dirty fixtures must produce exact expected issue sets. Clean/repaired/manual-edited variants must converge to expected structure count and geometry.
+Dirty fixtures produce exact expected issue sets. Clean/repaired/manual-edited variants converge to expected structure count and geometry. Golden 07 is verified through the reference-dimension scale engine rather than a fabricated topology issue; canonical-dirty fixtures are evaluated at the validator boundary that owns those conditions.
 
-- [ ] **Step 3: Repair combined dirty fixture through Quick Fix + manual commands and verify final model graph independently**
+- [x] **Step 3: Repair combined dirty fixture through Quick Fix + manual commands and verify final model graph independently**
 
-The integration fixture must include at least: draw one missing member, move/snap one Node, delete one exact duplicate Member, create one relative Node/member, and apply one Translational Repeat. Compare exact node/member coordinate/incidence sets against hand-authored canonical expectations before export.
+The integration fixture exercises draw missing member, Move/Snap Node, exact duplicate Member delete, relative Node/member creation, crossing split, and Translational Repeat through `RepairHistory`; the final coordinate/incidence graph matches a hand-authored canonical expectation before export.
 
-- [ ] **Step 4: Apply direction/numbering controls and independently verify invariants**
+- [x] **Step 4: Apply direction/numbering controls and independently verify invariants**
 
 Direction changes incidence only; numbering changes `.number` only; stable UUID identities and endpoint references remain valid.
 
-- [ ] **Step 5: Export and test model -> STD -> independent test parser round-trip**
+- [x] **Step 5: Export and test model -> STD -> independent test parser round-trip**
 
-- [ ] **Step 6: Update UI status to `READY FOR STAAD` only from `ReadyGate` result**
+Successful export also writes project-local validation/audit JSON containing import/transform metadata, issue summary, command history, numbering, direction status, readiness, and export status.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 6: Update UI status to `READY FOR STAAD` only from `ReadyGate` result**
+
+`ReadyGate` is authoritative for UI status and export enablement; direct export calls re-evaluate the same gate. SELECT/Fit/navigation-only actions do not change model revision/readiness.
+
+- [x] **Step 7: Commit**
+
+Final verification checkpoint 2026-08-29:
+- fresh unit + integration: **275/275 passed**;
+- fresh UI via permanent MCP-safe isolated runner: **62 lightweight + 30 VTK/renderer = 92/92 passed**;
+- total fresh regression: **367/367 passed**;
+- Ruff: passed;
+- T21-local strict mypy: **0 issues in 4 affected source/runner files** using `--follow-imports=silent`;
+- `git diff --check`: passed;
+- VTK/NumPy 2.5 deprecation warnings remain third-party only;
+- feature commit: `bddd177` — `test: verify end-to-end clean model readiness`.
 
 Commit: `test: verify end-to-end clean model readiness`
 

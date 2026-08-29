@@ -1,4 +1,4 @@
-Status: **T20 COMPLETE on `task/20-model-controls`; T21 is READY but not started.**
+Status: **T21 COMPLETE on `task/21-ready-gate`; T22 is READY but not started.**
 
 ## Canonical project root
 
@@ -13,6 +13,10 @@ HARD RULE: all project-created source/temp/cache/log/build/test/generated/export
 - T15: lightweight SketchUp Ruby Bridge + Direct DXF -> shared T06/T07 canonical import.
 - T16: safe SketchUp-style navigation + selection/filter/label foundation.
 - T17: deterministic snap/inference + axis lock + explicit work-plane foundation.
+- T18: reversible manual analytical Node/Member editing with exact Undo.
+- T19: exact/relative Node creation + Translational Repeat.
+- T20: numbering/member-direction controls with stable UUID identity.
+- T21: authoritative READY gate, golden end-to-end suite, independent STD round-trip, validation/audit report, and MCP-safe isolated UI runner.
 - T24 remains post-acceptance move-only quarantine to project-local `DEL/`; never auto-delete.
 
 Canonical continuation docs:
@@ -231,9 +235,45 @@ Post-commit workspace note:
 - tracked T20 tree is clean;
 - `.serena/` remains as known untracked Serena tool metadata created by project activation and was intentionally excluded from T20 commits; it was not modified or deleted.
 
+## Completed Task — T21
+
+**T21 — End-to-End READY Gate + Golden Suite + Audit Report**
+
+Risk: **STRICT HR-1 through HR-4**, covered by the approved high-risk envelope.
+
+Branch/worktree:
+- branch: `task/21-ready-gate`
+- worktree: `.worktrees/task-21-ready-gate`
+- base: `810e5dc` (`chore: ignore Serena metadata`; T20 integrated to `master` before T21)
+- feature commit: `bddd177` — `test: verify end-to-end clean model readiness`
+
+Implemented:
+- authoritative `ReadyGate` / `ReadyPolicy` / `ReadyStatus` for validation errors, policy-critical disconnected structures, source-unit verification, optional reference-dimension verification, and complete positive unique numbering;
+- golden 01-11 end-to-end coverage with validator-boundary handling for canonical dirty fixtures and reference-scale verification for wrong-scale evidence;
+- combined dirty-frame repair/manual-edit workflow through `RepairHistory`, including duplicate Member delete, Move/Snap, crossing split, Draw Member, Relative Create, and Translational Repeat;
+- independent final coordinate/incidence graph comparison plus T20 direction/numbering invariants;
+- independent test-only STAAD `.STD` parser round-trip;
+- project-local validation/audit JSON containing import/transform metadata, issues, command history, numbering, direction status, readiness, and export status;
+- UI `READY FOR STAAD` and export availability controlled only by `ReadyGate`, including direct export re-evaluation;
+- permanent MCP-safe UI runner (`scripts/test_ui_isolated.py` + `.ps1`) with automatic lightweight/native-renderer classification, isolated renderer subprocesses, sharding, checkpointed `run-id`, and aggregate `--summary-only` reporting;
+- circular-import regression discovered by real orientation smoke was fixed at the audit/orientation dependency boundary with lazy import.
+
+Final verification on the final code tree:
+- unit + integration: **275/275 passed**;
+- UI: **62 lightweight + 30 VTK/renderer = 92/92 passed** using fresh checkpoint `t21-final2`;
+- total fresh regression: **367/367 passed**;
+- Ruff on T21 affected source/tests/runner: **passed**;
+- T21-local strict mypy: **0 issues in 4 affected source/runner files** using `--follow-imports=silent`;
+- `git diff --check`: **passed**;
+- VTK/NumPy 2.5 deprecation warnings remain third-party warnings only.
+
+Operational note:
+- running multiple renderer-heavy files inside one MCP request can return transport HTTP 502 even when individual tests are healthy; the permanent runner therefore supports one renderer file per MCP-safe shard while local execution may run `--scope all`.
+- T21 implementation is committed; this HANDOFF/docs-close update is the final checkpoint documentation step.
+
 ## Next Task
 
-**T21 — End-to-End READY Gate + Golden Suite + Audit Report** is READY but **not started**. Do not start T21 until the user explicitly requests it.
+**T22 — Windows Executable Packaging** is READY but **not started**. Do not start T22 until the user explicitly requests it.
 
 ## T24 cleanup boundary
 

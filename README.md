@@ -19,7 +19,9 @@ Primary workflow:
 - T19 complete: click/snap + exact/relative Node creation, collision-safe optional member creation, STAAD-like Translational Repeat, ghost preview, explicit Use Existing/Skip/Cancel resolution, deterministic collision handling, and one-step atomic Undo.
 - T20 complete: reversible Auto Node/Member/All numbering with Old->New preview, Auto Fix Axis All/Selected, Flip Selected, and endpoint-driven Set Direction are implemented, verified, and committed on `task/20-model-controls`.
 - Final T20 verification: **243 unit + 88 UI + 5 integration = 336 tests passed**. Ruff passed; T20-local strict mypy reports **0 issues in 5 affected source files**. Four inherited `dxf_reader.py` typing errors remain outside T20 when the full import graph is reported.
-- V1 execution plan runs through T24: T21 READY gate is next; T22 packaging, T23 acceptance, and T24 non-destructive unused-file quarantine remain downstream.
+- T21 complete: authoritative `ReadyGate`/`READY FOR STAAD`, golden 01-11 end-to-end coverage, combined dirty-model repair/manual-edit convergence, direction/numbering invariants, independent `.STD` parser round-trip, and project-local validation/audit JSON are implemented.
+- Final T21 verification: **275 unit+integration + 92 UI = 367 tests passed**. UI verification uses the permanent MCP-safe isolated runner (**62 lightweight + 30 VTK/renderer**); Ruff passed, T21-local strict mypy reports **0 issues in 4 affected source/runner files**, and `git diff --check` passed.
+- V1 execution plan runs through T24: T22 Windows packaging is next; T23 acceptance and T24 non-destructive unused-file quarantine remain downstream.
 - Primary OS: Windows 11.
 - Primary language: Python.
 - UI: PySide6.

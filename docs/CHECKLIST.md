@@ -181,9 +181,9 @@ Status: **COMPLETE — implementation, strict verification, documentation, and t
 ## M14 — End-to-End READY / production readiness (T21-T23)
 - [ ] Save/open project workflow completed as required by final product.
 - [ ] Crash-safe audit/logging.
-- [ ] Complete golden dirty-model fixtures.
-- [ ] Full SketchUp-Ruby and Direct-DXF -> repair/manual edit -> normalize -> numbering -> READY -> STD pipeline.
-- [ ] READY gate report JSON.
+- [x] Complete golden dirty-model fixtures.
+- [x] Full SketchUp-Ruby and Direct-DXF -> repair/manual edit -> normalize -> numbering -> READY -> STD pipeline.
+- [x] READY gate report JSON.
 - [ ] Large-model smoke test.
 - [ ] Package Windows executable.
 - [ ] Real-project acceptance test.
@@ -207,33 +207,33 @@ Status: **COMPLETE — implementation, strict verification, documentation, and t
 
 Create/complete at minimum:
 - [x] 01_clean_frame
-- [ ] 02_orphan_node
-- [ ] 03_near_nodes
-- [ ] 04_duplicate_member
-- [ ] 05_short_member
-- [ ] 06_disconnected_structures
-- [ ] 07_wrong_scale
-- [ ] 08_wrong_axis
-- [ ] 09_crossing_without_node
-- [ ] 10_combined_dirty_frame
-- [ ] 11_sketchup_ruby_simple_frame
-- [ ] manual-edit clean/dirty expected canonical fixtures for T18-T21
+- [x] 02_orphan_node
+- [x] 03_near_nodes
+- [x] 04_duplicate_member
+- [x] 05_short_member
+- [x] 06_disconnected_structures
+- [x] 07_wrong_scale
+- [x] 08_wrong_axis
+- [x] 09_crossing_without_node
+- [x] 10_combined_dirty_frame
+- [x] 11_sketchup_ruby_simple_frame
+- [x] manual-edit clean/dirty expected canonical fixtures for T18-T21
 
 # V1 acceptance
 - [ ] Real SketchUp model can hand off through Ruby bridge and real DXF can import directly.
-- [ ] Units/reference dimension can be verified.
-- [ ] Dirty topology is visible and actionable.
-- [ ] Common errors can be repaired through Quick Fix.
-- [ ] Missing member can be drawn directly in viewport.
-- [ ] Floating/misplaced Node can be moved/snapped directly in viewport.
-- [ ] Overlapping duplicate Member can be selected exactly and deleted.
-- [ ] New Node can be created by exact/relative coordinate.
-- [ ] Translational Repeat can generate repeated Nodes and optional Members atomically.
-- [ ] SketchUp-style orbit/pan/zoom works without accidental geometry mutation.
-- [ ] Node/member labels and filters identify entities unambiguously.
-- [ ] Auto Node / Member / All numbering works with preview/undo.
-- [ ] Auto Fix / Flip / Set Direction controls work with local-X preview.
-- [ ] Structure count reaches expected value.
-- [ ] Critical validation passes and READY gate is authoritative.
+- [x] Units/reference dimension can be verified.
+- [x] Dirty topology is visible and actionable.
+- [x] Common errors can be repaired through Quick Fix/manual repair commands.
+- [x] Missing member can be drawn directly in viewport.
+- [x] Floating/misplaced Node can be moved/snapped directly in viewport.
+- [x] Overlapping duplicate Member can be selected exactly and deleted.
+- [x] New Node can be created by exact/relative coordinate.
+- [x] Translational Repeat can generate repeated Nodes and optional Members atomically.
+- [x] SketchUp-style orbit/pan/zoom works without accidental geometry mutation.
+- [x] Node/member labels and filters identify entities unambiguously.
+- [x] Auto Node / Member / All numbering works with preview/undo.
+- [x] Auto Fix / Flip / Set Direction controls work with local-X preview.
+- [x] Structure count reaches expected value.
+- [x] Critical validation passes and READY gate is authoritative.
 - [ ] `.STD` opens in STAAD.Pro with intended geometry/incidence/numbering.
 - [ ] Manual STAAD geometry cleanup is materially reduced.

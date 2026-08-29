@@ -366,7 +366,7 @@ Milestones:
 - M11 manual analytical node/member editing
 - M12 precision Create Node + Translational Repeat
 - M13 numbering/member-direction controls (T20; COMPLETE)
-- M14 end-to-end READY / packaging / real-project acceptance (T21-T23)
+- M14 end-to-end READY / packaging / real-project acceptance (T21-T23; T21 COMPLETE, T22-T23 pending)
 - M15 post-acceptance workspace cleanup / unused-file quarantine (T24)
 
 ## 9. Explicitly out of V1
