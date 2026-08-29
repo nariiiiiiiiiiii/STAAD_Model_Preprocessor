@@ -59,6 +59,7 @@ from staadprep.orientation.commands import (
 )
 from staadprep.orientation.normalize import normalization_commands
 from staadprep.paths import ProjectPaths
+from staadprep.repair.audit import write_validation_report
 from staadprep.repair.commands import (
     ConnectNodes,
     DeleteMember,
@@ -83,7 +84,8 @@ from staadprep.ui.panels import (
     QuickFixPanel,
     ValidationPanel,
 )
-from staadprep.validation.issues import Issue, IssueSeverity, IssueType
+from staadprep.validation.issues import Issue, IssueType
+from staadprep.validation.ready_gate import ReadyGate, ReadyStatus
 from staadprep.validation.validators import validate_model
 from staadprep.viewer.interaction import EditMode, LabelVisibility, SelectionFilter
 from staadprep.viewer.widget import StructuralViewport
@@ -103,6 +105,7 @@ class MainWindow(QMainWindow):
         confirm_delete: ConfirmDelete | None = None,
         confirm_use_existing: ConfirmUseExisting | None = None,
         numbering_preview_runner: RunNumberingPreview | None = None,
+        ready_gate: ReadyGate | None = None,
         project_root: Path | None = None,
     ) -> None:
         super().__init__()
@@ -117,6 +120,8 @@ class MainWindow(QMainWindow):
         self._run_numbering_preview = (
             numbering_preview_runner or self._default_numbering_preview_runner
         )
+        self.ready_gate = ready_gate or ReadyGate()
+        self.current_ready_status: ReadyStatus | None = None
         self._direction_member_key: UUID | None = None
         self.current_import_batch: ImportBatch | None = None
         self.current_model: ProjectModel | None = None
@@ -917,11 +922,27 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Export Blocked", str(exc))
 
     def export_current_std(self, path: Path) -> ExportReport:
-        """Export the current numbered canonical model inside the project boundary."""
+        """Export only a model currently accepted by the authoritative ReadyGate."""
         if self.current_model is None:
             raise StaadExportError("canonical model is required before STAAD export")
+        issues = validate_model(self.current_model)
+        status = self.ready_gate.evaluate(self.current_model, issues)
+        self.current_issues = issues
+        self.current_ready_status = status
+        if not status.ready:
+            blockers = ", ".join(status.blockers)
+            raise StaadExportError(f"model is not READY FOR STAAD: {blockers}")
         safe_path = self._project_paths.assert_inside_project(path)
         report = export_staad_std(self.current_model, safe_path)
+        audit_entries = () if self.repair_history is None else self.repair_history.audit.entries
+        write_validation_report(
+            report.path.with_suffix(".validation.json"),
+            model=self.current_model,
+            issues=issues,
+            ready_status=status,
+            audit_entries=audit_entries,
+            export_report=report,
+        )
         self.statusBar().showMessage(
             "Exported STAAD STD | "
             f"Nodes: {report.node_count} | Members: {report.member_count} | "
@@ -943,6 +964,7 @@ class MainWindow(QMainWindow):
         self.current_import_batch = batch
         self.current_model = None
         self.current_issues = []
+        self.current_ready_status = None
         self.repair_history = None
         self._selected_issue_id = None
         self.issue_console.set_issues([])
@@ -1006,6 +1028,10 @@ class MainWindow(QMainWindow):
         if self.current_model is None:
             return
         self.current_issues = validate_model(self.current_model)
+        self.current_ready_status = self.ready_gate.evaluate(
+            self.current_model,
+            self.current_issues,
+        )
         self._selected_issue_id = None
         self.issue_console.set_issues(self.current_issues)
         self.validation_panel.set_issues(self.current_issues)
@@ -1026,12 +1052,14 @@ class MainWindow(QMainWindow):
             members=len(self.current_model.members),
             structures=len(structures),
         )
-        if self.current_issues:
-            self.model_status.setText(f"MODEL STATUS: {len(self.current_issues)} ISSUE(S)")
+        if self.current_ready_status.ready:
+            self.model_status.setText("MODEL STATUS: READY FOR STAAD")
         else:
-            self.model_status.setText("MODEL STATUS: CLEAN")
+            blockers = ", ".join(self.current_ready_status.blockers)
+            self.model_status.setText(f"MODEL STATUS: NOT READY | {blockers}")
         self.statusBar().showMessage(
             f"Validation complete | Issues: {len(self.current_issues)} | "
+            f"Ready: {self.current_ready_status.ready} | "
             f"Revision: {self.current_model.revision}"
         )
         self._update_history_actions()
@@ -1039,35 +1067,20 @@ class MainWindow(QMainWindow):
 
     def _refresh_export_gate(self) -> None:
         model = self.current_model
-        if model is None:
-            self.export_std_action.setEnabled(False)
-            return
-        if not model.nodes:
-            self.export_std_action.setEnabled(False)
-            self.export_std_action.setToolTip("STAAD export requires at least one node")
-            return
-        if any(issue.severity is IssueSeverity.ERROR for issue in self.current_issues):
-            self.export_std_action.setEnabled(False)
-            self.export_std_action.setToolTip("Resolve validation ERROR issues before STAAD export")
-            return
-        node_numbers = [node.number for node in model.nodes.values()]
-        member_numbers = [member.number for member in model.members.values()]
-        if not self._valid_number_sequence(node_numbers) or not self._valid_number_sequence(
-            member_numbers
-        ):
+        status = self.current_ready_status
+        if model is None or status is None:
             self.export_std_action.setEnabled(False)
             self.export_std_action.setToolTip(
-                "Complete positive unique STAAD numbering before export"
+                "Load and validate a canonical model before STAAD export"
             )
             return
+        if not status.ready:
+            self.export_std_action.setEnabled(False)
+            blockers = ", ".join(status.blockers)
+            self.export_std_action.setToolTip(f"Model is not READY FOR STAAD: {blockers}")
+            return
         self.export_std_action.setEnabled(True)
-        self.export_std_action.setToolTip("Export validated STAAD geometry (.std)")
-
-    @staticmethod
-    def _valid_number_sequence(numbers: list[int | None]) -> bool:
-        if any(type(number) is not int or number <= 0 for number in numbers):
-            return False
-        return len(set(numbers)) == len(numbers)
+        self.export_std_action.setToolTip("Export READY FOR STAAD geometry (.std)")
 
     def _on_issue_selected(self, issue_id: str) -> None:
         issue = self._issue_by_id(issue_id)

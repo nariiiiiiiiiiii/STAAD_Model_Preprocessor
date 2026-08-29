@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QWidget
 
 from staadprep.model.entities import Member, Node
 from staadprep.model.geometry import Vec3
-from staadprep.model.project import ProjectModel
+from staadprep.model.project import ModelMetadata, ProjectModel
 from staadprep.ui.main_window import MainWindow
 
 
@@ -32,6 +32,7 @@ def _clean_numbered_model() -> ProjectModel:
     return ProjectModel(
         nodes={a.key: a, b.key: b},
         members={member.key: member},
+        metadata=ModelMetadata(source_format="test", source_unit="m", source_axis="Y-UP"),
     )
 
 
@@ -71,11 +72,10 @@ def test_warnings_do_not_block_export_and_report_is_written_project_locally(qtbo
     window = MainWindow(viewport_factory=RecordingViewport)
     qtbot.addWidget(window)
     model = _clean_numbered_model()
-    c = Node(_key(3), Vec3(10.0, 0.0, 0.0), number=3)
-    d = Node(_key(4), Vec3(11.0, 0.0, 0.0), number=4)
-    detached = Member(_key(102), c.key, d.key, number=2)
-    model.nodes.update({c.key: c, d.key: d})
-    model.members[detached.key] = detached
+    c = Node(_key(3), Vec3(6.005, 0.0, 0.0), number=3)
+    short_member = Member(_key(102), _key(2), c.key, number=2)
+    model.nodes[c.key] = c
+    model.members[short_member.key] = short_member
     path = Path(".tmp/tests/t13/ui_warning.std")
 
     window.set_canonical_model(model)
@@ -85,6 +85,11 @@ def test_warnings_do_not_block_export_and_report_is_written_project_locally(qtbo
     assert report.path == path.resolve()
     assert report.warning_issue_ids
     assert path.read_text(encoding="utf-8").endswith("FINISH\n")
+    validation_report = path.with_suffix(".validation.json")
+    assert validation_report.exists()
+    payload = __import__("json").loads(validation_report.read_text(encoding="utf-8"))
+    assert payload["readiness"]["ready"] is True
+    assert payload["export_status"]["exported"] is True
     assert "Exported STAAD STD" in window.statusBar().currentMessage()
 
 
