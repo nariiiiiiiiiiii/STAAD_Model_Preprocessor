@@ -1,4 +1,4 @@
-Status: **T17 merged to `master`; pre-T18 viewport typing maintenance complete on `maintenance/widget-typing-cleanup`; T18 is next.**
+Status: **T18 COMPLETE on `task/18-manual-edit`; T19 is READY and has not started.**
 
 ## Canonical project root
 
@@ -123,15 +123,42 @@ Branch/worktree:
 - regression: 188 unit + 32 UI + 5 integration = 225 tests passed; real Qt/VTK smoke remains `inference=pass axis_lock=pass work_plane=pass revision=stable`.
 - VTK/NumPy deprecation warnings remain third-party warnings and are intentionally not suppressed or patched here.
 
-## Next Task
+## T18 — Manual Node / Member Editing + Atomic Repair UI
 
-**T18 — Manual Node / Member Editing + Atomic Repair UI**
+Branch/worktree:
+- branch: `task/18-manual-edit`;
+- base: `ca6dabf` (T17 + pre-T18 typing cleanup merged before T18);
+- task commit subject: `feat: edit analytical nodes and members in viewport`.
 
 Risk: **STRICT HR-2**, already covered by the approved high-risk envelope.
 
-T18 may consume the T17 inference APIs to implement reversible CreateNode/MoveNode, Draw Member, Move/Snap Node, exact Delete, Split Member, ghost preview, Esc cancel, and atomic composite repairs. All canonical mutation must go through reversible/auditable commands; SELECT/navigation/inference-only behavior must remain non-mutating.
+Implemented and verified:
+- reversible `CreateNode` / `MoveNode` with exact revision restoration and finite-coordinate guards;
+- `CompositeRepair` all-or-nothing rollback, one history item, one Undo, child audit detail;
+- duplicate-incidence guard in `ConnectNodes`;
+- viewport Draw Member, Move/Snap, exact Delete with confirmation, and Split at midpoint/percentage/distance/intersection;
+- ghost line/node + connected-member preview only; canonical model stays unchanged until commit;
+- `Esc` cancel and MMB navigation during active previews;
+- all canonical mutation flows through reversible commands + `RepairHistory`, not direct UI/viewer dictionary mutation;
+- independent Draw -> Move -> Delete -> Undo graph round-trip restored the exact canonical graph;
+- real Windows Qt/VTK manual-edit smoke passed on `10_combined_dirty_frame`.
 
-Do not start T18 until the user explicitly continues after the T17 commit/checkpoint.
+Fresh verified regression before docs close:
+- unit: **210 passed**;
+- UI: **50 passed**;
+- integration: **5 passed**;
+- total: **265 tests passed**;
+- Ruff: passed;
+- targeted strict mypy for T18 source: **0 errors**;
+- `git diff --check`: passed.
+
+VTK/NumPy deprecation warnings remain third-party only.
+
+## Next Task
+
+**T19 — Precision Create Node + Translational Repeat**
+
+T19 is READY. Do not start it until the user explicitly continues after the T18 checkpoint.
 
 ## T24 cleanup boundary
 

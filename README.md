@@ -15,7 +15,8 @@ Primary workflow:
 - T15 complete: lightweight SketchUp Ruby Extension -> Neutral JSON v1 -> shared T06/T07 canonical import; Direct DXF remains an independent first-class route.
 - T16 complete: safe SketchUp-style viewport navigation, selection filters, overlap cycling, labels, focus/context actions, and non-mutating SELECT foundation.
 - T17 complete: deterministic canonical-space Node/Endpoint/Midpoint/Intersection inference, X/Y/Z axis locks, explicit work-plane ray intersection, and viewport keyboard constraint foundation.
-- V1 execution plan now runs through T24: remaining Manual Editing T18-T20, READY/packaging/acceptance T21-T23, then non-destructive unused-file quarantine to project-local `DEL/` in T24.
+- T18 complete: reversible Create/Move, atomic CompositeRepair, Draw/Move-Snap/Delete/Split viewport editing, ghost previews, exact Undo graph restoration, and real Qt/VTK manual-edit smoke.
+- V1 execution plan now runs through T24: remaining Manual Editing T19-T20, READY/packaging/acceptance T21-T23, then non-destructive unused-file quarantine to project-local `DEL/` in T24.
 - Primary OS: Windows 11.
 - Primary language: Python.
 - UI: PySide6.

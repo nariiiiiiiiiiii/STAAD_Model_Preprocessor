@@ -137,6 +137,67 @@ class _ReversibleCommand:
         )
 
 
+def _require_finite_position(position: Vec3) -> None:
+    if not isinstance(position, Vec3) or not all(isfinite(value) for value in position.as_tuple()):
+        raise ValueError("Node position must contain finite coordinates")
+
+
+class CreateNode(_ReversibleCommand):
+    def __init__(self, position: Vec3, node_key: UUID | None = None) -> None:
+        super().__init__()
+        self.position = position
+        self.created_node_key = node_key
+
+    def apply(self, model: ProjectModel) -> RepairResult:
+        _require_finite_position(self.position)
+        before_revision = self._begin_apply(model)
+        key = self.created_node_key or uuid4()
+        if key in model.nodes:
+            raise ValueError(f"Node {key} already exists")
+        self.created_node_key = key
+        model.nodes[key] = Node(key=key, position=self.position)
+        return self._finish_apply(model, before_revision, {key})
+
+    def revert(self, model: ProjectModel) -> RepairResult:
+        before_revert = self._begin_revert(model)
+        if self.created_node_key is None or self.created_node_key not in model.nodes:
+            raise RuntimeError("CreateNode created node is missing")
+        del model.nodes[self.created_node_key]
+        return self._finish_revert(model, before_revert, {self.created_node_key})
+
+    def audit_parameters(self) -> dict[str, object]:
+        return {
+            "node": str(self.created_node_key) if self.created_node_key is not None else None,
+            "position": self.position.as_tuple(),
+        }
+
+
+class MoveNode(_ReversibleCommand):
+    def __init__(self, node_key: UUID, target: Vec3) -> None:
+        super().__init__()
+        self.node_key = node_key
+        self.target = target
+        self._before_node: Node | None = None
+
+    def apply(self, model: ProjectModel) -> RepairResult:
+        _require_finite_position(self.target)
+        before_revision = self._begin_apply(model)
+        node = _require_node(model, self.node_key)
+        self._before_node = node
+        model.nodes[self.node_key] = replace(node, position=self.target)
+        return self._finish_apply(model, before_revision, {self.node_key})
+
+    def revert(self, model: ProjectModel) -> RepairResult:
+        before_revert = self._begin_revert(model)
+        if self._before_node is None:
+            raise RuntimeError("MoveNode has no snapshot to revert")
+        model.nodes[self.node_key] = self._before_node
+        return self._finish_revert(model, before_revert, {self.node_key})
+
+    def audit_parameters(self) -> dict[str, object]:
+        return {"node": str(self.node_key), "target": self.target.as_tuple()}
+
+
 class MergeNodes(_ReversibleCommand):
     def __init__(self, keep: UUID, remove: UUID) -> None:
         super().__init__()
@@ -287,6 +348,9 @@ class ConnectNodes(_ReversibleCommand):
         _require_node(model, self.end)
         if self.start == self.end:
             raise ValueError("ConnectNodes requires two different nodes")
+        for member in model.members.values():
+            if {member.start, member.end} == {self.start, self.end}:
+                raise ValueError("duplicate member incidence already exists")
         key = self.created_member_key or uuid4()
         if key in model.members:
             raise ValueError(f"Member {key} already exists")
@@ -472,9 +536,7 @@ class TransformModel(_ReversibleCommand):
         super().__init__()
         if len(matrix) != 3 or any(len(row) != 3 for row in matrix):
             raise ValueError("Transform matrix must be 3x3")
-        normalized: Matrix3 = tuple(
-            tuple(float(value) for value in row) for row in matrix
-        )  # type: ignore[assignment]
+        normalized: Matrix3 = tuple(tuple(float(value) for value in row) for row in matrix)  # type: ignore[assignment]
         if not all(isfinite(value) for row in normalized for value in row):
             raise ValueError("Transform matrix values must be finite")
         self.matrix = normalized

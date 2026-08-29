@@ -14,7 +14,14 @@ from PySide6.QtWidgets import QMenu, QVBoxLayout, QWidget
 from pyvistaqt import QtInteractor
 from vtkmodules.vtkRenderingCore import vtkCellPicker
 
-from staadprep.editing.inference import AxisLock, InferenceEngine, InferenceHit
+from staadprep.editing.inference import AxisLock, InferenceEngine, InferenceHit, SnapKind
+from staadprep.editing.manual_ops import (
+    build_delete_member,
+    build_delete_node,
+    build_draw_member_existing,
+    build_draw_member_new,
+    build_move_or_snap_node,
+)
 from staadprep.model.geometry import Vec3
 from staadprep.model.project import ProjectModel
 from staadprep.viewer.interaction import (
@@ -39,6 +46,7 @@ class StructuralViewport(QWidget):
     member_selected = Signal(object)
     node_selected = Signal(object)
     axis_lock_changed = Signal(object, str)
+    manual_command_requested = Signal(object)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -61,6 +69,11 @@ class StructuralViewport(QWidget):
         self._left_press_pos: tuple[float, float] | None = None
         self._last_overlap_candidates: tuple[SelectionCandidate, ...] = ()
         self._last_overlap_choice: SelectionCandidate | None = None
+        self._draw_start_node: UUID | None = None
+        self._move_node_key: UUID | None = None
+        self._edit_preview_position: Vec3 | None = None
+        self._ghost_actor: Any | None = None
+        self._ghost_connected_member_count = 0
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -69,6 +82,7 @@ class StructuralViewport(QWidget):
         layout.addWidget(self.plotter.interactor)
         self.plotter.interactor.installEventFilter(self)
         self.plotter.interactor.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.plotter.interactor.setMouseTracking(True)
         self._configure_scene()
 
     def _configure_scene(self) -> None:
@@ -89,6 +103,11 @@ class StructuralViewport(QWidget):
         self.selection.clear()
         self._last_overlap_candidates = ()
         self._last_overlap_choice = None
+        self._draw_start_node = None
+        self._move_node_key = None
+        self._edit_preview_position = None
+        self._ghost_actor = None
+        self._ghost_connected_member_count = 0
         if not self._off_screen:
             self.plotter.disable_picking()
         self.plotter.clear()
@@ -181,6 +200,136 @@ class StructuralViewport(QWidget):
             plane_origin=plane_origin,
             plane_normal=plane_normal,
         )
+
+    @property
+    def preview_active(self) -> bool:
+        return self._draw_start_node is not None or self._move_node_key is not None
+
+    def begin_draw_member(self, start_node: UUID) -> None:
+        if self._model is None or start_node not in self._model.nodes:
+            raise ValueError(f"Node {start_node} does not exist")
+        self.cancel_edit_preview()
+        self._draw_start_node = start_node
+        self._edit_preview_position = self._model.nodes[start_node].position
+
+    def update_draw_preview(self, position: Vec3) -> None:
+        if self._model is None or self._draw_start_node is None:
+            raise RuntimeError("Draw Member preview has not started")
+        self._edit_preview_position = position
+        start = self._model.nodes[self._draw_start_node].position
+        self._render_ghost_line(start, position)
+
+    def commit_draw_member_existing(self, end_node: UUID) -> None:
+        if self._draw_start_node is None:
+            raise RuntimeError("Draw Member preview has not started")
+        command = build_draw_member_existing(self._draw_start_node, end_node)
+        self.manual_command_requested.emit(command)
+        self.cancel_edit_preview()
+
+    def commit_draw_member_new(self, position: Vec3) -> None:
+        if self._draw_start_node is None:
+            raise RuntimeError("Draw Member preview has not started")
+        command = build_draw_member_new(self._draw_start_node, position)
+        self.manual_command_requested.emit(command)
+        self.cancel_edit_preview()
+
+    def begin_move_node(self, node_key: UUID) -> None:
+        if self._model is None or node_key not in self._model.nodes:
+            raise ValueError(f"Node {node_key} does not exist")
+        self.cancel_edit_preview()
+        self._move_node_key = node_key
+        position = self._model.nodes[node_key].position
+        self._edit_preview_position = position
+        self._render_move_ghost(position)
+
+    def update_move_preview(self, position: Vec3) -> None:
+        if self._move_node_key is None:
+            raise RuntimeError("Move/Snap preview has not started")
+        self._edit_preview_position = position
+        self._render_move_ghost(position)
+
+    def commit_move_node(
+        self,
+        position: Vec3,
+        *,
+        snap_node_key: UUID | None = None,
+    ) -> None:
+        if self._move_node_key is None:
+            raise RuntimeError("Move/Snap preview has not started")
+        command = build_move_or_snap_node(
+            self._move_node_key,
+            position,
+            snap_node_key=snap_node_key,
+        )
+        self.manual_command_requested.emit(command)
+        self.cancel_edit_preview()
+
+    def request_delete_selection(self) -> None:
+        if len(self.selection.selected_members) == 1 and not self.selection.selected_nodes:
+            self.manual_command_requested.emit(
+                build_delete_member(self.selection.selected_members[0])
+            )
+            return
+        if len(self.selection.selected_nodes) == 1 and not self.selection.selected_members:
+            self.manual_command_requested.emit(build_delete_node(self.selection.selected_nodes[0]))
+
+    def cancel_edit_preview(self) -> None:
+        self._remove_actor(self._ghost_actor)
+        self._ghost_actor = None
+        self._ghost_connected_member_count = 0
+        self._draw_start_node = None
+        self._move_node_key = None
+        self._edit_preview_position = None
+        self.plotter.render()
+
+    def _render_ghost_line(self, start: Vec3, end: Vec3) -> None:
+        self._remove_actor(self._ghost_actor)
+        mesh = pv.PolyData(
+            np.asarray([start.as_tuple(), end.as_tuple()], dtype=float),
+            lines=np.asarray([2, 0, 1], dtype=np.int64),
+        )
+        self._ghost_actor = self.plotter.add_mesh(
+            mesh,
+            line_width=4,
+            opacity=0.6,
+            pickable=False,
+        )
+        self.plotter.render()
+
+    def _render_move_ghost(self, position: Vec3) -> None:
+        self._remove_actor(self._ghost_actor)
+        points = [position.as_tuple()]
+        lines: list[int] = []
+        connected = 0
+        if self._model is not None and self._move_node_key is not None:
+            for member_key in sorted(self._model.members, key=lambda key: key.int):
+                member = self._model.members[member_key]
+                if member.start == self._move_node_key:
+                    other_key = member.end
+                elif member.end == self._move_node_key:
+                    other_key = member.start
+                else:
+                    continue
+                if other_key == self._move_node_key or other_key not in self._model.nodes:
+                    continue
+                points.append(self._model.nodes[other_key].position.as_tuple())
+                lines.extend((2, 0, len(points) - 1))
+                connected += 1
+
+        mesh = pv.PolyData(np.asarray(points, dtype=float))
+        mesh.verts = np.asarray([1, 0], dtype=np.int64)
+        if lines:
+            mesh.lines = np.asarray(lines, dtype=np.int64)
+        self._ghost_connected_member_count = connected
+        self._ghost_actor = self.plotter.add_mesh(
+            mesh,
+            point_size=14,
+            render_points_as_spheres=True,
+            line_width=3,
+            opacity=0.6,
+            pickable=False,
+        )
+        self.plotter.render()
 
     def set_selection_filter(self, selection_filter: SelectionFilter) -> None:
         self.interaction_state = replace(
@@ -651,12 +800,16 @@ class StructuralViewport(QWidget):
                 )
                 self._last_mouse_pos = point
                 return True
-            if (
-                event.button() == Qt.MouseButton.LeftButton
-                and self.interaction_state.mode is EditMode.SELECT
-            ):
-                self._left_press_pos = point
-                return True
+            if event.button() == Qt.MouseButton.LeftButton:
+                if self.interaction_state.mode is EditMode.SELECT:
+                    self._left_press_pos = point
+                    return True
+                if self.interaction_state.mode in {
+                    EditMode.DRAW_MEMBER,
+                    EditMode.MOVE_SNAP_NODE,
+                    EditMode.DELETE,
+                }:
+                    return True
             if event.button() == Qt.MouseButton.RightButton:
                 self._show_context_menu(event.globalPosition().toPoint())
                 return True
@@ -674,6 +827,21 @@ class StructuralViewport(QWidget):
 
         if (
             event_type == QEvent.Type.MouseMove
+            and self.preview_active
+            and self.interaction_state.mode in {EditMode.DRAW_MEMBER, EditMode.MOVE_SNAP_NODE}
+        ):
+            position = event.position()
+            world = self._pick_world_at(float(position.x()), float(position.y()))
+            if world is not None:
+                preview_position = Vec3(*world)
+                if self.interaction_state.mode is EditMode.DRAW_MEMBER:
+                    self.update_draw_preview(preview_position)
+                else:
+                    self.update_move_preview(preview_position)
+            return True
+
+        if (
+            event_type == QEvent.Type.MouseMove
             and self.interaction_state.mode is EditMode.SELECT
             and event.buttons() & Qt.MouseButton.LeftButton
         ):
@@ -683,6 +851,68 @@ class StructuralViewport(QWidget):
             if event.button() == Qt.MouseButton.MiddleButton and self._navigation_mode is not None:
                 self.end_navigation()
                 return True
+            if event.button() == Qt.MouseButton.LeftButton and self.interaction_state.mode in {
+                EditMode.DRAW_MEMBER,
+                EditMode.MOVE_SNAP_NODE,
+                EditMode.DELETE,
+            }:
+                position = event.position()
+                point = (float(position.x()), float(position.y()))
+                candidates = self._pick_candidates_at(*point)
+                node_candidates = tuple(
+                    candidate
+                    for candidate in candidates
+                    if candidate.entity is SelectionEntity.NODE
+                )
+
+                if self.interaction_state.mode is EditMode.DRAW_MEMBER:
+                    if self._draw_start_node is None:
+                        if node_candidates:
+                            self.begin_draw_member(node_candidates[0].key)
+                    elif node_candidates and node_candidates[0].key != self._draw_start_node:
+                        self.commit_draw_member_existing(node_candidates[0].key)
+                    else:
+                        world = self._pick_world_at(*point)
+                        if world is not None:
+                            candidate_position = Vec3(*world)
+                            hit = self.resolve_inference(
+                                candidate_position,
+                                tolerance_m=1e-9,
+                            )
+                            if hit is not None and hit.kind in {
+                                SnapKind.MIDPOINT,
+                                SnapKind.INTERSECTION,
+                            }:
+                                self.commit_draw_member_new(hit.position)
+                    return True
+
+                if self.interaction_state.mode is EditMode.MOVE_SNAP_NODE:
+                    if self._move_node_key is None:
+                        if node_candidates:
+                            self.begin_move_node(node_candidates[0].key)
+                    else:
+                        snap_key = (
+                            node_candidates[0].key
+                            if node_candidates and node_candidates[0].key != self._move_node_key
+                            else None
+                        )
+                        world = self._pick_world_at(*point)
+                        if snap_key is not None and self._model is not None:
+                            self.commit_move_node(
+                                self._model.nodes[snap_key].position,
+                                snap_node_key=snap_key,
+                            )
+                        elif world is not None:
+                            self.commit_move_node(Vec3(*world))
+                    return True
+
+                if candidates:
+                    self.clear_selection()
+                    choice = self.select_overlap_candidates(candidates)
+                    if choice is not None:
+                        self.request_delete_selection()
+                return True
+
             if (
                 event.button() == Qt.MouseButton.LeftButton
                 and self.interaction_state.mode is EditMode.SELECT
@@ -731,6 +961,7 @@ class StructuralViewport(QWidget):
                 self.set_axis_lock(AxisLock.Z)
                 return True
             if event.key() == Qt.Key.Key_Escape:
+                self.cancel_edit_preview()
                 self.set_axis_lock(AxisLock.NONE)
                 return True
 

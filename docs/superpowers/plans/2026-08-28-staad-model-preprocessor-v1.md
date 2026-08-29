@@ -779,6 +779,8 @@ Commit: `feat: add deterministic structural snap inference`
 
 ### Task 18: Manual Node / Member Editing
 
+**Status:** **COMPLETE** — implementation, strict verification, documentation, and task commit complete.
+
 **Risk:** **STRICT HR-2**
 
 Detailed executable plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md` Task 18.

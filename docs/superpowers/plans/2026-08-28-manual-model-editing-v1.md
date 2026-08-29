@@ -197,7 +197,7 @@ Commit:
 - Reuses existing `ConnectNodes`, `MergeNodes`, `DeleteNode`, `DeleteMember`, `SplitMember`, `ReverseMember`.
 - Produces editing factories in `manual_ops.py` that return commands; UI must not mutate dictionaries/positions directly.
 
-- [ ] **Step 1: RED — CreateNode / MoveNode reversible invariants**
+- [x] **Step 1: RED — CreateNode / MoveNode reversible invariants**
 
 Tests assert CreateNode/MoveNode:
 - increment revision once on apply;
@@ -206,11 +206,11 @@ Tests assert CreateNode/MoveNode:
 - reject non-finite/invalid targets before mutation;
 - `MoveNode` does not implicitly merge with another node.
 
-- [ ] **Step 2: GREEN — minimal reversible commands**
+- [x] **Step 2: GREEN — minimal reversible commands**
 
 Implement using the existing `_ReversibleCommand` audit/revision conventions from T09.
 
-- [ ] **Step 3: RED — atomic composite operations**
+- [x] **Step 3: RED — atomic composite operations**
 
 Cover:
 - create new node + connect member succeeds as one history entry;
@@ -218,11 +218,11 @@ Cover:
 - split both crossing members around one intersection is atomic;
 - one Undo restores the entire composite.
 
-- [ ] **Step 4: GREEN — CompositeRepair transaction**
+- [x] **Step 4: GREEN — CompositeRepair transaction**
 
 Apply child commands in order; on failure revert already-applied children in reverse order before propagating the original error. Revert the successful composite in reverse child order. Audit exposes one parent operation plus child detail without losing command traceability.
 
-- [ ] **Step 5: RED — viewport manual-edit workflow**
+- [x] **Step 5: RED — viewport manual-edit workflow**
 
 UI tests assert:
 - SELECT drag never mutates model/revision;
@@ -234,11 +234,11 @@ UI tests assert:
 - `Esc` cancels preview with no model mutation;
 - middle-mouse navigation during an active draw/move preview does not cancel it.
 
-- [ ] **Step 6: GREEN — ghost preview + explicit commit**
+- [x] **Step 6: GREEN — ghost preview + explicit commit**
 
 Viewer owns ghost actors and edit gesture state only. Mouse move updates ghost geometry. Mouse release/click emits an operation request to `MainWindow`; `MainWindow` executes command through `RepairHistory`, then calls existing refresh/revalidate/rerender flow once.
 
-- [ ] **Step 7: Real smoke + strict verification + commit**
+- [x] **Step 7: Real smoke + strict verification + commit**
 
 Real Qt/VTK smoke sequence:
 1. load canonical dirty fixture;

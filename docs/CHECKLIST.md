@@ -126,21 +126,21 @@
 - [x] Deterministic tie-break between equal candidates.
 
 ## M11 — Manual analytical editing (T18)
-- [ ] CreateNode reversible command.
-- [ ] MoveNode reversible command.
-- [ ] Atomic CompositeRepair / one Undo for multi-step operation.
-- [ ] DRAW MEMBER existing Node -> existing Node.
-- [ ] DRAW MEMBER existing Node -> new Node atomically.
-- [ ] MOVE/SNAP NODE with ghost preview only until release.
-- [ ] Snap/Merge onto existing Node without co-located duplicates.
-- [ ] Delete exact selected overlapping Member.
-- [ ] Delete selected structurally valid Node.
-- [ ] Split Member at midpoint.
-- [ ] Split Member at percentage/distance.
-- [ ] Split affected Member(s) at intersection atomically.
-- [ ] Esc cancels edit preview with no model mutation.
-- [ ] Middle Mouse navigation during editing does not cancel edit.
-- [ ] Real Qt/VTK manual-edit smoke flow.
+- [x] CreateNode reversible command.
+- [x] MoveNode reversible command.
+- [x] Atomic CompositeRepair / one Undo for multi-step operation.
+- [x] DRAW MEMBER existing Node -> existing Node.
+- [x] DRAW MEMBER existing Node -> new Node atomically.
+- [x] MOVE/SNAP NODE with ghost preview only until release.
+- [x] Snap/Merge onto existing Node without co-located duplicates.
+- [x] Delete exact selected overlapping Member.
+- [x] Delete selected structurally valid Node.
+- [x] Split Member at midpoint.
+- [x] Split Member at percentage/distance.
+- [x] Split affected Member(s) at intersection atomically.
+- [x] Esc cancels edit preview with no model mutation.
+- [x] Middle Mouse navigation during editing does not cancel edit.
+- [x] Real Qt/VTK manual-edit smoke flow.
 
 ## M12 — Precision Create Node + Translational Repeat (T19)
 - [ ] Create Node by click/snap.

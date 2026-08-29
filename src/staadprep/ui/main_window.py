@@ -8,9 +8,10 @@ from pathlib import Path
 from uuid import UUID
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QKeySequence
+from PySide6.QtGui import QAction, QActionGroup, QKeySequence
 from PySide6.QtWidgets import (
     QFileDialog,
+    QInputDialog,
     QMainWindow,
     QMenu,
     QMessageBox,
@@ -20,6 +21,12 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from staadprep.editing.manual_ops import (
+    build_split_member_distance,
+    build_split_member_midpoint,
+    build_split_member_percentage,
+    build_split_selected_intersection,
+)
 from staadprep.exporters.staad_std import ExportReport, StaadExportError, export_staad_std
 from staadprep.importers.contracts import ImportBatch
 from staadprep.importers.dxf_reader import DxfReader
@@ -140,6 +147,56 @@ class MainWindow(QMainWindow):
         self.select_mode_action.setToolTip("Safe selection mode; dragging does not edit geometry")
         self.select_mode_action.triggered.connect(self._activate_select_mode)
 
+        self.draw_member_action = QAction("Draw Member", self)
+        self.draw_member_action.setCheckable(True)
+        self.draw_member_action.setToolTip("Draw analytical member using Node/snap inference")
+        self.draw_member_action.triggered.connect(
+            lambda: self._activate_edit_mode(EditMode.DRAW_MEMBER)
+        )
+
+        self.move_snap_action = QAction("Move/Snap", self)
+        self.move_snap_action.setCheckable(True)
+        self.move_snap_action.setToolTip("Move or snap one analytical Node")
+        self.move_snap_action.triggered.connect(
+            lambda: self._activate_edit_mode(EditMode.MOVE_SNAP_NODE)
+        )
+
+        self.delete_mode_action = QAction("Delete", self)
+        self.delete_mode_action.setCheckable(True)
+        self.delete_mode_action.setToolTip("Delete the exact selected analytical entity")
+        self.delete_mode_action.triggered.connect(lambda: self._activate_edit_mode(EditMode.DELETE))
+
+        self.split_action = QAction("Split", self)
+        self.split_action.setEnabled(False)
+        self.split_action.setToolTip("Split selected analytical Member")
+        self.split_menu = QMenu(self)
+        self.split_midpoint_action = QAction("At Midpoint", self)
+        self.split_percentage_action = QAction("At Percentage…", self)
+        self.split_distance_action = QAction("At Distance from Start…", self)
+        self.split_intersection_action = QAction("At Intersection", self)
+        self.split_midpoint_action.triggered.connect(self._split_selected_midpoint)
+        self.split_percentage_action.triggered.connect(self._split_selected_percentage)
+        self.split_distance_action.triggered.connect(self._split_selected_distance)
+        self.split_intersection_action.triggered.connect(self._split_selected_intersection)
+        for split_action in (
+            self.split_midpoint_action,
+            self.split_percentage_action,
+            self.split_distance_action,
+            self.split_intersection_action,
+        ):
+            self.split_menu.addAction(split_action)
+        self.split_action.setMenu(self.split_menu)
+
+        self.edit_mode_group = QActionGroup(self)
+        self.edit_mode_group.setExclusive(True)
+        for action in (
+            self.select_mode_action,
+            self.draw_member_action,
+            self.move_snap_action,
+            self.delete_mode_action,
+        ):
+            self.edit_mode_group.addAction(action)
+
         self.select_nodes_action = QAction("Nodes", self)
         self.select_nodes_action.setCheckable(True)
         self.select_nodes_action.setChecked(True)
@@ -203,6 +260,14 @@ class MainWindow(QMainWindow):
         view_toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
         for action in (
             self.select_mode_action,
+            self.draw_member_action,
+            self.move_snap_action,
+            self.delete_mode_action,
+            self.split_action,
+        ):
+            view_toolbar.addAction(action)
+        view_toolbar.addSeparator()
+        for action in (
             self.select_nodes_action,
             self.select_members_action,
         ):
@@ -234,6 +299,9 @@ class MainWindow(QMainWindow):
         main_splitter.addWidget(self.project_explorer)
 
         self.viewport_host = self._viewport_factory()
+        manual_signal = getattr(self.viewport_host, "manual_command_requested", None)
+        if manual_signal is not None:
+            manual_signal.connect(self._execute_manual_command)
         main_splitter.addWidget(self.viewport_host)
 
         right_column = QWidget()
@@ -275,7 +343,116 @@ class MainWindow(QMainWindow):
 
     def _activate_select_mode(self) -> None:
         self.select_mode_action.setChecked(True)
-        self._call_viewport("set_edit_mode", EditMode.SELECT)
+        self._activate_edit_mode(EditMode.SELECT)
+
+    def _activate_edit_mode(self, mode: EditMode) -> None:
+        action_by_mode = {
+            EditMode.SELECT: self.select_mode_action,
+            EditMode.DRAW_MEMBER: self.draw_member_action,
+            EditMode.MOVE_SNAP_NODE: self.move_snap_action,
+            EditMode.DELETE: self.delete_mode_action,
+        }
+        action = action_by_mode.get(mode)
+        if action is not None:
+            action.setChecked(True)
+        self._call_viewport("set_edit_mode", mode)
+
+    def _execute_manual_command(self, command: RepairCommand) -> None:
+        if self.current_model is None or self.repair_history is None:
+            return
+        if isinstance(command, (DeleteNode, DeleteMember)):
+            if not self._confirm_delete(
+                f"Delete selected {type(command).__name__.removeprefix('Delete')}?"
+            ):
+                self.statusBar().showMessage("Manual edit cancelled")
+                return
+        try:
+            self.repair_history.execute(command)
+        except (ValueError, RuntimeError) as exc:
+            self.statusBar().showMessage(f"Manual edit rejected: {exc}")
+            return
+        self.refresh_validation()
+
+    def _selected_member_keys(self) -> tuple[UUID, ...]:
+        selection = getattr(self.viewport_host, "selection", None)
+        selected = getattr(selection, "selected_members", ())
+        return tuple(selected)
+
+    def _single_selected_member(self) -> UUID | None:
+        selected = self._selected_member_keys()
+        if len(selected) != 1:
+            self.statusBar().showMessage("Split requires exactly one selected Member")
+            return None
+        return selected[0]
+
+    def _execute_split_factory(self, factory: Callable[[], RepairCommand]) -> None:
+        try:
+            command = factory()
+        except ValueError as exc:
+            self.statusBar().showMessage(f"Split rejected: {exc}")
+            return
+        self._execute_manual_command(command)
+
+    def _split_selected_midpoint(self) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        member_key = self._single_selected_member()
+        if member_key is None:
+            return
+        self._execute_split_factory(lambda: build_split_member_midpoint(model, member_key))
+
+    def _split_selected_percentage(self) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        member_key = self._single_selected_member()
+        if member_key is None:
+            return
+        value, accepted = QInputDialog.getDouble(
+            self,
+            "Split Member",
+            "Percentage from start (%)",
+            50.0,
+            0.001,
+            99.999,
+            3,
+        )
+        if not accepted:
+            return
+        self._execute_split_factory(lambda: build_split_member_percentage(model, member_key, value))
+
+    def _split_selected_distance(self) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        member_key = self._single_selected_member()
+        if member_key is None:
+            return
+        value, accepted = QInputDialog.getDouble(
+            self,
+            "Split Member",
+            "Distance from start (m)",
+            1.0,
+            0.000001,
+            1_000_000_000.0,
+            6,
+        )
+        if not accepted:
+            return
+        self._execute_split_factory(lambda: build_split_member_distance(model, member_key, value))
+
+    def _split_selected_intersection(self) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        selected = self._selected_member_keys()
+        if len(selected) != 2:
+            self.statusBar().showMessage("Intersection split requires exactly two selected Members")
+            return
+        self._execute_split_factory(
+            lambda: build_split_selected_intersection(model, selected[0], selected[1])
+        )
 
     def _sync_selection_filter(self) -> None:
         selection_filter = SelectionFilter(
@@ -403,6 +580,7 @@ class MainWindow(QMainWindow):
         self.repair_action.setEnabled(False)
         self.export_std_action.setEnabled(False)
         self.export_std_action.setToolTip("Canonical validated and numbered model required")
+        self.split_action.setEnabled(False)
         self.orientation_reverse_count = 0
         self.normalize_axis_action.setEnabled(False)
         self.normalize_axis_action.setToolTip("Canonical metre/Y-Up model required")
@@ -422,6 +600,7 @@ class MainWindow(QMainWindow):
         self.current_import_batch = None
         self.repair_history = RepairHistory(model)
         self.validate_action.setEnabled(True)
+        self.split_action.setEnabled(True)
         self._selected_issue_id = None
         self.refresh_validation()
 
