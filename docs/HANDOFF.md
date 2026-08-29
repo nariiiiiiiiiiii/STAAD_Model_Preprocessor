@@ -1,4 +1,4 @@
-Status: **T21 COMPLETE on `task/21-ready-gate`; T22 is READY but not started.**
+Status: **T21 COMPLETE and merged to `master`; T22 Portable Standalone Windows Packaging is IN PROGRESS on `task/22-portable-packaging`.**
 
 ## Canonical project root
 
@@ -271,9 +271,65 @@ Operational note:
 - running multiple renderer-heavy files inside one MCP request can return transport HTTP 502 even when individual tests are healthy; the permanent runner therefore supports one renderer file per MCP-safe shard while local execution may run `--scope all`.
 - T21 implementation is committed; this HANDOFF/docs-close update is the final checkpoint documentation step.
 
-## Next Task
+## Current Task — T22 Portable Standalone Windows Packaging
 
-**T22 — Windows Executable Packaging** is READY but **not started**. Do not start T22 until the user explicitly requests it.
+Status: **IN PROGRESS** on branch `task/22-portable-packaging` in worktree `.worktrees/task-22-portable-packaging`.
+
+User-approved packaging contract:
+- portable/no-install Windows x64 release;
+- extract into any writable folder and launch `STAAD Model Preprocessor.exe` directly;
+- no Python/pip/PySide6/VTK installation required on the target machine;
+- all implicit writable state stays below package-local `Data/`;
+- version-matched SketchUp `.rbz` ships inside the same portable package;
+- manual patch/update contract + machine-readable SHA-256 manifest are included now;
+- Setup/MSI/NSIS, automatic updater, registry install, and production one-file mode remain deferred.
+
+Detailed implementation plan:
+- `docs/superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md`
+
+Completed T22 checkpoints and commits:
+- `7d0ee2b` — `feat: add portable runtime path boundary`
+- `ec04b46` — `build: establish portable release version contract`
+- `6afaea9` — `build: package SketchUp bridge extension`
+- `22510bc` — `build: assemble update-ready portable release`
+- `056d906` — `fix: support portable SketchUp inbox`
+
+Implemented/verified so far:
+- `PortablePaths` resolves compiled runtime from the executable/compiled containing directory, never launch CWD;
+- package-local writable hierarchy: `Data/Config`, `Projects`, `Inbox/SketchUp`, `Exports`, `Reports`, `Logs`, `Cache`, `Temp`, `Backups`;
+- development `ProjectPaths` remains backward-compatible and packaged runtime does not auto-create development `build/dist/vendor` directories under `Data/`;
+- app/RBZ/package version contract is currently `0.1.0` and does not prematurely claim production V1 acceptance;
+- deterministic `.rbz` builder produces `build/sketchup/STAAD_Prep_Bridge_0.1.0.rbz`;
+- SketchUp exporter accepts both legacy development `artifacts/sketchup_bridge/inbox` and portable `Data/Inbox/SketchUp` paths;
+- portable assembler, ZIP layout, `Update/package-manifest.json`, per-file SHA-256, preserved `Data/`, and manual update documentation are implemented;
+- source-level packaged workflow smoke exercises Neutral import -> existing `ConnectNodes` repair -> renumber -> ReadyGate -> `.STD` -> `.validation.json` using production paths;
+- source regression at the current checkpoint: **303/303 PASS** for unit+integration excluding only the final-package tests that require the real built `.exe`;
+- T22-local strict mypy: **0 issues in 4 affected source files**;
+- relevant Ruff checks: passed.
+
+Current blocker / evidence:
+- Nuitka 4.2, Python 3.14.3 x64, and MSVC `cl 14.5` are available; no toolchain download is currently required;
+- the real standalone build has completed dependency analysis and produced `build/windows/retry1/nuitka-report.xml`, but no final `.exe` was emitted;
+- report target is `build/windows/retry1/app.dist/STAAD Model Preprocessor.exe`;
+- the app import graph is large (~1,293 loaded modules in the development environment), including required PySide6/PyVista/VTK/NumPy/SciPy/matplotlib/ezdxf dependencies;
+- a real viewport probe proved matplotlib cannot be safely excluded because PyVista imports `matplotlib.colors` during viewport startup;
+- the prior long build populated substantial project-local Nuitka cache, so the next build attempt should reuse that cache rather than changing dependencies speculatively;
+- MCP/command lifetime can return HTTP 502 on long build/test calls; use short launch/poll/inspect calls and avoid duplicate concurrent Nuitka processes writing the same output directory.
+
+Exact next actions when resuming T22:
+1. inspect the Nuitka report/build state and run one cached standalone build attempt into a unique output directory;
+2. do not launch a second build if the first is still running; poll process/artifact state in short calls;
+3. when `.exe` exists, run real Qt/VTK smoke with sanitized PATH (no Python exposed);
+4. assemble the final portable folder + ZIP using the verified `.exe` and rebuilt `.rbz`;
+5. run final-package tests for different CWD, relocation to a path with spaces/Thai text, reopen with existing `Data/`, and packaged T21 workflow;
+6. verify manifest hashes and absence of Setup/MSI/NSIS/auto-updater/one-file artifacts;
+7. run fresh source/UI/static regression, update docs, commit the required T22 task checkpoint, then stop before T23.
+
+### USER ACTION REQUIRED
+
+**None currently.** Do not install/download Python, Nuitka, Visual Studio/MSVC, PySide6, VTK, or other packaging tools unless a later build error proves a specific missing component. If a future step genuinely requires a manual download/install that is easier or safer for the user to perform, record the exact item/version/link/reason here before proceeding.
+
+T23 remains **not started** and blocked until T22 passes the real packaged `.exe` acceptance gate.
 
 ## T24 cleanup boundary
 

@@ -25,7 +25,7 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T19 | Exact/Relative Create Node + Translational Repeat | **STRICT HR-2** | **COMPLETE** |
 | T20 | Auto numbering + member direction controls | **STRICT HR-2/HR-4** | **COMPLETE** |
 | T21 | End-to-end READY gate + golden dirty-model suite + audit report | **STRICT HR-1..HR-4** | **COMPLETE** |
-| T22 | Windows packaging (`.exe`) + production path/log policy | STANDARD | **READY — not started** |
+| T22 | Portable standalone Windows packaging (`.exe` + bundled `.rbz` + update-ready manifest) | STANDARD | **IN PROGRESS — architecture/package tooling complete; final Nuitka `.exe` gate pending** |
 | T23 | Real-project acceptance + target STAAD.Pro verification | **STRICT acceptance** | BLOCKED by T22 |
 | T24 | Post-acceptance unused-file audit + quarantine to project-local `DEL/` | STANDARD | BLOCKED by T23 |
 
@@ -94,6 +94,12 @@ Final verified state:
 - `git diff --check`: passed;
 - feature commit: `bddd177` — `test: verify end-to-end clean model readiness`.
 
-## Next Task
+## Current Task
 
-**T22 — Windows Executable Packaging** is READY but **not started**. Stop here until the user explicitly requests T22.
+**T22 — Portable Standalone Windows Packaging** is **IN PROGRESS** on `task/22-portable-packaging`.
+
+Current checkpoint: portable runtime paths/version contract/RBZ/portable assembler/update manifest are implemented and source-level regression is green; the remaining critical gate is producing and validating the real Nuitka standalone `.exe`, then relocation/no-Python/package regression and final docs close.
+
+Detailed live checkpoint: `docs/superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md` and `docs/HANDOFF.md`.
+
+**USER ACTION REQUIRED: none currently.** T23 remains blocked until T22 is complete.
