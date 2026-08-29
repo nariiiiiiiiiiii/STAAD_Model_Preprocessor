@@ -719,31 +719,31 @@ Commit: `feat: define isolated native SKP bridge contract`
 - Both SketchUp-neutral and Direct DXF routes reuse T06 unit/axis conversion and T07 topology builder.
 - T14 C++/C-SDK helper is retained but not required by T15/V1.
 
-- [ ] **Step 1: RED neutral-reader and hand-authored transform fixtures**
+- [x] **Step 1: RED neutral-reader and hand-authored transform fixtures**
 
 Create protocol/schema/path tests and a nested group/component transform fixture with independently hand-calculated source/world coordinates. Protocol mismatch, malformed coordinates and paths outside the project root fail closed.
 
-- [ ] **Step 2: Implement `NeutralReader` and project-local inbox contract**
+- [x] **Step 2: Implement `NeutralReader` and project-local inbox contract**
 
 Neutral reader maps protocol-v1 points/segments/metadata to `ImportBatch` only. It must not merge, repair, transform or renumber geometry.
 
-- [ ] **Step 3: Implement the SketchUp Ruby extension exporter contract**
+- [x] **Step 3: Implement the SketchUp Ruby extension exporter contract**
 
 Use only the public SketchUp Ruby API. Recursively walk supported edges, groups and component instances; compose nested instance transforms; preserve useful tag/group/component metadata; report source units and Z-Up. Output uses atomic temporary-write -> rename inside the configured project-local inbox. No C SDK and no network download.
 
-- [ ] **Step 4: STRICT transform/topology verification**
+- [x] **Step 4: STRICT transform/topology verification**
 
 Run Neutral JSON -> `ImportBatch` -> T06 metre/Y-Up -> T07 topology. Compare exact expected canonical coordinates/incidences against the hand-authored fixture. Ensure the Ruby layer never duplicates T06 coordinate mapping.
 
-- [ ] **Step 5: Wire V1 import choices and preserve Direct DXF**
+- [x] **Step 5: Wire V1 import choices and preserve Direct DXF**
 
 UI exposes SketchUp Bridge inbox import/status and Direct DXF Import as independent choices. Missing SketchUp/extension must not disable DXF. Run existing DXF import/preview regression plus the new neutral route.
 
-- [ ] **Step 6: SketchUp runtime check when available**
+- [x] **Step 6: SketchUp runtime check when available**
 
-If SketchUp is available locally, install/load the development extension and export a simple real line/group/component fixture. If runtime is unavailable, record the limitation explicitly and defer real SketchUp runtime acceptance; do not substitute guessed API behavior.
+Verified on SketchUp 2026 (26.1.256): the development extension registers successfully, exports a real 3-member root/group/nested-component fixture, and the resulting Neutral JSON passes through T06/T07 to the independently expected 4-node/3-member canonical geometry.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Commit: `feat: bridge SketchUp Ruby geometry into canonical import`
 

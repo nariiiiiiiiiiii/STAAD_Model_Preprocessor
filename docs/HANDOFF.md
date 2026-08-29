@@ -1,4 +1,4 @@
-Status: **T14 complete on `task/14-skp-bridge`; T15 is next and not started. V1 plan includes T24 post-acceptance DEL quarantine.**
+Status: **T15 complete on `task/15-sketchup-ruby`; T16 is next and not started.**
 
 ## Canonical project root
 
@@ -8,120 +8,102 @@ HARD RULE: all project-created source/temp/cache/log/build/test/generated/export
 
 ## Completed baseline
 
-- T01-T13 completed through `d6dce33 feat: export validated STAAD geometry model`.
-- Manual Editing V1 expansion committed on master at `ae37884`.
-- T24 post-acceptance cleanup plan committed on master at `350c4ca`.
+- T01-T13: canonical model, validation/repair, local-X normalization, numbering, and deterministic `.STD` geometry export.
+- T14: preserved optional native direct-SKP bridge contract (`fb95771`); official C SDK is not a V1 dependency.
+- V1 import architecture planning: `520dc57 docs: switch V1 SketchUp import to Ruby bridge`.
+- T15: lightweight SketchUp Ruby Bridge + Direct DXF canonical integration.
+- T24 remains post-acceptance move-only quarantine to project-local `DEL/`; no automatic deletion.
 
 Canonical continuation documents:
-- main V1 plan: `docs/superpowers/plans/2026-08-28-staad-model-preprocessor-v1.md`;
-- SketchUp Ruby Bridge design: `docs/superpowers/specs/2026-08-28-sketchup-ruby-bridge-design.md`;
-- Manual Editing T16-T20 plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md`;
-- Manual Editing design: `docs/superpowers/specs/2026-08-28-manual-model-editing-design.md`.
+- `docs/superpowers/plans/2026-08-28-staad-model-preprocessor-v1.md`
+- `docs/superpowers/specs/2026-08-28-sketchup-ruby-bridge-design.md`
+- `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md`
+- `docs/superpowers/specs/2026-08-28-manual-model-editing-design.md`
 
-## T14 — SKP Bridge Contract + Native Helper Capability Probe
+## T15 — SketchUp Ruby Extension + Neutral Import Integration
 
 Branch/worktree:
-- branch: `task/14-skp-bridge`
-- worktree: `.worktrees/task-14-skp-bridge`
-- base/planning commit: `350c4ca`
-- task commit subject: `feat: define isolated native SKP bridge contract`
+- branch: `task/15-sketchup-ruby`
+- worktree: `.worktrees/task-15-sketchup-ruby`
+- base: `520dc57`
+- commit subject: `feat: bridge SketchUp Ruby geometry into canonical import`
+
+### V1 import routes
+
+1. SketchUp open model -> lightweight Ruby Extension `Send to STAAD Prep` -> Neutral JSON v1 -> `artifacts/sketchup_bridge/inbox/` -> `NeutralReader` -> shared T06 unit/axis transform -> T07 topology.
+2. Direct DXF -> `DxfReader` -> shared T06 unit/axis transform -> T07 topology.
+3. T14 C++/C-SDK direct `.skp` reader remains future optional and does not block V1.
+
+### Lightweight SketchUp extension decision
+
+Confirmed 2026-08-29:
+- one primary toolbar/menu action: `Send to STAAD Prep`;
+- first use selects/configures the project-local inbox;
+- later sends are one-click;
+- success/failure notification only;
+- no dashboard, preview panel, progress UI, advanced settings UI, or styling work in T15/V1;
+- visual polish and richer UX are deferred without changing Neutral JSON or canonical import architecture.
+
+### Implemented files
 
 Created:
-- `src/staadprep/importers/skp_bridge.py`
-- `native/skp_reader/CMakeLists.txt`
-- `native/skp_reader/include/neutral_contract.h`
-- `native/skp_reader/src/main.cpp`
-- `tests/unit/test_skp_bridge.py`
-- `tests/unit/test_skp_native_scaffold.py`
-- `tests/ui/test_skp_capability_ui.py`
+- `extensions/sketchup_staadprep/staadprep_loader.rb`
+- `extensions/sketchup_staadprep/staadprep/exporter.rb`
+- `src/staadprep/importers/neutral_reader.py`
+- `src/staadprep/importers/pipeline.py`
+- `tests/unit/test_neutral_reader.py`
+- `tests/unit/test_import_pipeline.py`
+- `tests/unit/test_sketchup_ruby_contract.py`
+- `tests/integration/test_sketchup_ruby_pipeline.py`
+- `tests/ui/test_import_routes.py`
+- `tests/golden_models/11_sketchup_ruby_simple_frame/expected.json`
 
 Modified:
-- `src/staadprep/ui/main_window.py`
-- `README.md`
-- `docs/CHECKLIST.md`
-- `docs/TASK_BOARD.md`
-- main V1 implementation plan status.
+- `src/staadprep/importers/dxf_reader.py` — declares DXF source axis `Z-UP` for the shared T06 gate.
+- `src/staadprep/ui/main_window.py` — independent SketchUp Bridge JSON and Direct DXF canonical import actions.
+- relevant DXF/UI regression tests and status docs.
 
-### Neutral process contract
+### Coordinate authority
 
-- protocol version: integer `1`;
-- helper capability probe: `skp_reader.exe --capabilities`;
-- read CLI: `skp_reader.exe --input <file.skp> --output <project-local-json>`;
-- neutral envelope: `protocol_version`, `source_file`, `source_unit`, `source_axis`, `points`, `segments`, `groups`, `tags`, `warnings`;
-- Python returns existing raw `ImportBatch`; no SketchUp SDK type crosses into the canonical Python model;
-- raw SKP coordinates stay source-space in T14; T06/T07 remain responsible for canonical transform/topology in T15.
+Ruby emits SketchUp API internal coordinate values explicitly as inches with `source_axis=Z-UP`.
+It does not perform STAAD conversion.
 
-### Capability / failure behavior
+T06 remains the single authority:
 
-`SkpBridge.capability()` probes without reading a model or downloading anything.
+`STAAD(x,y,z) = (SKP.x, SKP.z, -SKP.y)` after unit conversion to metres.
 
-If helper/SDK reader is absent or not ready:
+T07 remains the single topology authority; the bridge does not merge/repair/split/renumber geometry.
 
-`SKP importer unavailable — DXF remains available`
+### Runtime verification
 
-The desktop app remains launchable and DXF Import remains enabled. Protocol mismatch and malformed neutral JSON fail closed with `SkpBridgeError` rather than silently accepting incompatible data.
+Verified against installed SketchUp 2026 `26.1.256`:
+- loader registered `STAAD Prep Bridge` successfully;
+- real Ruby exporter produced Neutral JSON from a root edge + translated Group + nested rotated Component fixture;
+- exported metadata preserved `FrameGroup` and `NestedBeamInstance` paths;
+- real Neutral JSON reported 3 segments, `source_unit=in`, `source_axis=Z-UP`;
+- Python `NeutralReader -> T06 -> T07` produced exactly 4 nodes / 3 members;
+- hand-checked 120 in span mapped to exactly 3.048 m in canonical space.
 
-Neutral helper outputs are generated only inside project-local `.tmp/skp_bridge/` (or another path validated by `ProjectPaths.assert_inside_project`). The bridge does not auto-delete those outputs.
+### Verification evidence
 
-### Native scaffold boundary
+Fresh final gate must remain green before commit:
+- unit suite;
+- all UI tests including Qt/VTK smoke;
+- integration suite including Direct DXF and SketchUp-neutral pipeline;
+- Ruff;
+- targeted mypy for new/changed T15 Python modules;
+- `git diff --check`;
+- runtime SketchUp evidence above.
 
-T14 C++ is capability-only. It intentionally does NOT guess SketchUp C API function/header signatures and contains no SDK download logic.
-
-Future optional official C-SDK staging root remains:
-
-`vendor/sketchup-sdk/`
-
-`CMakeLists.txt` advertises this project-local staging location only for a future direct-SKP backend. The approved V1 T15 Ruby path does not require this SDK.
-
-### Native build verification
-
-On 2026-08-28, Visual Studio 2026 Build Tools became available and the T14 capability-only helper was configured and compiled successfully with:
-- CMake `4.3.1-msvc1`;
-- MSVC tools `14.51.36231` / compiler `19.51.36256.0`;
-- x64 host/target Developer Environment.
-
-The native helper builds project-locally to `build/native/skp_reader/skp_reader.exe`, matching `SkpBridge`'s default helper path. Running `--capabilities` returned protocol `1`, `sketchup_sdk=false`, and `reader_ready=false`. This is a valid preserved future-optional backend state and no longer blocks V1.
-
-No toolchain or SketchUp SDK is downloaded automatically by the project.
-
-## T14 verification evidence
-
-TDD/targeted evidence:
-- initial RED: `ModuleNotFoundError: staadprep.importers.skp_bridge`;
-- UI RED: old tooltip did not report the required SKP-unavailable/DXF-fallback state;
-- final targeted T14: 9 tests passed;
-- Ruff targeted passed;
-- targeted mypy (`skp_bridge.py`, `main_window.py`) passed.
-- native CMake configure/build passed with MSVC x64; capability-only helper executed successfully.
-- real built-helper -> `SkpBridge.capability()` integration passed (`protocol=1`, `sdk=False`, `ready=False`).
-
-Regression split after implementation:
-- unit: 157 passed;
-- UI (includes real Qt/VTK subprocess smokes): 22 passed;
-- integration: 3 passed;
-- total evidence: 182 tests passed;
-- full Ruff `src tests scripts`: passed.
-
-## Important boundary
-
-T14 native direct-SKP capability remains preserved, but V1 no longer depends on official C SDK access. The approved T15 path is SketchUp Ruby Extension -> Neutral JSON v1 plus independent Direct DXF Import.
-
-T14 does not change T13 `.STD` export semantics and does not implement manual editing.
+Known non-T15 typing debt: including `dxf_reader.py` in strict mypy exposes pre-existing ezdxf typing errors (`readfile`, `DXFGraphic.is_3d_polyline`, `vertices`, untyped helper). T15 changes only the one-line `source_axis="Z-UP"` behavior there; targeted T15 modules are type-clean.
 
 ## Next Task
 
-**T15 — SketchUp Ruby Extension + Neutral Import Integration**
+**T16 — SketchUp-style Navigation + Selection Foundation**
 
-Risk: **STRICT HR-1 / HR-2 already covered by the user's approved high-risk envelope.**
+Risk: STANDARD.
 
-Approved V1 input architecture:
-- SketchUp open model -> public Ruby Extension `Send to STAAD Prep` -> Neutral JSON v1 -> project-local `artifacts/sketchup_bridge/inbox/` -> shared T06/T07 canonical pipeline;
-- Direct DXF Import -> existing `DxfReader` -> shared T06/T07 canonical pipeline;
-- Direct `.skp` through T14 C++/C SDK is future optional and no longer blocks V1.
-
-Detailed spec: `docs/superpowers/specs/2026-08-28-sketchup-ruby-bridge-design.md`.
-
-T15 must preserve the existing DXF route and independently verify nested SketchUp transform coordinates before canonical conversion.
+Do not start T16 until the user explicitly continues after the T15 commit/checkpoint.
 
 ## T24 cleanup boundary
 

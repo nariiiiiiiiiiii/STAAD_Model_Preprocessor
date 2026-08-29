@@ -39,6 +39,8 @@ The extension runs inside SketchUp and provides a command/toolbar action named a
 
 `Send to STAAD Prep`
 
+V1 UI decision (confirmed 2026-08-29): keep the extension deliberately lightweight. The primary visible surface is one toolbar/menu action, `Send to STAAD Prep`. No dashboard, preview panel, progress UI, custom styling, or advanced settings UI is required for T15/V1; those can be added later without changing the transport contract.
+
 V1 exporter responsibilities:
 - inspect the active SketchUp model through the public SketchUp Ruby API;
 - recursively walk supported edges inside model entities, groups, and component instances;

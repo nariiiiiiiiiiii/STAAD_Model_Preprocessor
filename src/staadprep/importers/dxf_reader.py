@@ -97,6 +97,7 @@ class DxfReader:
             segments=tuple(segments),
             source_format="dxf",
             declared_unit=_INSUNITS.get(insunits_code),
+            source_axis="Z-UP",
             metadata={
                 "insunits_code": insunits_code,
                 "dxfversion": document.dxfversion,

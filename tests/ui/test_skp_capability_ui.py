@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from PySide6.QtWidgets import QWidget
 
-from staadprep.importers.skp_bridge import UNAVAILABLE_MESSAGE
 from staadprep.ui.main_window import MainWindow
 
 
@@ -15,10 +16,12 @@ class RecordingViewport(QWidget):
         self.model = model
 
 
-def test_missing_skp_helper_is_reported_without_disabling_dxf_import(qtbot) -> None:
-    window = MainWindow(viewport_factory=RecordingViewport)
+def test_native_c_sdk_is_not_a_v1_import_blocker(qtbot, tmp_path: Path) -> None:
+    window = MainWindow(viewport_factory=RecordingViewport, project_root=tmp_path / "project")
     qtbot.addWidget(window)
 
     assert window.import_action.isEnabled()
-    assert UNAVAILABLE_MESSAGE in window.import_action.toolTip()
-    assert UNAVAILABLE_MESSAGE in window.statusBar().currentMessage()
+    assert window.import_sketchup_action.isEnabled()
+    assert window.import_dxf_action.isEnabled()
+    assert "SketchUp Bridge + Direct DXF available" in window.statusBar().currentMessage()
+    assert "C SDK" not in window.import_action.toolTip()

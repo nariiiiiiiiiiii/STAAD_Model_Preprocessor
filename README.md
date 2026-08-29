@@ -12,13 +12,13 @@ Primary workflow:
 
 - T01-T13 complete; deterministic minimal `.STD` geometry export is implemented.
 - T14 complete: isolated SKP process bridge, neutral protocol v1, capability probe, native CMake/C++ scaffold, and fail-soft DXF fallback UI.
-- T15 is next: SketchUp Ruby Extension -> Neutral JSON v1 plus shared canonical import integration; Direct DXF remains independent.
+- T15 complete: lightweight SketchUp Ruby Extension -> Neutral JSON v1 -> shared T06/T07 canonical import; Direct DXF remains an independent first-class route.
 - V1 execution plan now runs through T24: Manual Editing T16-T20, READY/packaging/acceptance T21-T23, then non-destructive unused-file quarantine to project-local `DEL/` in T24.
 - Primary OS: Windows 11.
 - Primary language: Python.
 - UI: PySide6.
 - 3D: PyVista/VTK.
-- SketchUp V1: public Ruby Extension -> Neutral JSON v1 bridge.
+- SketchUp V1: lightweight public Ruby Extension with one primary `Send to STAAD Prep` action -> Neutral JSON v1 bridge.
 - Direct DXF: ezdxf first-class import route.
 - Direct `.skp`: T14 C++ bridge retained as future optional backend if official C SDK access is granted.
 - STAAD output: `.STD`.

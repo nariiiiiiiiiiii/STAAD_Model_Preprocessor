@@ -335,7 +335,7 @@ Primary application:
 - ezdxf
 
 SketchUp bridge (V1):
-- SketchUp Ruby Extension using the public SketchUp Ruby API.
+- SketchUp Ruby Extension using the public SketchUp Ruby API; V1 UI is intentionally lightweight with one primary `Send to STAAD Prep` toolbar/menu action.
 - Emits versioned Neutral JSON v1 into project-local `artifacts/sketchup_bridge/inbox/`.
 - Python neutral reader converts the envelope into the same raw `ImportBatch` pipeline used before T06/T07.
 

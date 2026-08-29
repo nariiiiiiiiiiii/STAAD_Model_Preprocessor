@@ -29,7 +29,7 @@ The approved baseline remains the dark engineering desktop application, extended
 
 ### FILE
 - Import Model
-  - SketchUp Bridge / `Send to STAAD Prep` inbox — V1 first-class route
+  - SketchUp Bridge / `Send to STAAD Prep` inbox — V1 first-class route; SketchUp extension UI stays lightweight with one primary send action
   - Import DXF `.dxf` — V1 first-class direct route
   - Direct SKP `.skp` — future optional when C SDK access is available
 - Save

@@ -12,6 +12,7 @@ from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (
     QFileDialog,
     QMainWindow,
+    QMenu,
     QMessageBox,
     QSplitter,
     QToolBar,
@@ -22,13 +23,9 @@ from PySide6.QtWidgets import (
 from staadprep.exporters.staad_std import ExportReport, StaadExportError, export_staad_std
 from staadprep.importers.contracts import ImportBatch
 from staadprep.importers.dxf_reader import DxfReader
+from staadprep.importers.neutral_reader import NeutralReader, NeutralReaderError
+from staadprep.importers.pipeline import ImportPipelineError, canonicalize_import_batch
 from staadprep.importers.raw_preview import raw_batch_to_preview_model
-from staadprep.importers.skp_bridge import (
-    UNAVAILABLE_MESSAGE,
-    SkpBridge,
-    SkpBridgeError,
-    SkpCapability,
-)
 from staadprep.model.project import ProjectModel
 from staadprep.orientation.normalize import normalization_commands
 from staadprep.paths import ProjectPaths
@@ -64,16 +61,8 @@ class MainWindow(QMainWindow):
         configured_root = project_root or Path(os.environ.get("STAADPREP_PROJECT_ROOT", Path.cwd()))
         self._project_paths = ProjectPaths.from_root(configured_root)
         self._project_paths.ensure_layout()
-        self.skp_bridge = SkpBridge(self._project_paths.root)
-        try:
-            self.skp_capability = self.skp_bridge.capability()
-        except SkpBridgeError:
-            self.skp_capability = SkpCapability(
-                protocol_version=None,
-                sketchup_sdk=False,
-                reader_ready=False,
-                message=UNAVAILABLE_MESSAGE,
-            )
+        self.neutral_reader = NeutralReader(self._project_paths.root)
+        self.neutral_reader.inbox.mkdir(parents=True, exist_ok=True)
         self._viewport_factory = viewport_factory or StructuralViewport
         self._confirm_delete = confirm_delete or self._confirm_delete_dialog
         self.current_import_batch: ImportBatch | None = None
@@ -90,14 +79,27 @@ class MainWindow(QMainWindow):
         self._create_actions()
         self._create_toolbar()
         self._create_workspace()
-        self.statusBar().showMessage(f"Ready — no model loaded | {self.skp_capability.message}")
+        self.statusBar().showMessage(
+            "Ready — no model loaded | SketchUp Bridge + Direct DXF available"
+        )
 
     def _create_actions(self) -> None:
         self.import_action = QAction("Import Model", self)
-        self.import_action.setToolTip(
-            f"{self.skp_capability.message}; raw DXF import remains available"
+        self.import_menu = QMenu(self)
+        self.import_sketchup_action = QAction("Import SketchUp Bridge JSON", self)
+        self.import_sketchup_action.setToolTip(
+            f"Import Neutral JSON v1 from {self.neutral_reader.inbox}"
         )
-        self.import_action.triggered.connect(self._choose_dxf)
+        self.import_sketchup_action.triggered.connect(self._choose_sketchup_neutral)
+        self.import_dxf_action = QAction("Import DXF", self)
+        self.import_dxf_action.setToolTip(
+            "Import DXF directly through the shared canonical pipeline"
+        )
+        self.import_dxf_action.triggered.connect(self._choose_dxf)
+        self.import_menu.addAction(self.import_sketchup_action)
+        self.import_menu.addAction(self.import_dxf_action)
+        self.import_action.setMenu(self.import_menu)
+        self.import_action.setToolTip("Import from SketchUp Bridge inbox or import DXF directly")
 
         self.unit_check_action = self._disabled_action("Unit Check", "UI wiring pending")
         self.repair_action = QAction("Repair", self)
@@ -206,6 +208,21 @@ class MainWindow(QMainWindow):
         root_layout.addWidget(self.model_status_bar)
         self.setCentralWidget(central)
 
+    def _choose_sketchup_neutral(self) -> None:
+        file_name, _ = QFileDialog.getOpenFileName(
+            self,
+            "Import SketchUp Bridge JSON",
+            str(self.neutral_reader.inbox),
+            "Neutral JSON (*.json)",
+        )
+        if not file_name:
+            return
+        try:
+            self.load_sketchup_neutral(Path(file_name))
+        except (NeutralReaderError, ImportPipelineError, ValueError) as exc:
+            self.statusBar().showMessage(f"SketchUp Bridge import blocked: {exc}")
+            QMessageBox.warning(self, "Import Blocked", str(exc))
+
     def _choose_dxf(self) -> None:
         file_name, _ = QFileDialog.getOpenFileName(
             self,
@@ -213,8 +230,33 @@ class MainWindow(QMainWindow):
             "",
             "DXF Files (*.dxf)",
         )
-        if file_name:
-            self.load_raw_dxf(Path(file_name))
+        if not file_name:
+            return
+        try:
+            self.load_dxf_canonical(Path(file_name))
+        except (ImportPipelineError, OSError, ValueError) as exc:
+            self.statusBar().showMessage(f"Direct DXF import blocked: {exc}")
+            QMessageBox.warning(self, "Import Blocked", str(exc))
+
+    def load_sketchup_neutral(self, path: Path) -> ProjectModel:
+        """Import SketchUp Neutral JSON through the shared T06/T07 canonical path."""
+        batch = self.neutral_reader.read(path)
+        model = canonicalize_import_batch(batch)
+        self.set_canonical_model(model)
+        self.statusBar().showMessage(
+            f"SKETCHUP BRIDGE IMPORTED | Nodes: {len(model.nodes)} | Members: {len(model.members)}"
+        )
+        return model
+
+    def load_dxf_canonical(self, path: Path) -> ProjectModel:
+        """Import DXF directly through the shared T06/T07 canonical path."""
+        batch = DxfReader().read(path)
+        model = canonicalize_import_batch(batch)
+        self.set_canonical_model(model)
+        self.statusBar().showMessage(
+            f"DIRECT DXF IMPORTED | Nodes: {len(model.nodes)} | Members: {len(model.members)}"
+        )
+        return model
 
     def _choose_export_std(self) -> None:
         initial_path = self._project_paths.artifacts / "model.std"

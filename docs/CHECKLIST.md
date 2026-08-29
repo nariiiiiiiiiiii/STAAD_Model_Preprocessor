@@ -33,10 +33,10 @@
 - [x] Display node/member count.
 - [x] Source metadata.
 - [x] SKP bridge contract + protocol/capability probe (T14).
-- [ ] SketchUp Ruby Extension exports supported edges/groups/components/tags/units to Neutral JSON v1.
-- [ ] Project-local SketchUp inbox handoff works without C SDK.
-- [ ] SketchUp Neutral JSON -> T06/T07 -> canonical metre/Y-Up integration.
-- [ ] Direct DXF -> T06/T07 -> canonical metre/Y-Up integration remains green.
+- [x] SketchUp Ruby Extension exports supported edges/groups/components/tags/units to Neutral JSON v1.
+- [x] Project-local SketchUp inbox handoff works without C SDK.
+- [x] SketchUp Neutral JSON -> T06/T07 -> canonical metre/Y-Up integration.
+- [x] Direct DXF -> T06/T07 -> canonical metre/Y-Up integration remains green.
 
 ## M4 — Unit / dimension
 - [x] Source unit metadata + verified LengthUnit conversion engine.

@@ -1,0 +1,27 @@
+{
+  "transform_fixture": {
+    "coordinate_unit": "in",
+    "group_transform": "T(120,0,0)",
+    "component_transform": "T(0,0,120) * Rz(+90deg)",
+    "nested_local_edge": [[0,0,0],[24,0,0]],
+    "nested_world_edge": [[120,0,120],[120,24,120]]
+  },
+  "neutral": {
+    "protocol_version": 1,
+    "source_file": "nested_frame.skp",
+    "source_unit": "in",
+    "source_axis": "Z-UP",
+    "points": [],
+    "segments": [
+      {"start":[0,0,0],"end":[120,0,0],"source_ref":"edge:100","tag":"Structure","group_path":[],"component_path":[]},
+      {"start":[120,0,0],"end":[120,0,120],"source_ref":"group:200/edge:201","tag":"Columns","group_path":["FrameGroup"],"component_path":[]},
+      {"start":[120,0,120],"end":[120,24,120],"source_ref":"group:200/component:300/edge:301","tag":"Braces","group_path":["FrameGroup"],"component_path":["BraceComponent"]}
+    ],
+    "groups": ["FrameGroup"],
+    "tags": ["Structure","Columns","Braces"],
+    "warnings": []
+  },
+  "expected_canonical_nodes_m": [[0.0,0.0,0.0],[3.048,0.0,0.0],[3.048,3.048,0.0],[3.048,3.048,-0.6096]],
+  "expected_member_count": 3,
+  "expected_structure_count": 1
+}

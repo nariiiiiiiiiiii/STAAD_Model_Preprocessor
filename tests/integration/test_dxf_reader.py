@@ -11,6 +11,7 @@ def test_reads_raw_line_polyline_point_and_insunits_without_conversion() -> None
 
     assert batch.source_format == "dxf"
     assert batch.declared_unit == "mm"
+    assert batch.source_axis == "Z-UP"
     assert batch.metadata["insunits_code"] == 4
     assert len(batch.segments) == 3
     assert len(batch.points) == 1
