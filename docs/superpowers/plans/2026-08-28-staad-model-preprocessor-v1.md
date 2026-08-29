@@ -751,6 +751,8 @@ Commit: `feat: bridge SketchUp Ruby geometry into canonical import`
 
 ### Task 16: SketchUp-Style Navigation + Selection Foundation
 
+**Status:** COMPLETE on `task/16-navigation-selection` (final commit step pending).
+
 **Risk:** STANDARD
 
 Detailed executable plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md` Task 16.

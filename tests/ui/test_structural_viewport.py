@@ -28,3 +28,7 @@ def test_structural_viewport_smoke_runs_in_isolated_process() -> None:
     assert "nodes=16 members=20" in completed.stdout
     assert "focus=pass" in completed.stdout
     assert "isolate=pass" in completed.stdout
+    assert "navigation=pass" in completed.stdout
+    assert "selection=pass" in completed.stdout
+    assert "labels=pass" in completed.stdout
+    assert "revision=stable" in completed.stdout

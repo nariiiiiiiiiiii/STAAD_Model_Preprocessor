@@ -59,7 +59,12 @@ def test_canonical_model_previews_local_x_reverse_count_and_arrows(qtbot) -> Non
     assert window.normalize_axis_action.isEnabled()
     assert "2 member(s) need reversal" in window.normalize_axis_action.toolTip()
     assert "Local X     2 reverse / 3 total" in window.validation_panel.summary_label.text()
+    assert viewport.local_x_visible is False
+
+    revision = model.revision
+    window.local_x_view_action.setChecked(True)
     assert viewport.local_x_visible is True
+    assert model.revision == revision
 
 
 def test_normalize_all_runs_reverse_commands_through_repair_history_and_revalidates(qtbot) -> None:

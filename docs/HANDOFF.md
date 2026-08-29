@@ -1,4 +1,4 @@
-Status: **T15 complete on `task/15-sketchup-ruby`; T16 is next and not started.**
+Status: **T16 complete on `task/16-navigation-selection`; T17 is next.**
 
 ## Canonical project root
 
@@ -8,103 +8,97 @@ HARD RULE: all project-created source/temp/cache/log/build/test/generated/export
 
 ## Completed baseline
 
-- T01-T13: canonical model, validation/repair, local-X normalization, numbering, and deterministic `.STD` geometry export.
-- T14: preserved optional native direct-SKP bridge contract (`fb95771`); official C SDK is not a V1 dependency.
-- V1 import architecture planning: `520dc57 docs: switch V1 SketchUp import to Ruby bridge`.
-- T15: lightweight SketchUp Ruby Bridge + Direct DXF canonical integration.
-- T24 remains post-acceptance move-only quarantine to project-local `DEL/`; no automatic deletion.
+- T01-T13: canonical model, validation/repair, local-X normalization, numbering, deterministic `.STD` geometry export.
+- T14: future-optional native direct-SKP bridge contract; C SDK is not a V1 dependency.
+- T15: lightweight SketchUp Ruby Bridge + Direct DXF -> shared T06/T07 canonical import.
+- T16: safe SketchUp-style navigation + selection/filter/label foundation.
+- T24 remains post-acceptance move-only quarantine to project-local `DEL/`; never auto-delete.
 
-Canonical continuation documents:
+Canonical continuation docs:
 - `docs/superpowers/plans/2026-08-28-staad-model-preprocessor-v1.md`
-- `docs/superpowers/specs/2026-08-28-sketchup-ruby-bridge-design.md`
 - `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md`
 - `docs/superpowers/specs/2026-08-28-manual-model-editing-design.md`
+- `docs/superpowers/specs/2026-08-28-sketchup-ruby-bridge-design.md`
 
-## T15 — SketchUp Ruby Extension + Neutral Import Integration
+## T16 — SketchUp-Style Navigation + Selection Foundation
 
 Branch/worktree:
-- branch: `task/15-sketchup-ruby`
-- worktree: `.worktrees/task-15-sketchup-ruby`
-- base: `520dc57`
-- commit subject: `feat: bridge SketchUp Ruby geometry into canonical import`
+- branch: `task/16-navigation-selection`
+- worktree: `.worktrees/task-16-navigation-selection`
+- base: `f4118e1` (T15 merged to master before T16)
+- task commit subject: `feat: add safe SketchUp-style viewport controls`
 
-### V1 import routes
+### Implemented interaction contract
 
-1. SketchUp open model -> lightweight Ruby Extension `Send to STAAD Prep` -> Neutral JSON v1 -> `artifacts/sketchup_bridge/inbox/` -> `NeutralReader` -> shared T06 unit/axis transform -> T07 topology.
-2. Direct DXF -> `DxfReader` -> shared T06 unit/axis transform -> T07 topology.
-3. T14 C++/C-SDK direct `.skp` reader remains future optional and does not block V1.
+- `EditMode` enum: `SELECT`, `CREATE_NODE`, `DRAW_MEMBER`, `MOVE_SNAP_NODE`, `DELETE`, `MEASURE`, `SET_DIRECTION`.
+- Default mode is `SELECT`.
+- `InteractionState.allows_geometry_drag` is true only for `MOVE_SNAP_NODE`.
+- Navigation override never changes active edit mode.
+- `SelectionFilter(nodes=True, members=True)` can independently block Node/Member picking.
+- `LabelVisibility` controls Node No., Member No., Local-X and Coordinates; all default off.
+- Local-X validation count remains visible in the Validation panel, but arrows are user-controlled and no longer forced on.
 
-### Lightweight SketchUp extension decision
+### Viewport controls
 
-Confirmed 2026-08-29:
-- one primary toolbar/menu action: `Send to STAAD Prep`;
-- first use selects/configures the project-local inbox;
-- later sends are one-click;
-- success/failure notification only;
-- no dashboard, preview panel, progress UI, advanced settings UI, or styling work in T15/V1;
-- visual polish and richer UX are deferred without changing Neutral JSON or canonical import architecture.
+- Middle Mouse drag: Orbit.
+- Shift + Middle Mouse drag: Pan.
+- Mouse wheel: zoom; uses picked world position as cursor anchor when available.
+- Shift+Z: Fit Model.
+- Orbit prefers selected entity center as camera focal pivot.
+- Double-click: Focus Selected.
+- Left drag in SELECT is intercepted as non-editing selection behavior; it cannot mutate canonical geometry.
+- Ctrl+selection provides additive/toggle behavior.
+- Node and Member selection supported with deterministic overlap cycling by entity type then stable UUID.
+- Right-click context exposes non-mutating, selection-valid Focus / Fit / Clear Selection actions.
 
-### Implemented files
+### UI surface
+
+Second toolbar `View & Selection` exposes:
+`Select | Nodes | Members | Node No. | Member No. | Local-X | Coordinates | Fit`.
+
+This is intentionally a lightweight engineering control surface; no geometry-edit tools are activated in T16.
+
+### Main implementation files
 
 Created:
-- `extensions/sketchup_staadprep/staadprep_loader.rb`
-- `extensions/sketchup_staadprep/staadprep/exporter.rb`
-- `src/staadprep/importers/neutral_reader.py`
-- `src/staadprep/importers/pipeline.py`
-- `tests/unit/test_neutral_reader.py`
-- `tests/unit/test_import_pipeline.py`
-- `tests/unit/test_sketchup_ruby_contract.py`
-- `tests/integration/test_sketchup_ruby_pipeline.py`
-- `tests/ui/test_import_routes.py`
-- `tests/golden_models/11_sketchup_ruby_simple_frame/expected.json`
+- `src/staadprep/viewer/interaction.py`
+- `tests/unit/test_interaction_state.py`
+- `tests/unit/test_selection_cycle.py`
+- `tests/ui/test_viewport_navigation.py`
 
 Modified:
-- `src/staadprep/importers/dxf_reader.py` — declares DXF source axis `Z-UP` for the shared T06 gate.
-- `src/staadprep/ui/main_window.py` — independent SketchUp Bridge JSON and Direct DXF canonical import actions.
-- relevant DXF/UI regression tests and status docs.
+- `src/staadprep/viewer/selection.py`
+- `src/staadprep/viewer/widget.py`
+- `src/staadprep/ui/main_window.py`
+- `scripts/smoke_viewport.py`
+- `scripts/smoke_orientation.py`
+- orientation/viewport UI regression tests.
 
-### Coordinate authority
-
-Ruby emits SketchUp API internal coordinate values explicitly as inches with `source_axis=Z-UP`.
-It does not perform STAAD conversion.
-
-T06 remains the single authority:
-
-`STAAD(x,y,z) = (SKP.x, SKP.z, -SKP.y)` after unit conversion to metres.
-
-T07 remains the single topology authority; the bridge does not merge/repair/split/renumber geometry.
-
-### Runtime verification
-
-Verified against installed SketchUp 2026 `26.1.256`:
-- loader registered `STAAD Prep Bridge` successfully;
-- real Ruby exporter produced Neutral JSON from a root edge + translated Group + nested rotated Component fixture;
-- exported metadata preserved `FrameGroup` and `NestedBeamInstance` paths;
-- real Neutral JSON reported 3 segments, `source_unit=in`, `source_axis=Z-UP`;
-- Python `NeutralReader -> T06 -> T07` produced exactly 4 nodes / 3 members;
-- hand-checked 120 in span mapped to exactly 3.048 m in canonical space.
+`src/staadprep/ui/panels.py` did not require modification; the approved toggles fit cleanly in the toolbar without introducing another panel.
 
 ### Verification evidence
 
-Fresh final gate must remain green before commit:
-- unit suite;
-- all UI tests including Qt/VTK smoke;
-- integration suite including Direct DXF and SketchUp-neutral pipeline;
-- Ruff;
-- targeted mypy for new/changed T15 Python modules;
-- `git diff --check`;
-- runtime SketchUp evidence above.
-
-Known non-T15 typing debt: including `dxf_reader.py` in strict mypy exposes pre-existing ezdxf typing errors (`readfile`, `DXFGraphic.is_3d_polyline`, `vertices`, untyped helper). T15 changes only the one-line `source_axis="Z-UP"` behavior there; targeted T15 modules are type-clean.
+Fresh pre-commit verification:
+- unit: 172 passed;
+- UI: 28 passed (split because long combined Qt/VTK runs can cause connector 502 despite subprocess success);
+- integration: 5 passed;
+- total: 205 tests passed;
+- real Windows Qt/VTK viewport smoke: `navigation=pass selection=pass labels=pass revision=stable`;
+- orientation Qt/VTK smoke updated for Local-X default-off + explicit view toggle;
+- Ruff: passed;
+- targeted mypy (`interaction.py`, `selection.py`, `widget.py`, `main_window.py` with third-party imports skipped): passed;
+- scope scan: no new repair/geometry mutation command added to the viewport path.
 
 ## Next Task
 
-**T16 — SketchUp-style Navigation + Selection Foundation**
+**T17 — Snap / Inference + Axis Lock Engine**
 
-Risk: STANDARD.
+Risk: **STRICT HR-1 / HR-2**, already covered by the user's approved high-risk envelope.
 
-Do not start T16 until the user explicitly continues after the T15 commit/checkpoint.
+T17 must implement deterministic canonical-space Node/endpoint/midpoint/intersection inference, X/Y/Z constraints, working-plane behavior and keyboard axis locks. It may not guess unresolved 3D depth. T16 navigation/select behavior and non-mutation invariants must remain green.
+
+Do not start T17 until the user explicitly continues after the T16 commit/checkpoint.
 
 ## T24 cleanup boundary
 
-T24 runs only after T23 acceptance. It moves only verified-unused/superseded files into project-local `DEL/`, writes `DEL/UNUSED_FILES_MANIFEST.md`, and never deletes files. Final deletion is user-controlled.
+T24 runs only after T23 acceptance. It moves only verified-unused/superseded files into project-local `DEL/`, writes `DEL/UNUSED_FILES_MANIFEST.md`, and never deletes files. Final deletion remains user-controlled.

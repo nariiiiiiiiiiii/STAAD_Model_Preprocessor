@@ -48,7 +48,7 @@
 - `StructuralViewport.set_label_visibility(visibility: LabelVisibility) -> None`.
 - Navigation contract: middle-drag orbit, Shift+middle-drag pan, wheel zoom, `Shift+Z` fit model; navigation does not change edit mode.
 
-- [ ] **Step 1: RED — lock interaction state and no-edit SELECT contract**
+- [x] **Step 1: RED — lock interaction state and no-edit SELECT contract**
 
 Create `tests/unit/test_interaction_state.py` with tests equivalent to:
 
@@ -78,13 +78,13 @@ Run:
 
 Expected RED: import/module/symbol missing.
 
-- [ ] **Step 2: GREEN — implement immutable interaction state**
+- [x] **Step 2: GREEN — implement immutable interaction state**
 
 Implement `viewer/interaction.py` using frozen dataclasses/enums; `allows_geometry_drag` returns true only for `MOVE_SNAP_NODE`.
 
 Run the Step 1 command; expected PASS.
 
-- [ ] **Step 3: RED — navigation override and selection filters**
+- [x] **Step 3: RED — navigation override and selection filters**
 
 Create UI tests using a lightweight viewport test double plus a real-VTK subprocess smoke where needed. Assert:
 - middle-button navigation callbacks do not change `EditMode`;
@@ -95,7 +95,7 @@ Create UI tests using a lightweight viewport test double plus a real-VTK subproc
 
 Expected RED: viewport methods/state absent.
 
-- [ ] **Step 4: GREEN — wire navigation/selection/labels**
+- [x] **Step 4: GREEN — wire navigation/selection/labels**
 
 In `StructuralViewport`:
 - preserve existing T10 picking lifecycle (`disable_picking()` before clear/rebuild);
@@ -110,7 +110,7 @@ In `MainWindow`/panels:
 - expose Node No./Member No./Local-X/Coordinates view toggles;
 - keep default mode `SELECT`.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 Run targeted tests, real viewport smoke, Ruff, targeted mypy, and confirm a drag in SELECT produces no `ProjectModel.revision` change.
 

@@ -19,9 +19,9 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T13 | STAAD `.STD` geometry exporter | **STRICT HR-3** | **COMPLETE** |
 | T14 | SKP bridge contract + native helper capability probe | STANDARD | **COMPLETE** |
 | T15 | SketchUp Ruby Extension -> Neutral JSON + shared canonical import integration; preserve Direct DXF | **STRICT HR-1/HR-2** | **COMPLETE** |
-| T16 | SketchUp-style navigation + selection/filter/label foundation | STANDARD | **READY** |
-| T17 | Snap/inference + working-plane + axis-lock engine | **STRICT HR-1/HR-2** | BLOCKED by T06,T07,T16 |
-| T18 | Manual Node/Member editing + atomic repair UI | **STRICT HR-2** | BLOCKED by T09,T16,T17 |
+| T16 | SketchUp-style navigation + selection/filter/label foundation | STANDARD | **COMPLETE** |
+| T17 | Snap/inference + working-plane + axis-lock engine | **STRICT HR-1/HR-2** | **READY** |
+| T18 | Manual Node/Member editing + atomic repair UI | **STRICT HR-2** | BLOCKED by T17 |
 | T19 | Exact/Relative Create Node + Translational Repeat | **STRICT HR-2** | BLOCKED by T18 |
 | T20 | Auto numbering + member direction controls | **STRICT HR-2/HR-4** | BLOCKED by T11,T12,T18 |
 | T21 | End-to-end READY gate + golden dirty-model suite + audit report | **STRICT HR-1..HR-4** | BLOCKED by T18,T19,T20 |
@@ -59,4 +59,6 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 
 ## Next Task
 
-**T15 — SketchUp Ruby Extension + Neutral Import Integration (Direct DXF remains first-class)**
+**T17 — Snap / Inference + Axis Lock Engine**
+
+Risk: **STRICT HR-1 / HR-2 already covered by the approved high-risk envelope.**

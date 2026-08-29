@@ -49,8 +49,15 @@ def main() -> int:
     preview = window.orientation_reverse_count
     if preview != 2:
         raise RuntimeError(f"Expected 2 reversals before normalization, got {preview}")
+    if viewport._local_x_actor is not None:
+        raise RuntimeError("Local-X arrows should be hidden by default in T16")
+    revision_before_view_toggle = model.revision
+    window.local_x_view_action.setChecked(True)
+    app.processEvents()
     if viewport._local_x_actor is None:
-        raise RuntimeError("Local-X arrow actor was not rendered")
+        raise RuntimeError("Local-X arrow actor was not rendered after view toggle")
+    if model.revision != revision_before_view_toggle:
+        raise RuntimeError("Local-X view toggle mutated the canonical model")
 
     window.normalize_member_directions()
     app.processEvents()

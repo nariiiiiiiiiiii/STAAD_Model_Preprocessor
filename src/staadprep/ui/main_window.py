@@ -42,6 +42,7 @@ from staadprep.ui.panels import (
 )
 from staadprep.validation.issues import Issue, IssueSeverity, IssueType
 from staadprep.validation.validators import validate_model
+from staadprep.viewer.interaction import EditMode, LabelVisibility, SelectionFilter
 from staadprep.viewer.widget import StructuralViewport
 
 ConfirmDelete = Callable[[str], bool]
@@ -133,6 +134,44 @@ class MainWindow(QMainWindow):
         self.redo_action.triggered.connect(self.redo_repair)
         self.addAction(self.redo_action)
 
+        self.select_mode_action = QAction("Select", self)
+        self.select_mode_action.setCheckable(True)
+        self.select_mode_action.setChecked(True)
+        self.select_mode_action.setToolTip("Safe selection mode; dragging does not edit geometry")
+        self.select_mode_action.triggered.connect(self._activate_select_mode)
+
+        self.select_nodes_action = QAction("Nodes", self)
+        self.select_nodes_action.setCheckable(True)
+        self.select_nodes_action.setChecked(True)
+        self.select_nodes_action.toggled.connect(self._sync_selection_filter)
+
+        self.select_members_action = QAction("Members", self)
+        self.select_members_action.setCheckable(True)
+        self.select_members_action.setChecked(True)
+        self.select_members_action.toggled.connect(self._sync_selection_filter)
+
+        self.node_numbers_action = QAction("Node No.", self)
+        self.node_numbers_action.setCheckable(True)
+        self.node_numbers_action.toggled.connect(self._sync_label_visibility)
+
+        self.member_numbers_action = QAction("Member No.", self)
+        self.member_numbers_action.setCheckable(True)
+        self.member_numbers_action.toggled.connect(self._sync_label_visibility)
+
+        self.local_x_view_action = QAction("Local-X", self)
+        self.local_x_view_action.setCheckable(True)
+        self.local_x_view_action.toggled.connect(self._sync_label_visibility)
+
+        self.coordinates_action = QAction("Coordinates", self)
+        self.coordinates_action.setCheckable(True)
+        self.coordinates_action.toggled.connect(self._sync_label_visibility)
+
+        self.fit_model_action = QAction("Fit", self)
+        self.fit_model_action.setShortcut(QKeySequence("Shift+Z"))
+        self.fit_model_action.setToolTip("Fit the whole model in the viewport (Shift+Z)")
+        self.fit_model_action.triggered.connect(lambda: self._call_viewport("fit_model"))
+        self.addAction(self.fit_model_action)
+
     def _disabled_action(self, text: str, reason: str) -> QAction:
         action = QAction(text, self)
         action.setEnabled(False)
@@ -156,6 +195,29 @@ class MainWindow(QMainWindow):
         ):
             toolbar.addAction(action)
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, toolbar)
+
+        view_toolbar = QToolBar("View & Selection", self)
+        view_toolbar.setObjectName("view_selection_toolbar")
+        view_toolbar.setMovable(False)
+        view_toolbar.setFloatable(False)
+        view_toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+        for action in (
+            self.select_mode_action,
+            self.select_nodes_action,
+            self.select_members_action,
+        ):
+            view_toolbar.addAction(action)
+        view_toolbar.addSeparator()
+        for action in (
+            self.node_numbers_action,
+            self.member_numbers_action,
+            self.local_x_view_action,
+            self.coordinates_action,
+        ):
+            view_toolbar.addAction(action)
+        view_toolbar.addSeparator()
+        view_toolbar.addAction(self.fit_model_action)
+        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, view_toolbar)
 
     def _create_workspace(self) -> None:
         central = QWidget(self)
@@ -207,6 +269,36 @@ class MainWindow(QMainWindow):
         self.model_status = self.model_status_bar.status_label
         root_layout.addWidget(self.model_status_bar)
         self.setCentralWidget(central)
+        self._activate_select_mode()
+        self._sync_selection_filter()
+        self._sync_label_visibility()
+
+    def _activate_select_mode(self) -> None:
+        self.select_mode_action.setChecked(True)
+        self._call_viewport("set_edit_mode", EditMode.SELECT)
+
+    def _sync_selection_filter(self) -> None:
+        selection_filter = SelectionFilter(
+            nodes=self.select_nodes_action.isChecked(),
+            members=self.select_members_action.isChecked(),
+        )
+        self._call_viewport("set_selection_filter", selection_filter)
+
+    def _current_label_visibility(self) -> LabelVisibility:
+        return LabelVisibility(
+            node_numbers=self.node_numbers_action.isChecked(),
+            member_numbers=self.member_numbers_action.isChecked(),
+            local_x=self.local_x_view_action.isChecked(),
+            coordinates=self.coordinates_action.isChecked(),
+        )
+
+    def _sync_label_visibility(self) -> None:
+        visibility = self._current_label_visibility()
+        method = getattr(self.viewport_host, "set_label_visibility", None)
+        if method is not None:
+            method(visibility)
+            return
+        self._call_viewport("show_local_x_arrows", visibility.local_x)
 
     def _choose_sketchup_neutral(self) -> None:
         file_name, _ = QFileDialog.getOpenFileName(
@@ -457,7 +549,7 @@ class MainWindow(QMainWindow):
             self.orientation_reverse_count = 0
             self.normalize_axis_action.setEnabled(False)
             self.validation_panel.set_local_x_preview(reverse_count=0, total=0)
-            self._call_viewport("show_local_x_arrows", False)
+            self._sync_label_visibility()
             return
         commands = normalization_commands(self.current_model)
         self.orientation_reverse_count = len(commands)
@@ -466,7 +558,7 @@ class MainWindow(QMainWindow):
             reverse_count=self.orientation_reverse_count,
             total=total,
         )
-        self._call_viewport("show_local_x_arrows", True)
+        self._sync_label_visibility()
         if self.orientation_reverse_count:
             self.normalize_axis_action.setEnabled(True)
             self.normalize_axis_action.setToolTip(

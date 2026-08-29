@@ -99,19 +99,19 @@
 - [ ] Verify exported `.STD` in target STAAD.Pro environment (T23).
 
 ## M9 — SketchUp-style navigation / selection (T16)
-- [ ] Explicit EditMode state; default SELECT.
-- [ ] SELECT drag cannot mutate model.
-- [ ] Middle Mouse Orbit.
-- [ ] Shift + Middle Mouse Pan.
-- [ ] Mouse Wheel Zoom.
-- [ ] Shift+Z Fit Model.
-- [ ] Navigation override preserves active edit preview.
-- [ ] Node/Member selection filter.
-- [ ] Overlap entity cycling/chooser.
-- [ ] Ctrl additive selection.
-- [ ] Double-click Focus/Zoom Selected.
-- [ ] Node Number / Member Number / Local-X / Coordinates toggles.
-- [ ] Context menu valid operations by entity type.
+- [x] Explicit EditMode state; default SELECT.
+- [x] SELECT drag cannot mutate model.
+- [x] Middle Mouse Orbit.
+- [x] Shift + Middle Mouse Pan.
+- [x] Mouse Wheel Zoom.
+- [x] Shift+Z Fit Model.
+- [x] Navigation override preserves active edit preview.
+- [x] Node/Member selection filter.
+- [x] Overlap entity cycling/chooser.
+- [x] Ctrl additive selection.
+- [x] Double-click Focus/Zoom Selected.
+- [x] Node Number / Member Number / Local-X / Coordinates toggles.
+- [x] Context menu valid operations by entity type.
 
 ## M10 — Snap / inference / axis lock (T17)
 - [ ] Existing Node inference.
