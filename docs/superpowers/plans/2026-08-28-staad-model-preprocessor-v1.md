@@ -881,29 +881,45 @@ Commit: `test: verify end-to-end clean model readiness`
 
 ---
 
-### Task 22: Windows Executable Packaging
+### Task 22: Portable Standalone Windows Packaging
 
 **Risk:** STANDARD
 
-**Files:**
-- Create: `scripts/build_windows.ps1`
-- Modify: `pyproject.toml`
-- Create: `tests/integration/test_packaged_paths.py`
-- Modify: `README.md`
+**User-approved scope (2026-08-29):** portable/no-install Windows standalone release. The user extracts the package into any writable folder and launches `STAAD Model Preprocessor.exe`; all implicit runtime state stays under package-local `Data/`; the same package includes the version-matched SketchUp `.rbz`; version/manual-patch/update-ready contracts are included now. Setup/MSI/NSIS, automatic updater, registry installation, and production one-file mode are explicitly deferred.
+
+**Detailed executable plan:** `docs/superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md`
+
+**Required outputs:**
+- `dist/STAAD_Model_Preprocessor_<VERSION>_win64_portable/`
+- `dist/STAAD_Model_Preprocessor_<VERSION>_win64_portable.zip`
+- packaged `STAAD Model Preprocessor.exe` with standalone PySide6/VTK runtime;
+- package-local `Data/` runtime hierarchy;
+- `SketchUp_Extension/STAAD_Prep_Bridge_<VERSION>.rbz`;
+- `Update/package-manifest.json` with version/schema/hash/preserve-root evidence;
+- portable, RBZ-install, and manual-update documentation.
 
 **Interfaces:**
-- Output only under `dist/` and `build/`.
-- Runtime logs/cache/temp remain under application/project-owned directories, never system temp by app choice.
+- Build/test/generated release outputs remain project-local under `build/`, `dist/`, `.tmp/`, `.cache/`, and `artifacts/`.
+- Packaged runtime root is anchored to the executable/compiled containing directory, never launch CWD.
+- Implicit runtime config/inbox/export/report/log/cache/temp/backups remain under package-local `Data/`.
+- Target machine requires no Python/pip/PySide6/VTK installation.
+- `Data/` is the preserved state root for manual patches and the future updater contract.
 
-- [ ] **Step 1: Add packaging-path test**
+- [ ] **Step 1: Implement/test portable runtime path policy and writeability gate**
 
-- [ ] **Step 2: Add Nuitka build script with PySide6/VTK data inclusion proven by local build**
+- [ ] **Step 2: Establish synchronized app/package/RBZ version contract**
 
-- [ ] **Step 3: Build from clean environment and launch executable**
+- [ ] **Step 3: Build and validate version-matched SketchUp `.rbz`**
 
-- [ ] **Step 4: Import a golden model, perform one manual edit, validate, export `.STD`, close/reopen app**
+- [ ] **Step 4: Build Nuitka Windows x64 `--mode=standalone` package and prove real Qt/VTK launch without Python on PATH**
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Assemble versioned portable folder + ZIP + update manifest/hashes/manual-update docs**
+
+- [ ] **Step 6: Prove relocation, different-CWD launch, spaces/Unicode paths, and package-local runtime writes**
+
+- [ ] **Step 7: Run packaged golden import/manual-edit/READY/STD/report smoke plus full relevant regression**
+
+- [ ] **Step 8: Close T22 docs/checkpoint; keep T23 not started**
 
 Commit: `build: package Windows desktop application`
 
