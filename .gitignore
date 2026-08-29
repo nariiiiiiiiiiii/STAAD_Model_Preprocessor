@@ -34,3 +34,6 @@ vendor/**/lib/
 
 # Local isolated task worktrees
 .worktrees/
+
+# Serena project/worktree metadata
+.serena/
