@@ -1,4 +1,4 @@
-Status: **T19 COMPLETE on `task/19-precision-create-repeat`; T20 is READY and has not started.**
+Status: **T20 COMPLETE on `task/20-model-controls`; T21 is READY but not started.**
 
 ## Canonical project root
 
@@ -190,12 +190,46 @@ Fresh verification before docs close:
 
 VTK/NumPy deprecation warnings remain third-party only.
 
-## Next Task
+## Completed Task
 
 **T20 — Numbering + Member Direction Controls**
 
-T20 is READY. Do not start it until the user explicitly continues after the T19 checkpoint.
+Risk: **STRICT HR-2 / HR-4**, covered by the approved high-risk envelope.
 
+Branch/worktree:
+- branch: `task/20-model-controls`
+- worktree: `.worktrees/task-20-model-controls`
+- base: `16acb70` (`feat: create precise repeated structural nodes`)
+- feature commit subject: `feat: control STAAD numbering and member direction`
+
+Implemented:
+- deterministic Old -> New preview plus reversible `RenumberNodesCommand`, `RenumberMembersCommand`, and atomic `RenumberAllCommand` using T12 ordering;
+- `SetMemberStart`, Flip Selected, Auto Fix Selected, and Auto Fix All using T11/`ReverseMember` direction rules;
+- numbering/model-direction UI actions and preview dialog;
+- endpoint-driven Set Direction viewport flow with Local-X preview;
+- independent invariant, unit, UI, and real Qt/VTK coverage.
+
+Final verification:
+- T20 targeted unit/UI: **21 passed**;
+- T11/T12 + manual-edit targeted unit regression: **54 passed**;
+- full regression: **243 unit + 88 UI + 5 integration = 336 passed**;
+- VTK-heavy UI tests verified in isolated Windows-renderer processes where required;
+- Ruff on affected source/tests: **passed**;
+- T20-local strict mypy: **0 issues in 5 affected source files** using `--follow-imports=silent`;
+- four inherited `importers/dxf_reader.py` typing errors remain outside T20 under full import-graph reporting;
+- `git diff --check`: **passed**.
+
+Verified invariants:
+- numbering changes STAAD-facing numbers only; UUID identities and member endpoint UUID references remain stable;
+- direction controls change incidence only; geometry coordinates remain unchanged;
+- batch controls are atomic history operations with exact Undo restoration;
+- UI routes mutations through commands/history and does not directly assign `.number`, `.start`, or `.end`.
+
+Existing VTK/NumPy 2.5 deprecation warnings remain third-party warnings and are not behavioral failures.
+
+## Next Task
+
+**T21 — End-to-End READY Gate + Golden Suite + Audit Report** is READY but **not started**. Do not start T21 until the user explicitly requests it.
 
 ## T24 cleanup boundary
 

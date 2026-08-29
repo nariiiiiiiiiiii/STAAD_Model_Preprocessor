@@ -1,7 +1,7 @@
 # STAAD Model Preprocessor — Design
 
 Date: 2026-08-28
-Status: Written design awaiting user review.
+Status: **APPROVED V1 design baseline** — implementation proceeds through the task-gated plans; current execution status is tracked in `docs/TASK_BOARD.md` and `docs/HANDOFF.md`.
 
 ## Purpose
 

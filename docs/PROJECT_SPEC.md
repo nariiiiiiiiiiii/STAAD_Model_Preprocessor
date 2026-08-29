@@ -352,22 +352,22 @@ Packaging:
 V1 treats **SketchUp Ruby Bridge** and **Direct DXF Import** as independent first-class input routes. Neither route may block the other. Direct `.skp` C-SDK import is outside the V1 critical path.
 
 Milestones:
-- M0 project foundation and UI shell
-- M1 canonical model + project serialization
-- M2 DXF importer vertical slice
-- M3 validator/issue model
-- M4 repair command framework + undo/redo
-- M5 3D issue inspection UI
-- M6 normalize + deterministic renumber
-- M7 STAAD `.STD` exporter
-- M8 SketchUp Ruby bridge + direct-DXF canonical import integration
-- M9 SketchUp-style navigation + selection/inference
-- M10 manual analytical node/member editing
-- M11 precision Create Node + Translational Repeat
-- M12 numbering/member-direction controls
-- M13 end-to-end READY gate + golden suite
-- M14 Windows packaging + real-project acceptance
-- M15 post-acceptance workspace cleanup / unused-file quarantine
+- M0 project foundation
+- M1 desktop UI shell
+- M2 canonical model + project serialization
+- M3 import vertical slice: DXF + SketchUp Ruby Bridge/shared canonical path
+- M4 unit / dimension / coordinate transform
+- M5 validator / issue model
+- M6 repair command framework + undo/redo + issue repair UI
+- M7 normalize / deterministic renumber core
+- M8 STAAD `.STD` exporter
+- M9 SketchUp-style navigation + selection
+- M10 snap / inference / axis lock
+- M11 manual analytical node/member editing
+- M12 precision Create Node + Translational Repeat
+- M13 numbering/member-direction controls (T20; COMPLETE)
+- M14 end-to-end READY / packaging / real-project acceptance (T21-T23)
+- M15 post-acceptance workspace cleanup / unused-file quarantine (T24)
 
 ## 9. Explicitly out of V1
 

@@ -336,15 +336,15 @@ Commit:
 - Produces `SetMemberStart(member_key: UUID, start_node_key: UUID)`; accepts only one of the member's existing endpoints and reverses incidence only when required.
 - Produces factories for `Flip Selected`, `Auto Fix Selected`, `Auto Fix All` using existing T11 `ReverseMember`/normalization rules.
 
-- [ ] **Step 1: RED — reversible numbering maps**
+- [x] **Step 1: RED — reversible numbering maps**
 
 Tests start from deliberately stale/random numbers. Assert preview UUID->new-number maps equal direct T12 deterministic maps; apply changes `.number` only; one Undo restores all previous numbers/revision; insertion order does not affect result.
 
-- [ ] **Step 2: GREEN — numbering commands**
+- [x] **Step 2: GREEN — numbering commands**
 
 Snapshot old numbers before apply. `RenumberAllCommand` performs node+member numbering as one atomic history entry. Do not rewrite UUID dictionary keys or member endpoints.
 
-- [ ] **Step 3: RED — explicit direction selection**
+- [x] **Step 3: RED — explicit direction selection**
 
 For member `i=A,j=B`:
 - selecting `A` as Start is a no-op;
@@ -353,11 +353,11 @@ For member `i=A,j=B`:
 - geometry coordinates/UUID identities remain unchanged;
 - Undo restores original incidence.
 
-- [ ] **Step 4: GREEN — direction commands + batch factories**
+- [x] **Step 4: GREEN — direction commands + batch factories**
 
 Reuse `ReverseMember`; do not invent new local-axis math. `Auto Fix All/Selected` follows T11 deterministic dominant-axis rules. Batch execution is atomic at the UI history level.
 
-- [ ] **Step 5: RED — model-controls UI**
+- [x] **Step 5: RED — model-controls UI**
 
 Assert toolbar/menu exposes:
 - Auto Node Number
@@ -370,13 +370,24 @@ Assert toolbar/menu exposes:
 
 Numbering opens Old->New preview before Apply. `Set Direction` requires one selected member, enters `SET_DIRECTION` mode, and endpoint click determines Start `(i)`. Local-X arrow preview is visible before apply.
 
-- [ ] **Step 6: GREEN — UI wiring + status refresh**
+- [x] **Step 6: GREEN — UI wiring + status refresh**
 
 All actions route through commands/history, then revalidate/re-render once. No direct `.number`, `.start`, or `.end` assignments in UI code.
 
-- [ ] **Step 7: Strict verification and commit**
+- [x] **Step 7: Strict verification and commit**
 
 Independent test compares pre/post coordinate and topology sets to prove numbering changes only numbers and direction changes only incidence. Run T11/T12 regression, manual-edit regression, real viewport smoke, Ruff, mypy.
+
+Final checkpoint 2026-08-29:
+- independent invariants: passed;
+- T20 targeted tests: **21 passed**;
+- T11/T12 + manual-edit targeted unit regression: **54 passed**;
+- fresh full regression, using isolated Windows-renderer processes where needed: **243 unit + 88 UI + 5 integration = 336 passed**;
+- Ruff: passed;
+- T20-local strict mypy: **0 issues in 5 affected source files** using `--follow-imports=silent`; four inherited `dxf_reader.py` errors remain outside T20 under full import-graph reporting;
+- `git diff --check`: passed;
+- task commit subject: `feat: control STAAD numbering and member direction`;
+- T20 complete; do not start T21 until explicitly requested by the user.
 
 Commit:
 `feat: control STAAD numbering and member direction`

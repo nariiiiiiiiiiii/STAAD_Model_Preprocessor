@@ -160,18 +160,23 @@
 - [x] Entire repeat is one atomic history item / one Undo.
 
 ## M13 — Numbering + member-direction controls (T20)
-- [ ] Auto Node Number.
-- [ ] Auto Member Number.
-- [ ] Auto Number All.
-- [ ] Old -> New mapping preview before Apply.
-- [ ] Numbering commands reversible as history items.
-- [ ] Auto Fix Axis All.
-- [ ] Auto Fix Axis Selected.
-- [ ] Flip Selected Member(s).
-- [ ] Set Direction by clicking desired Start `(i)` endpoint.
-- [ ] Local-X preview before direction Apply.
-- [ ] Numbering changes numbers only; UUID references unchanged.
-- [ ] Direction controls change incidence only; geometry unchanged.
+
+Status: **COMPLETE — implementation, strict verification, documentation, and task commit complete.**
+
+- [x] Auto Node Number.
+- [x] Auto Member Number.
+- [x] Auto Number All.
+- [x] Old -> New mapping preview before Apply.
+- [x] Numbering commands reversible as history items.
+- [x] Auto Fix Axis All.
+- [x] Auto Fix Axis Selected.
+- [x] Flip Selected Member(s).
+- [x] Set Direction by clicking desired Start `(i)` endpoint.
+- [x] Local-X preview before direction Apply.
+- [x] Numbering changes numbers only; UUID references unchanged.
+- [x] Direction controls change incidence only; geometry unchanged.
+- [x] T20-local strict static typing gate clean; inherited `dxf_reader.py` typing debt remains outside T20.
+- [x] T20 task commit + post-commit clean/doc gate complete.
 
 ## M14 — End-to-End READY / production readiness (T21-T23)
 - [ ] Save/open project workflow completed as required by final product.

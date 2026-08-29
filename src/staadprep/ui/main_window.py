@@ -45,6 +45,18 @@ from staadprep.importers.neutral_reader import NeutralReader, NeutralReaderError
 from staadprep.importers.pipeline import ImportPipelineError, canonicalize_import_batch
 from staadprep.importers.raw_preview import raw_batch_to_preview_model
 from staadprep.model.project import ProjectModel
+from staadprep.numbering.commands import (
+    RenumberAllCommand,
+    RenumberMembersCommand,
+    RenumberNodesCommand,
+)
+from staadprep.numbering.renumber import NumberingPolicy
+from staadprep.orientation.commands import (
+    SetMemberStart,
+    build_auto_fix_all,
+    build_auto_fix_selected,
+    build_flip_selected,
+)
 from staadprep.orientation.normalize import normalization_commands
 from staadprep.paths import ProjectPaths
 from staadprep.repair.commands import (
@@ -63,6 +75,7 @@ from staadprep.ui.create_node_dialog import (
     TranslationalRepeatDialog,
 )
 from staadprep.ui.issue_console import IssueConsole
+from staadprep.ui.model_controls import NumberingPreviewDialog
 from staadprep.ui.panels import (
     ModelStatusBar,
     ProjectExplorerPanel,
@@ -77,6 +90,7 @@ from staadprep.viewer.widget import StructuralViewport
 
 ConfirmDelete = Callable[[str], bool]
 ConfirmUseExisting = Callable[[str], bool]
+RunNumberingPreview = Callable[[NumberingPreviewDialog], bool]
 
 
 class MainWindow(QMainWindow):
@@ -88,6 +102,7 @@ class MainWindow(QMainWindow):
         *,
         confirm_delete: ConfirmDelete | None = None,
         confirm_use_existing: ConfirmUseExisting | None = None,
+        numbering_preview_runner: RunNumberingPreview | None = None,
         project_root: Path | None = None,
     ) -> None:
         super().__init__()
@@ -99,6 +114,10 @@ class MainWindow(QMainWindow):
         self._viewport_factory = viewport_factory or StructuralViewport
         self._confirm_delete = confirm_delete or self._confirm_delete_dialog
         self._confirm_use_existing = confirm_use_existing or self._confirm_use_existing_dialog
+        self._run_numbering_preview = (
+            numbering_preview_runner or self._default_numbering_preview_runner
+        )
+        self._direction_member_key: UUID | None = None
         self.current_import_batch: ImportBatch | None = None
         self.current_model: ProjectModel | None = None
         self.current_issues: list[Issue] = []
@@ -140,11 +159,30 @@ class MainWindow(QMainWindow):
         self.repair_action.setEnabled(False)
         self.repair_action.setToolTip("Apply the selected issue's predefined repair")
         self.repair_action.triggered.connect(self.apply_selected_quick_fix)
-        self.normalize_axis_action = QAction("Normalize Axis", self)
-        self.normalize_axis_action.setEnabled(False)
-        self.normalize_axis_action.setToolTip("Load a canonical model to preview member local-X")
-        self.normalize_axis_action.triggered.connect(self.normalize_member_directions)
-        self.renumber_action = self._disabled_action("Renumber", "Available in Task 12")
+        self.auto_fix_axis_action = QAction("Auto Fix Axis", self)
+        self.auto_fix_axis_action.setEnabled(False)
+        self.auto_fix_axis_action.setToolTip("Load a canonical model to preview member local-X")
+        self.auto_fix_axis_action.triggered.connect(self._auto_fix_all_directions)
+        # Compatibility alias retained for T11/T16 tests and existing callers.
+        self.normalize_axis_action = self.auto_fix_axis_action
+
+        self.renumber_action = QAction("Numbering", self)
+        self.renumber_action.setEnabled(False)
+        self.numbering_menu = QMenu(self)
+        self.auto_node_number_action = QAction("Auto Node Number", self)
+        self.auto_member_number_action = QAction("Auto Member Number", self)
+        self.auto_number_all_action = QAction("Auto Number All", self)
+        for action in (
+            self.auto_node_number_action,
+            self.auto_member_number_action,
+            self.auto_number_all_action,
+        ):
+            action.setEnabled(False)
+            self.numbering_menu.addAction(action)
+        self.renumber_action.setMenu(self.numbering_menu)
+        self.auto_node_number_action.triggered.connect(self._auto_number_nodes)
+        self.auto_member_number_action.triggered.connect(self._auto_number_members)
+        self.auto_number_all_action.triggered.connect(self._auto_number_all)
         self.validate_action = QAction("Validate", self)
         self.validate_action.setEnabled(False)
         self.validate_action.triggered.connect(self.refresh_validation)
@@ -236,6 +274,17 @@ class MainWindow(QMainWindow):
             self.split_menu.addAction(split_action)
         self.split_action.setMenu(self.split_menu)
 
+        self.auto_fix_selected_action = QAction("Auto Fix Selected", self)
+        self.auto_fix_selected_action.setEnabled(False)
+        self.auto_fix_selected_action.triggered.connect(self._auto_fix_selected_directions)
+        self.flip_selected_action = QAction("Flip Selected", self)
+        self.flip_selected_action.setEnabled(False)
+        self.flip_selected_action.triggered.connect(self._flip_selected_directions)
+        self.set_direction_action = QAction("Set Direction", self)
+        self.set_direction_action.setCheckable(True)
+        self.set_direction_action.setEnabled(False)
+        self.set_direction_action.triggered.connect(self._start_set_direction)
+
         self.edit_mode_group = QActionGroup(self)
         self.edit_mode_group.setExclusive(True)
         for action in (
@@ -244,6 +293,7 @@ class MainWindow(QMainWindow):
             self.draw_member_action,
             self.move_snap_action,
             self.delete_mode_action,
+            self.set_direction_action,
         ):
             self.edit_mode_group.addAction(action)
 
@@ -317,6 +367,9 @@ class MainWindow(QMainWindow):
             self.move_snap_action,
             self.delete_mode_action,
             self.split_action,
+            self.auto_fix_selected_action,
+            self.flip_selected_action,
+            self.set_direction_action,
         ):
             view_toolbar.addAction(action)
         view_toolbar.addSeparator()
@@ -355,6 +408,9 @@ class MainWindow(QMainWindow):
         manual_signal = getattr(self.viewport_host, "manual_command_requested", None)
         if manual_signal is not None:
             manual_signal.connect(self._execute_manual_command)
+        direction_signal = getattr(self.viewport_host, "direction_endpoint_selected", None)
+        if direction_signal is not None:
+            direction_signal.connect(self._apply_direction_endpoint)
         main_splitter.addWidget(self.viewport_host)
 
         right_column = QWidget()
@@ -405,11 +461,116 @@ class MainWindow(QMainWindow):
             EditMode.DRAW_MEMBER: self.draw_member_action,
             EditMode.MOVE_SNAP_NODE: self.move_snap_action,
             EditMode.DELETE: self.delete_mode_action,
+            EditMode.SET_DIRECTION: self.set_direction_action,
         }
         action = action_by_mode.get(mode)
         if action is not None:
             action.setChecked(True)
         self._call_viewport("set_edit_mode", mode)
+
+    @staticmethod
+    def _default_numbering_preview_runner(dialog: NumberingPreviewDialog) -> bool:
+        return dialog.exec() == dialog.DialogCode.Accepted
+
+    def _run_numbering_command(
+        self,
+        command: RenumberNodesCommand | RenumberMembersCommand | RenumberAllCommand,
+    ) -> None:
+        model = self.current_model
+        if model is None or self.repair_history is None:
+            return
+        dialog = NumberingPreviewDialog(model, command, parent=self)
+        if not self._run_numbering_preview(dialog):
+            self.statusBar().showMessage("STAAD numbering cancelled")
+            return
+        self._execute_manual_command(command)
+
+    def _auto_number_nodes(self) -> None:
+        self._run_numbering_command(RenumberNodesCommand(NumberingPolicy()))
+
+    def _auto_number_members(self) -> None:
+        self._run_numbering_command(RenumberMembersCommand(NumberingPolicy()))
+
+    def _auto_number_all(self) -> None:
+        self._run_numbering_command(RenumberAllCommand(NumberingPolicy()))
+
+    def _auto_fix_all_directions(self) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        command = build_auto_fix_all(model)
+        if command is None:
+            self._refresh_orientation_preview()
+            self.statusBar().showMessage("Member incidence/local-X already normalized")
+            return
+        self._execute_manual_command(command)
+
+    def _auto_fix_selected_directions(self) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        selected = self._selected_member_keys()
+        if not selected:
+            self.statusBar().showMessage("Auto Fix Selected requires selected Member(s)")
+            return
+        try:
+            command = build_auto_fix_selected(model, selected)
+        except ValueError as exc:
+            self.statusBar().showMessage(f"Direction control rejected: {exc}")
+            return
+        if command is None:
+            self.statusBar().showMessage("Selected member incidence/local-X already normalized")
+            return
+        self._execute_manual_command(command)
+
+    def _flip_selected_directions(self) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        selected = self._selected_member_keys()
+        if not selected:
+            self.statusBar().showMessage("Flip Selected requires selected Member(s)")
+            return
+        try:
+            command = build_flip_selected(model, selected)
+        except ValueError as exc:
+            self.statusBar().showMessage(f"Direction control rejected: {exc}")
+            return
+        if command is not None:
+            self._execute_manual_command(command)
+
+    def _start_set_direction(self) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        selected = self._selected_member_keys()
+        if len(selected) != 1:
+            self.statusBar().showMessage("Set Direction requires exactly one selected Member")
+            self.set_direction_action.setChecked(False)
+            return
+        member_key = selected[0]
+        self._direction_member_key = member_key
+        self.local_x_view_action.setChecked(True)
+        self._activate_edit_mode(EditMode.SET_DIRECTION)
+        self._call_viewport("begin_set_direction", member_key)
+        self.statusBar().showMessage("Set Direction: click the endpoint that must become Start (i)")
+
+    def _apply_direction_endpoint(self, node_key: UUID) -> None:
+        model = self.current_model
+        member_key = self._direction_member_key
+        if model is None or member_key is None:
+            return
+        try:
+            command = SetMemberStart(member_key, node_key).build(model)
+        except ValueError as exc:
+            self.statusBar().showMessage(f"Set Direction rejected: {exc}")
+            return
+        if command is None:
+            self.statusBar().showMessage("Selected endpoint is already Start (i)")
+        else:
+            self._execute_manual_command(command)
+        self._direction_member_key = None
+        self._activate_select_mode()
 
     def _execute_manual_command(self, command: RepairCommand) -> None:
         if self.current_model is None or self.repair_history is None:
@@ -793,6 +954,17 @@ class MainWindow(QMainWindow):
         self.export_std_action.setEnabled(False)
         self.export_std_action.setToolTip("Canonical validated and numbered model required")
         self.split_action.setEnabled(False)
+        self.renumber_action.setEnabled(False)
+        for action in (
+            self.auto_node_number_action,
+            self.auto_member_number_action,
+            self.auto_number_all_action,
+            self.auto_fix_selected_action,
+            self.flip_selected_action,
+            self.set_direction_action,
+        ):
+            action.setEnabled(False)
+        self._direction_member_key = None
         self.orientation_reverse_count = 0
         self.normalize_axis_action.setEnabled(False)
         self.normalize_axis_action.setToolTip("Canonical metre/Y-Up model required")
@@ -815,6 +987,18 @@ class MainWindow(QMainWindow):
         self.create_node_dialog_action.setEnabled(True)
         self.translational_repeat_action.setEnabled(True)
         self.split_action.setEnabled(True)
+        self.renumber_action.setEnabled(True)
+        for action in (
+            self.auto_node_number_action,
+            self.auto_member_number_action,
+            self.auto_number_all_action,
+        ):
+            action.setEnabled(True)
+        has_members = bool(model.members)
+        self.auto_fix_selected_action.setEnabled(has_members)
+        self.flip_selected_action.setEnabled(has_members)
+        self.set_direction_action.setEnabled(has_members)
+        self._direction_member_key = None
         self._selected_issue_id = None
         self.refresh_validation()
 

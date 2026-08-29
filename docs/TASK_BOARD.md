@@ -23,8 +23,8 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T17 | Snap/inference + working-plane + axis-lock engine | **STRICT HR-1/HR-2** | **COMPLETE** |
 | T18 | Manual Node/Member editing + atomic repair UI | **STRICT HR-2** | **COMPLETE** |
 | T19 | Exact/Relative Create Node + Translational Repeat | **STRICT HR-2** | **COMPLETE** |
-| T20 | Auto numbering + member direction controls | **STRICT HR-2/HR-4** | **READY** |
-| T21 | End-to-end READY gate + golden dirty-model suite + audit report | **STRICT HR-1..HR-4** | BLOCKED by T18,T19,T20 |
+| T20 | Auto numbering + member direction controls | **STRICT HR-2/HR-4** | **COMPLETE** |
+| T21 | End-to-end READY gate + golden dirty-model suite + audit report | **STRICT HR-1..HR-4** | **READY — not started** |
 | T22 | Windows packaging (`.exe`) + production path/log policy | STANDARD | BLOCKED by T21 |
 | T23 | Real-project acceptance + target STAAD.Pro verification | **STRICT acceptance** | BLOCKED by T22 |
 | T24 | Post-acceptance unused-file audit + quarantine to project-local `DEL/` | STANDARD | BLOCKED by T23 |
@@ -64,10 +64,19 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 - No runtime behavior change; 225-test regression + real Qt/VTK smoke preserved.
 - T18 subsequently completed with the clean pre-T18 typing baseline preserved.
 
+## Completed checkpoint — T20
+
+**T20 — Numbering + Member Direction Controls** is **COMPLETE** on `task/20-model-controls`.
+
+Final verified state:
+- T20 targeted tests: **21 passed**.
+- T11/T12 + manual-edit targeted unit regression: **54 passed**.
+- Fresh full regression executed with isolated Windows-renderer processes where needed: **243 unit + 88 UI + 5 integration = 336 passed**.
+- Ruff: passed.
+- T20-local strict mypy: **0 issues in 5 affected source files** using `--follow-imports=silent`; four inherited `dxf_reader.py` typing errors remain outside T20.
+- `git diff --check`: passed.
+- Feature commit subject: `feat: control STAAD numbering and member direction`.
+
 ## Next Task
 
-**T20 — Numbering + Member Direction Controls**
-
-Risk: **STRICT HR-2/HR-4 already covered by the approved high-risk envelope.**
-
-T19 is complete. T20 is READY but has not started.
+**T21 — End-to-End READY Gate + Golden Suite + Audit Report** is READY but **not started**. Stop here until the user explicitly requests T21.

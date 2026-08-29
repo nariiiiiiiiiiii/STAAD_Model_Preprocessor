@@ -807,11 +807,15 @@ Commit: `feat: create precise repeated structural nodes`
 
 ### Task 20: Numbering + Member Direction Controls
 
+**Status:** **COMPLETE — implementation, strict verification, documentation, and task commit complete.**
+
 **Risk:** **STRICT HR-2 / HR-4**
 
 Detailed executable plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md` Task 20.
 
 **Deliverable:** Reversible Auto Node Number / Auto Member Number / Auto Number All with Old->New preview; Auto Fix Axis All/Selected, Flip Selected, and Set Direction by clicking the desired Start `(i)` endpoint. Reuse T11/T12 algorithms; do not duplicate orientation/numbering logic.
+
+Final verification checkpoint: **243 unit + 88 UI + 5 integration = 336 passed**, Ruff passed; T20-local strict mypy reports **0 issues in 5 affected source files**. Four inherited `dxf_reader.py` typing errors remain outside T20 under full import-graph reporting.
 
 Commit: `feat: control STAAD numbering and member direction`
 

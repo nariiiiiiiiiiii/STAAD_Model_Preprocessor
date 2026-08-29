@@ -17,7 +17,9 @@ Primary workflow:
 - T17 complete: deterministic canonical-space Node/Endpoint/Midpoint/Intersection inference, X/Y/Z axis locks, explicit work-plane ray intersection, and viewport keyboard constraint foundation.
 - T18 complete: reversible Create/Move, atomic CompositeRepair, Draw/Move-Snap/Delete/Split viewport editing, ghost previews, exact Undo graph restoration, and real Qt/VTK manual-edit smoke.
 - T19 complete: click/snap + exact/relative Node creation, collision-safe optional member creation, STAAD-like Translational Repeat, ghost preview, explicit Use Existing/Skip/Cancel resolution, deterministic collision handling, and one-step atomic Undo.
-- V1 execution plan now runs through T24: remaining Manual Editing T20, READY/packaging/acceptance T21-T23, then non-destructive unused-file quarantine to project-local `DEL/` in T24.
+- T20 complete: reversible Auto Node/Member/All numbering with Old->New preview, Auto Fix Axis All/Selected, Flip Selected, and endpoint-driven Set Direction are implemented, verified, and committed on `task/20-model-controls`.
+- Final T20 verification: **243 unit + 88 UI + 5 integration = 336 tests passed**. Ruff passed; T20-local strict mypy reports **0 issues in 5 affected source files**. Four inherited `dxf_reader.py` typing errors remain outside T20 when the full import graph is reported.
+- V1 execution plan runs through T24: T21 READY gate is next; T22 packaging, T23 acceptance, and T24 non-destructive unused-file quarantine remain downstream.
 - Primary OS: Windows 11.
 - Primary language: Python.
 - UI: PySide6.

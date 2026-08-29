@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from collections.abc import Iterable
 from dataclasses import replace
-from typing import Any, cast
+from typing import Any
 from uuid import UUID
 
 import numpy as np
@@ -56,6 +56,7 @@ class StructuralViewport(QWidget):
     node_selected = Signal(object)
     axis_lock_changed = Signal(object, str)
     manual_command_requested = Signal(object)
+    direction_endpoint_selected = Signal(object)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -87,6 +88,7 @@ class StructuralViewport(QWidget):
         self._precision_member_actor: Any | None = None
         self._precision_ghost_node_count = 0
         self._precision_ghost_member_count = 0
+        self._direction_member_key: UUID | None = None
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -125,6 +127,7 @@ class StructuralViewport(QWidget):
         self._precision_member_actor = None
         self._precision_ghost_node_count = 0
         self._precision_ghost_member_count = 0
+        self._direction_member_key = None
         if not self._off_screen:
             self.plotter.disable_picking()
         self.plotter.clear()
@@ -176,7 +179,18 @@ class StructuralViewport(QWidget):
         self.plotter.render()
 
     def set_edit_mode(self, mode: EditMode) -> None:
-        self.interaction_state = replace(self.interaction_state, mode=EditMode(mode))
+        resolved = EditMode(mode)
+        if resolved is not EditMode.SET_DIRECTION:
+            self._direction_member_key = None
+        self.interaction_state = replace(self.interaction_state, mode=resolved)
+
+    def begin_set_direction(self, member_key: UUID) -> None:
+        if self._model is None or member_key not in self._model.members:
+            raise ValueError(f"Member {member_key} does not exist")
+        member = self._model.members[member_key]
+        self._direction_member_key = member_key
+        self.highlight_members((member_key,))
+        self.highlight_nodes((member.start, member.end))
 
     def set_axis_lock(self, axis_lock: AxisLock) -> None:
         self.axis_lock = AxisLock(axis_lock)
@@ -609,7 +623,7 @@ class StructuralViewport(QWidget):
             raise RuntimeError("No model is loaded")
         if not self.interaction_state.selection_filter.members:
             return None
-        member_key = cast(UUID, self.scene.member_key_for_cell(cell_index))
+        member_key = self.scene.member_key_for_cell(cell_index)
         self.selection.select_member(member_key, additive=additive)
         self._render_selection_highlights()
         self.member_selected.emit(member_key)
@@ -620,7 +634,7 @@ class StructuralViewport(QWidget):
             raise RuntimeError("No model is loaded")
         if not self.interaction_state.selection_filter.nodes:
             return None
-        node_key = cast(UUID, self.scene.point_keys[point_index])
+        node_key = self.scene.point_keys[point_index]
         self.selection.select_node(node_key, additive=additive)
         self._render_selection_highlights()
         self.node_selected.emit(node_key)
@@ -986,6 +1000,7 @@ class StructuralViewport(QWidget):
                     EditMode.DRAW_MEMBER,
                     EditMode.MOVE_SNAP_NODE,
                     EditMode.DELETE,
+                    EditMode.SET_DIRECTION,
                 }:
                     return True
             if event.button() == Qt.MouseButton.RightButton:
@@ -1034,6 +1049,7 @@ class StructuralViewport(QWidget):
                 EditMode.DRAW_MEMBER,
                 EditMode.MOVE_SNAP_NODE,
                 EditMode.DELETE,
+                EditMode.SET_DIRECTION,
             }:
                 position = event.position()
                 point = (float(position.x()), float(position.y()))
@@ -1043,6 +1059,17 @@ class StructuralViewport(QWidget):
                     for candidate in candidates
                     if candidate.entity is SelectionEntity.NODE
                 )
+
+                if self.interaction_state.mode is EditMode.SET_DIRECTION:
+                    if self._model is not None and self._direction_member_key is not None:
+                        member = self._model.members.get(self._direction_member_key)
+                        if member is not None:
+                            endpoints = {member.start, member.end}
+                            for candidate in node_candidates:
+                                if candidate.key in endpoints:
+                                    self.direction_endpoint_selected.emit(candidate.key)
+                                    break
+                    return True
 
                 if self.interaction_state.mode is EditMode.CREATE_NODE:
                     if node_candidates and self._model is not None:
