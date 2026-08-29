@@ -9,7 +9,9 @@ module StaadPrepBridge
   PREF_SECTION = 'STAAD Model Preprocessor'
   PREF_INBOX_KEY = 'SketchUpInbox'
   PROTOCOL_VERSION = 1
-  INBOX_SUFFIX = File.join('artifacts', 'sketchup_bridge', 'inbox').tr('\\', '/')
+  LEGACY_INBOX_SUFFIX = File.join('artifacts', 'sketchup_bridge', 'inbox').tr('\\', '/')
+  PORTABLE_INBOX_SUFFIX = File.join('Data', 'Inbox', 'SketchUp').tr('\\', '/')
+  INBOX_SUFFIXES = [LEGACY_INBOX_SUFFIX, PORTABLE_INBOX_SUFFIX].freeze
 
   module_function
 
@@ -29,12 +31,12 @@ module StaadPrepBridge
     stored = Sketchup.read_default(PREF_SECTION, PREF_INBOX_KEY, nil)
     return File.expand_path(stored) if stored && valid_inbox_path?(stored)
 
-    selected = UI.select_directory(title: 'Select STAAD Prep artifacts/sketchup_bridge/inbox')
+    selected = UI.select_directory(title: 'Select STAAD Prep inbox')
     return nil unless selected
 
     expanded = File.expand_path(selected)
     unless valid_inbox_path?(expanded)
-      UI.messagebox('Select the project-local artifacts/sketchup_bridge/inbox folder.')
+      UI.messagebox('Select either Data/Inbox/SketchUp or artifacts/sketchup_bridge/inbox.')
       return nil
     end
 
@@ -44,7 +46,7 @@ module StaadPrepBridge
 
   def valid_inbox_path?(path)
     normalized = File.expand_path(path).tr('\\', '/')
-    normalized.end_with?(INBOX_SUFFIX)
+    INBOX_SUFFIXES.any? { |suffix| normalized.end_with?(suffix) }
   end
 
   def build_payload(model)

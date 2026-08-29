@@ -27,6 +27,9 @@ def test_ruby_extension_uses_public_sketchup_api_and_neutral_source_space_contra
     assert "source_unit" in exporter and '"in"' in exporter
     assert "Z-UP" in exporter
     assert "File.rename" in exporter
+    assert "artifacts/sketchup_bridge/inbox" in exporter
+    assert "Data/Inbox/SketchUp" in exporter
+    assert "Select STAAD Prep inbox" in exporter
 
     forbidden = ("sketchup_z_up_to_staad_y_up", "STAAD(", "http://", "https://", "SketchUpAPI")
     assert not any(token in combined for token in forbidden)
