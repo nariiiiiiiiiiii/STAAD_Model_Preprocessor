@@ -46,12 +46,25 @@ def _vec3(value: Any, field_name: str) -> Vec3:
 class NeutralReader:
     """Read protocol-v1 neutral envelopes from the project-local SketchUp inbox."""
 
-    def __init__(self, project_root: Path) -> None:
-        self.paths = ProjectPaths.from_root(project_root)
+    def __init__(
+        self,
+        project_root: Path | None = None,
+        *,
+        paths: ProjectPaths | None = None,
+        inbox: Path | None = None,
+    ) -> None:
+        if project_root is not None and paths is not None:
+            raise ValueError("Pass either project_root or paths, not both")
+        if paths is None:
+            if project_root is None:
+                raise ValueError("project_root or paths is required")
+            paths = ProjectPaths.from_root(project_root)
+
+        self.paths = paths
         self.paths.ensure_layout()
-        self.inbox = self.paths.assert_inside_project(
-            self.paths.artifacts / "sketchup_bridge" / "inbox"
-        )
+        default_inbox = self.paths.artifacts / "sketchup_bridge" / "inbox"
+        self.inbox = self.paths.assert_inside_project(inbox or default_inbox)
+        self.inbox.mkdir(parents=True, exist_ok=True)
 
     def _assert_inbox_file(self, path: Path) -> Path:
         candidate: Path = self.paths.assert_inside_project(path)

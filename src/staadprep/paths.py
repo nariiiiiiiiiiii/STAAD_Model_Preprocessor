@@ -21,6 +21,7 @@ class ProjectPaths:
     build: Path
     dist: Path
     vendor: Path
+    development_layout: bool = True
 
     @classmethod
     def from_root(cls, root: Path) -> ProjectPaths:
@@ -37,18 +38,34 @@ class ProjectPaths:
             vendor=resolved_root / "vendor",
         )
 
+    @classmethod
+    def from_runtime_root(cls, root: Path) -> ProjectPaths:
+        """Create runtime paths below a portable ``Data`` root without build outputs."""
+        resolved_root = root.expanduser().resolve()
+        return cls(
+            root=resolved_root,
+            tmp=resolved_root / "Temp",
+            cache=resolved_root / "Cache",
+            logs=resolved_root / "Logs",
+            artifacts=resolved_root,
+            build=resolved_root / "build",
+            dist=resolved_root / "dist",
+            vendor=resolved_root / "vendor",
+            development_layout=False,
+        )
+
     @property
     def generated_dirs(self) -> tuple[Path, ...]:
         """Directories allowed to contain generated/runtime artifacts."""
-        return (
+        runtime_dirs = (
             self.tmp,
             self.cache,
             self.logs,
             self.artifacts,
-            self.build,
-            self.dist,
-            self.vendor,
         )
+        if not self.development_layout:
+            return runtime_dirs
+        return (*runtime_dirs, self.build, self.dist, self.vendor)
 
     def ensure_layout(self) -> None:
         """Create all project-local generated directories."""

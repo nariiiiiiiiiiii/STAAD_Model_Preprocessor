@@ -42,3 +42,24 @@ def test_parent_traversal_cannot_escape_project(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError):
         paths.assert_inside_project(Path("../escape.log"))
+
+
+def test_runtime_paths_use_portable_data_directories_without_creating_build_outputs(
+    tmp_path: Path,
+) -> None:
+    data = tmp_path / "Portable" / "Data"
+
+    paths = ProjectPaths.from_runtime_root(data)
+    paths.ensure_layout()
+
+    assert paths.root == data.resolve()
+    assert paths.tmp == data.resolve() / "Temp"
+    assert paths.cache == data.resolve() / "Cache"
+    assert paths.logs == data.resolve() / "Logs"
+    assert paths.artifacts == data.resolve()
+    assert (data / "Temp").is_dir()
+    assert (data / "Cache").is_dir()
+    assert (data / "Logs").is_dir()
+    assert not (data / "build").exists()
+    assert not (data / "dist").exists()
+    assert not (data / "vendor").exists()

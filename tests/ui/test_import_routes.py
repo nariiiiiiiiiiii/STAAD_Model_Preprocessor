@@ -5,6 +5,7 @@ from pathlib import Path
 
 from PySide6.QtWidgets import QWidget
 
+from staadprep.paths import ProjectPaths
 from staadprep.ui.main_window import MainWindow
 
 GOLDEN = Path("tests/golden_models/11_sketchup_ruby_simple_frame/expected.json")
@@ -18,6 +19,24 @@ class RecordingViewport(QWidget):
 
     def set_model(self, model) -> None:
         self.model = model
+
+
+def test_main_window_accepts_injected_portable_runtime_paths(qtbot, tmp_path: Path) -> None:
+    data = tmp_path / "Portable App ไทย" / "Data"
+    paths = ProjectPaths.from_runtime_root(data)
+    inbox = data / "Inbox" / "SketchUp"
+
+    window = MainWindow(
+        viewport_factory=RecordingViewport,
+        project_paths=paths,
+        sketchup_inbox=inbox,
+    )
+    qtbot.addWidget(window)
+
+    assert window._project_paths is paths
+    assert window.neutral_reader.inbox == inbox.resolve()
+    assert window.neutral_reader.inbox.is_dir()
+    assert not (data / "build").exists()
 
 
 def test_import_menu_exposes_sketchup_bridge_and_direct_dxf_independently(

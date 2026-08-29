@@ -107,13 +107,23 @@ class MainWindow(QMainWindow):
         numbering_preview_runner: RunNumberingPreview | None = None,
         ready_gate: ReadyGate | None = None,
         project_root: Path | None = None,
+        project_paths: ProjectPaths | None = None,
+        sketchup_inbox: Path | None = None,
     ) -> None:
         super().__init__()
-        configured_root = project_root or Path(os.environ.get("STAADPREP_PROJECT_ROOT", Path.cwd()))
-        self._project_paths = ProjectPaths.from_root(configured_root)
+        if project_root is not None and project_paths is not None:
+            raise ValueError("Pass either project_root or project_paths, not both")
+        if project_paths is None:
+            configured_root = project_root or Path(
+                os.environ.get("STAADPREP_PROJECT_ROOT", Path.cwd())
+            )
+            project_paths = ProjectPaths.from_root(configured_root)
+        self._project_paths = project_paths
         self._project_paths.ensure_layout()
-        self.neutral_reader = NeutralReader(self._project_paths.root)
-        self.neutral_reader.inbox.mkdir(parents=True, exist_ok=True)
+        self.neutral_reader = NeutralReader(
+            paths=self._project_paths,
+            inbox=sketchup_inbox,
+        )
         self._viewport_factory = viewport_factory or StructuralViewport
         self._confirm_delete = confirm_delete or self._confirm_delete_dialog
         self._confirm_use_existing = confirm_use_existing or self._confirm_use_existing_dialog

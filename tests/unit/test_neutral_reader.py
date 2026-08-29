@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from staadprep.importers.neutral_reader import NeutralReader, NeutralReaderError
+from staadprep.paths import ProjectPaths
 
 
 def _valid_payload() -> dict[str, object]:
@@ -38,6 +39,19 @@ def _write_inbox(
     path = reader.inbox / name
     path.write_text(json.dumps(payload), encoding="utf-8")
     return path
+
+
+def test_accepts_injected_runtime_paths_and_portable_sketchup_inbox(tmp_path: Path) -> None:
+    data = tmp_path / "Portable" / "Data"
+    paths = ProjectPaths.from_runtime_root(data)
+    inbox = data / "Inbox" / "SketchUp"
+
+    reader = NeutralReader(paths=paths, inbox=inbox)
+
+    assert reader.paths is paths
+    assert reader.inbox == inbox.resolve()
+    assert reader.inbox.is_dir()
+    assert not (data / "build").exists()
 
 
 def test_reads_protocol_v1_from_project_local_inbox(tmp_path: Path) -> None:
