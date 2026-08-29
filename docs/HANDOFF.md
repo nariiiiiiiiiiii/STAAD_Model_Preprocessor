@@ -200,7 +200,7 @@ Branch/worktree:
 - branch: `task/20-model-controls`
 - worktree: `.worktrees/task-20-model-controls`
 - base: `16acb70` (`feat: create precise repeated structural nodes`)
-- feature commit subject: `feat: control STAAD numbering and member direction`
+- feature commit: `93f99b4` — `feat: control STAAD numbering and member direction`
 
 Implemented:
 - deterministic Old -> New preview plus reversible `RenumberNodesCommand`, `RenumberMembersCommand`, and atomic `RenumberAllCommand` using T12 ordering;
@@ -226,6 +226,10 @@ Verified invariants:
 - UI routes mutations through commands/history and does not directly assign `.number`, `.start`, or `.end`.
 
 Existing VTK/NumPy 2.5 deprecation warnings remain third-party warnings and are not behavioral failures.
+
+Post-commit workspace note:
+- tracked T20 tree is clean;
+- `.serena/` remains as known untracked Serena tool metadata created by project activation and was intentionally excluded from T20 commits; it was not modified or deleted.
 
 ## Next Task
 
