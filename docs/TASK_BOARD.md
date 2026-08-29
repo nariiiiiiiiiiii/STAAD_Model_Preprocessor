@@ -57,6 +57,13 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 - Manual Editing T16-T20: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md`
 - Manual Editing design: `docs/superpowers/specs/2026-08-28-manual-model-editing-design.md`
 
+## Pre-T18 maintenance checkpoint
+
+- `viewer/widget.py` inherited strict-mypy debt cleaned before T18: **19 -> 0 errors**.
+- Full `staadprep.viewer` + `editing/inference.py` strict mypy baseline: **0 errors**.
+- No runtime behavior change; 225-test regression + real Qt/VTK smoke preserved.
+- T18 remains **READY**.
+
 ## Next Task
 
 **T18 — Manual Node / Member Editing + Atomic Repair UI**

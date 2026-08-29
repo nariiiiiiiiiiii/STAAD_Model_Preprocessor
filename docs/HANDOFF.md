@@ -1,4 +1,4 @@
-Status: **T17 complete on `task/17-snap-inference`; T18 is next.**
+Status: **T17 merged to `master`; pre-T18 viewport typing maintenance complete on `maintenance/widget-typing-cleanup`; T18 is next.**
 
 ## Canonical project root
 
@@ -110,7 +110,18 @@ Fresh pre-commit verification:
 
 Qt/VTK UI inference tests emit 20 third-party `vtkmodules.util.numpy_support` NumPy 2.5 deprecation warnings; they are external warnings and do not indicate T17 behavior failure.
 
-Strict mypy on `viewer/widget.py` reports **19 pre-existing T16 PyVista/Qt typing issues**. Running the same mypy command on clean `master@43636af` also reports the same 19 errors, so T17 adds no widget typing regression. T17's new inference module and changed SceneData are type-clean.
+Pre-T18 maintenance removed the inherited `viewer/widget.py` typing debt without changing runtime behavior. `QtInteractor`/PyVista is now explicitly isolated as a third-party dynamic typing boundary, actor fields are typed, redundant casts were removed, and `eventFilter` follows the Qt `QObject` contract. Strict mypy now reports **0 errors** for `viewer/widget.py` and **0 errors across all 7 `staadprep.viewer` modules plus `editing/inference.py`**. Runtime verification remains 225 tests passed with the same real Qt/VTK smoke output.
+
+## Pre-T18 maintenance — viewport typing baseline
+
+Branch/worktree:
+- branch: `maintenance/widget-typing-cleanup`
+- base: `be9c651` (T17 merged to master before maintenance)
+- scope: typing/annotation cleanup only in `src/staadprep/viewer/widget.py`; no geometry, camera, picking, inference, repair, or model-mutation behavior changed.
+- baseline RED: strict mypy reported 19 errors in `viewer/widget.py`.
+- final GREEN: strict mypy reports 0 errors in `viewer/widget.py`, and 0 errors across `src/staadprep/viewer` + `editing/inference.py`.
+- regression: 188 unit + 32 UI + 5 integration = 225 tests passed; real Qt/VTK smoke remains `inference=pass axis_lock=pass work_plane=pass revision=stable`.
+- VTK/NumPy deprecation warnings remain third-party warnings and are intentionally not suppressed or patched here.
 
 ## Next Task
 

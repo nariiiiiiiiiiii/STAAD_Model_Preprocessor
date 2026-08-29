@@ -3,13 +3,13 @@ from __future__ import annotations
 import os
 from collections.abc import Iterable
 from dataclasses import replace
-from typing import Any, cast
+from typing import Any
 from uuid import UUID
 
 import numpy as np
 import pyvista as pv
-from PySide6.QtCore import QEvent, Qt, Signal
-from PySide6.QtGui import QAction, QCloseEvent
+from PySide6.QtCore import QEvent, QObject, Qt, Signal
+from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QMenu, QVBoxLayout, QWidget
 from pyvistaqt import QtInteractor
 from vtkmodules.vtkRenderingCore import vtkCellPicker
@@ -50,12 +50,12 @@ class StructuralViewport(QWidget):
         self.selection = SelectionState()
         self.interaction_state = InteractionState()
         self.axis_lock = AxisLock.NONE
-        self._member_actor = None
-        self._node_actor = None
-        self._member_highlight_actor = None
-        self._node_highlight_actor = None
-        self._local_x_actor = None
-        self._label_actors: list[object] = []
+        self._member_actor: Any | None = None
+        self._node_actor: Any | None = None
+        self._member_highlight_actor: Any | None = None
+        self._node_highlight_actor: Any | None = None
+        self._local_x_actor: Any | None = None
+        self._label_actors: list[Any] = []
         self._navigation_mode: str | None = None
         self._last_mouse_pos: tuple[float, float] | None = None
         self._left_press_pos: tuple[float, float] | None = None
@@ -65,7 +65,7 @@ class StructuralViewport(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         self._off_screen = os.getenv("QT_QPA_PLATFORM", "").lower() == "offscreen"
-        self.plotter = QtInteractor(self, off_screen=self._off_screen)
+        self.plotter: Any = QtInteractor(self, off_screen=self._off_screen)
         layout.addWidget(self.plotter.interactor)
         self.plotter.interactor.installEventFilter(self)
         self.plotter.interactor.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
@@ -285,7 +285,7 @@ class StructuralViewport(QWidget):
             raise RuntimeError("No model is loaded")
         if not self.interaction_state.selection_filter.members:
             return None
-        member_key = cast(UUID, self.scene.member_key_for_cell(cell_index))
+        member_key = self.scene.member_key_for_cell(cell_index)
         self.selection.select_member(member_key, additive=additive)
         self._render_selection_highlights()
         self.member_selected.emit(member_key)
@@ -296,7 +296,7 @@ class StructuralViewport(QWidget):
             raise RuntimeError("No model is loaded")
         if not self.interaction_state.selection_filter.nodes:
             return None
-        node_key = cast(UUID, self.scene.point_keys[point_index])
+        node_key = self.scene.point_keys[point_index]
         self.selection.select_node(node_key, additive=additive)
         self._render_selection_highlights()
         self.node_selected.emit(node_key)
@@ -624,10 +624,10 @@ class StructuralViewport(QWidget):
             focus_text = "Focus Selected Member(s)"
         else:
             focus_text = "Focus Selected"
-        focus_action = cast(QAction, menu.addAction(focus_text))
+        focus_action = menu.addAction(focus_text)
         focus_action.setEnabled(has_nodes or has_members)
-        fit_action = cast(QAction, menu.addAction("Fit Model"))
-        clear_action = cast(QAction, menu.addAction("Clear Selection"))
+        fit_action = menu.addAction("Fit Model")
+        clear_action = menu.addAction("Clear Selection")
         clear_action.setEnabled(has_nodes or has_members)
         chosen = menu.exec(global_position)
         if chosen is focus_action:
@@ -637,7 +637,7 @@ class StructuralViewport(QWidget):
         elif chosen is clear_action:
             self.clear_selection()
 
-    def eventFilter(self, watched: object, event: Any) -> bool:  # noqa: N802
+    def eventFilter(self, watched: QObject, event: Any) -> bool:  # noqa: N802
         if watched is not self.plotter.interactor:
             return bool(super().eventFilter(watched, event))
 
