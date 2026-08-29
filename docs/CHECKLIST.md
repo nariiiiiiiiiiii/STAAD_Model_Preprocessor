@@ -143,21 +143,21 @@
 - [x] Real Qt/VTK manual-edit smoke flow.
 
 ## M12 — Precision Create Node + Translational Repeat (T19)
-- [ ] Create Node by click/snap.
-- [ ] Create Node by exact STAAD XYZ.
-- [ ] Create Node relative to selected reference Node.
-- [ ] Relative dialog shows reference/result coordinates.
-- [ ] Relative dialog uses X/Y(Vertical)/Z direction + distance.
-- [ ] Optional Create Member checkbox.
-- [ ] Node+Member creation atomic and one Undo.
-- [ ] Existing-node collision shown before commit.
-- [ ] Translational Repeat ΔX/ΔY/ΔZ.
-- [ ] Repeat count excludes reference Node.
-- [ ] Connect Consecutive Nodes mode.
-- [ ] Connect From Reference Node mode.
-- [ ] Ghost preview all repeated Nodes/Members.
-- [ ] Existing-node resolution: Use Existing / Skip / Cancel.
-- [ ] Entire repeat is one atomic history item / one Undo.
+- [x] Create Node by click/snap.
+- [x] Create Node by exact STAAD XYZ.
+- [x] Create Node relative to selected reference Node.
+- [x] Relative dialog shows reference/result coordinates.
+- [x] Relative dialog uses X/Y(Vertical)/Z direction + distance.
+- [x] Optional Create Member checkbox.
+- [x] Node+Member creation atomic and one Undo.
+- [x] Existing-node collision shown before commit.
+- [x] Translational Repeat ΔX/ΔY/ΔZ.
+- [x] Repeat count excludes reference Node.
+- [x] Connect Consecutive Nodes mode.
+- [x] Connect From Reference Node mode.
+- [x] Ghost preview all repeated Nodes/Members.
+- [x] Existing-node resolution: Use Existing / Skip / Cancel.
+- [x] Entire repeat is one atomic history item / one Undo.
 
 ## M13 — Numbering + member-direction controls (T20)
 - [ ] Auto Node Number.

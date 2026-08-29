@@ -21,6 +21,17 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from staadprep.editing.create_node import (
+    ExactNodeSpec,
+    ExistingNodeCollision,
+    ExistingNodeResolution,
+    RelativeNodeSpec,
+    RepeatResolutionRequired,
+    TranslationalRepeatSpec,
+    build_exact_create,
+    build_relative_create,
+    build_translational_repeat,
+)
 from staadprep.editing.manual_ops import (
     build_split_member_distance,
     build_split_member_midpoint,
@@ -36,9 +47,21 @@ from staadprep.importers.raw_preview import raw_batch_to_preview_model
 from staadprep.model.project import ProjectModel
 from staadprep.orientation.normalize import normalization_commands
 from staadprep.paths import ProjectPaths
-from staadprep.repair.commands import DeleteMember, DeleteNode, MergeNodes, RepairCommand
+from staadprep.repair.commands import (
+    ConnectNodes,
+    DeleteMember,
+    DeleteNode,
+    MergeNodes,
+    RepairCommand,
+)
 from staadprep.repair.history import RepairHistory
 from staadprep.topology.connectivity import connected_components
+from staadprep.ui.create_node_dialog import (
+    CreateNodeDialog,
+    PrecisionNodePreviewRequest,
+    RepeatPreviewRequest,
+    TranslationalRepeatDialog,
+)
 from staadprep.ui.issue_console import IssueConsole
 from staadprep.ui.panels import (
     ModelStatusBar,
@@ -53,6 +76,7 @@ from staadprep.viewer.interaction import EditMode, LabelVisibility, SelectionFil
 from staadprep.viewer.widget import StructuralViewport
 
 ConfirmDelete = Callable[[str], bool]
+ConfirmUseExisting = Callable[[str], bool]
 
 
 class MainWindow(QMainWindow):
@@ -63,6 +87,7 @@ class MainWindow(QMainWindow):
         viewport_factory: Callable[[], QWidget] | None = None,
         *,
         confirm_delete: ConfirmDelete | None = None,
+        confirm_use_existing: ConfirmUseExisting | None = None,
         project_root: Path | None = None,
     ) -> None:
         super().__init__()
@@ -73,6 +98,7 @@ class MainWindow(QMainWindow):
         self.neutral_reader.inbox.mkdir(parents=True, exist_ok=True)
         self._viewport_factory = viewport_factory or StructuralViewport
         self._confirm_delete = confirm_delete or self._confirm_delete_dialog
+        self._confirm_use_existing = confirm_use_existing or self._confirm_use_existing_dialog
         self.current_import_batch: ImportBatch | None = None
         self.current_model: ProjectModel | None = None
         self.current_issues: list[Issue] = []
@@ -147,6 +173,29 @@ class MainWindow(QMainWindow):
         self.select_mode_action.setToolTip("Safe selection mode; dragging does not edit geometry")
         self.select_mode_action.triggered.connect(self._activate_select_mode)
 
+        self.create_node_mode_action = QAction("Create Node", self)
+        self.create_node_mode_action.setCheckable(True)
+        self.create_node_mode_action.setToolTip(
+            "Create analytical Node by resolved click/snap inference"
+        )
+        self.create_node_mode_action.triggered.connect(
+            lambda: self._activate_edit_mode(EditMode.CREATE_NODE)
+        )
+
+        self.create_node_dialog_action = QAction("Create Node…", self)
+        self.create_node_dialog_action.setEnabled(False)
+        self.create_node_dialog_action.setToolTip(
+            "Create Node by exact STAAD XYZ or relative to a selected Node"
+        )
+        self.create_node_dialog_action.triggered.connect(self._open_create_node_dialog)
+
+        self.translational_repeat_action = QAction("Translational Repeat…", self)
+        self.translational_repeat_action.setEnabled(False)
+        self.translational_repeat_action.setToolTip(
+            "Repeat Node/member creation by canonical ΔX / ΔY / ΔZ"
+        )
+        self.translational_repeat_action.triggered.connect(self._open_translational_repeat_dialog)
+
         self.draw_member_action = QAction("Draw Member", self)
         self.draw_member_action.setCheckable(True)
         self.draw_member_action.setToolTip("Draw analytical member using Node/snap inference")
@@ -191,6 +240,7 @@ class MainWindow(QMainWindow):
         self.edit_mode_group.setExclusive(True)
         for action in (
             self.select_mode_action,
+            self.create_node_mode_action,
             self.draw_member_action,
             self.move_snap_action,
             self.delete_mode_action,
@@ -247,6 +297,8 @@ class MainWindow(QMainWindow):
             self.repair_action,
             self.normalize_axis_action,
             self.renumber_action,
+            self.create_node_dialog_action,
+            self.translational_repeat_action,
             self.validate_action,
             self.export_std_action,
         ):
@@ -260,6 +312,7 @@ class MainWindow(QMainWindow):
         view_toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
         for action in (
             self.select_mode_action,
+            self.create_node_mode_action,
             self.draw_member_action,
             self.move_snap_action,
             self.delete_mode_action,
@@ -348,6 +401,7 @@ class MainWindow(QMainWindow):
     def _activate_edit_mode(self, mode: EditMode) -> None:
         action_by_mode = {
             EditMode.SELECT: self.select_mode_action,
+            EditMode.CREATE_NODE: self.create_node_mode_action,
             EditMode.DRAW_MEMBER: self.draw_member_action,
             EditMode.MOVE_SNAP_NODE: self.move_snap_action,
             EditMode.DELETE: self.delete_mode_action,
@@ -372,6 +426,164 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage(f"Manual edit rejected: {exc}")
             return
         self.refresh_validation()
+
+    def _selected_node_keys(self) -> tuple[UUID, ...]:
+        selection = getattr(self.viewport_host, "selection", None)
+        selected = getattr(selection, "selected_nodes", ())
+        return tuple(selected)
+
+    def _apply_existing_node_collision(
+        self,
+        collision: ExistingNodeCollision,
+        *,
+        reference_node: UUID | None = None,
+        create_member: bool = False,
+    ) -> None:
+        message = f"Target matches existing Node {collision.node_key}. Use Existing Node?"
+        if not self._confirm_use_existing(message):
+            self.statusBar().showMessage("Create Node cancelled")
+            return
+        self._call_viewport("highlight_nodes", (collision.node_key,))
+        if create_member and reference_node is not None and reference_node != collision.node_key:
+            self._execute_manual_command(ConnectNodes(reference_node, collision.node_key))
+            return
+        self.statusBar().showMessage(f"Using existing Node {collision.node_key}")
+
+    def _apply_exact_node_spec(
+        self,
+        spec: ExactNodeSpec,
+        *,
+        tolerance_m: float,
+    ) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        try:
+            result = build_exact_create(model, spec, tolerance_m)
+        except ValueError as exc:
+            self.statusBar().showMessage(f"Create Node rejected: {exc}")
+            return
+        if isinstance(result, ExistingNodeCollision):
+            self._apply_existing_node_collision(result)
+            return
+        self._execute_manual_command(result)
+
+    def _apply_relative_node_spec(
+        self,
+        spec: RelativeNodeSpec,
+        *,
+        tolerance_m: float,
+    ) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        try:
+            result = build_relative_create(model, spec, tolerance_m)
+        except ValueError as exc:
+            self.statusBar().showMessage(f"Create Node rejected: {exc}")
+            return
+        if isinstance(result, ExistingNodeCollision):
+            self._apply_existing_node_collision(
+                result,
+                reference_node=spec.reference_node,
+                create_member=spec.create_member,
+            )
+            return
+        self._execute_manual_command(result)
+
+    def _apply_translational_repeat(
+        self,
+        spec: TranslationalRepeatSpec,
+        *,
+        resolutions: dict[int, ExistingNodeResolution],
+        tolerance_m: float,
+    ) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        try:
+            result = build_translational_repeat(
+                model,
+                spec,
+                resolutions=resolutions,
+                tolerance_m=tolerance_m,
+            )
+        except ValueError as exc:
+            self.statusBar().showMessage(f"Repeat rejected: {exc}")
+            return
+        if isinstance(result, RepeatResolutionRequired):
+            steps = ", ".join(str(step) for step in sorted(result.collisions))
+            self.statusBar().showMessage(
+                f"Repeat requires collision resolution for step(s): {steps}"
+            )
+            return
+        if result is None:
+            self.statusBar().showMessage("Translational Repeat cancelled or produced no changes")
+            return
+        self._execute_manual_command(result)
+
+    def _show_precision_preview_request(self, request: PrecisionNodePreviewRequest) -> None:
+        method = getattr(self.viewport_host, "show_precise_node_preview", None)
+        if method is None:
+            return
+        method(
+            request.position,
+            reference_node=request.reference_node,
+            create_member=request.create_member,
+        )
+
+    def _show_repeat_preview_request(self, request: RepeatPreviewRequest) -> None:
+        method = getattr(self.viewport_host, "show_translational_repeat_preview", None)
+        if method is None:
+            return
+        method(request.preview, request.spec, request.resolutions)
+
+    def _open_create_node_dialog(self) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        selected = self._selected_node_keys()
+        reference = selected[0] if len(selected) == 1 else None
+        dialog = CreateNodeDialog(model, reference_node=reference, parent=self)
+        dialog.preview_requested.connect(self._show_precision_preview_request)
+        if dialog.exec() != dialog.DialogCode.Accepted:
+            self._call_viewport("clear_precision_preview")
+            return
+        if dialog.tabs.currentWidget() is dialog.relative_tab:
+            self._apply_relative_node_spec(
+                dialog.current_relative_spec(),
+                tolerance_m=1e-6,
+            )
+        else:
+            self._apply_exact_node_spec(dialog.current_exact_spec(), tolerance_m=1e-6)
+        self._call_viewport("clear_precision_preview")
+
+    def _open_translational_repeat_dialog(self) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        selected = self._selected_node_keys()
+        if len(selected) != 1:
+            self.statusBar().showMessage(
+                "Translational Repeat requires exactly one selected reference Node"
+            )
+            return
+        dialog = TranslationalRepeatDialog(
+            model,
+            reference_node=selected[0],
+            tolerance_m=1e-6,
+            parent=self,
+        )
+        dialog.preview_requested.connect(self._show_repeat_preview_request)
+        if dialog.exec() != dialog.DialogCode.Accepted:
+            self._call_viewport("clear_precision_preview")
+            return
+        self._apply_translational_repeat(
+            dialog.current_spec(),
+            resolutions=dialog.current_resolutions(),
+            tolerance_m=1e-6,
+        )
+        self._call_viewport("clear_precision_preview")
 
     def _selected_member_keys(self) -> tuple[UUID, ...]:
         selection = getattr(self.viewport_host, "selection", None)
@@ -600,6 +812,8 @@ class MainWindow(QMainWindow):
         self.current_import_batch = None
         self.repair_history = RepairHistory(model)
         self.validate_action.setEnabled(True)
+        self.create_node_dialog_action.setEnabled(True)
+        self.translational_repeat_action.setEnabled(True)
         self.split_action.setEnabled(True)
         self._selected_issue_id = None
         self.refresh_validation()
@@ -814,6 +1028,16 @@ class MainWindow(QMainWindow):
         self.undo_action.setEnabled(can_undo)
         self.redo_action.setEnabled(can_redo)
         self.quick_fix_panel.set_history_state(can_undo=can_undo, can_redo=can_redo)
+
+    def _confirm_use_existing_dialog(self, message: str) -> bool:
+        result = QMessageBox.question(
+            self,
+            "Existing Node",
+            message,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        return result is QMessageBox.StandardButton.Yes
 
     def _confirm_delete_dialog(self, message: str) -> bool:
         result = QMessageBox.question(

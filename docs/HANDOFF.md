@@ -1,4 +1,4 @@
-Status: **T18 COMPLETE on `task/18-manual-edit`; T19 is READY and has not started.**
+Status: **T19 COMPLETE on `task/19-precision-create-repeat`; T20 is READY and has not started.**
 
 ## Canonical project root
 
@@ -152,13 +152,50 @@ Fresh verified regression before docs close:
 - targeted strict mypy for T18 source: **0 errors**;
 - `git diff --check`: passed.
 
+VTK/NumPy deprecation warnings remain third-party only. One grouped offscreen Qt/VTK verification invocation hit a native VTK access violation during renderer/grid setup; rerunning every affected viewport test in isolated Windows-renderer processes (`QT_QPA_PLATFORM=windows`) passed, so the final UI result remains 79/79 PASS without a behavioral assertion failure.
+
+## T19 — Precision Create Node + Translational Repeat
+
+Branch/worktree:
+- branch: `task/19-precision-create-repeat`
+- worktree: `.worktrees/task-19-precision-create-repeat`
+- base: `60da4dc` (T18 merged to master before T19)
+- task commit subject: `feat: create precise repeated structural nodes`
+
+Risk: **STRICT HR-2**, already covered by the approved high-risk envelope.
+
+Implemented and verified:
+- Create Node by click/snap, exact STAAD XYZ, and relative-to-reference XYZ; canonical Y remains vertical;
+- unresolved free-space click remains fail-closed; no arbitrary depth guess;
+- exact/relative collision analysis occurs before mutation and never creates a co-located duplicate Node;
+- optional Reference -> New/Existing Member creation is atomic and one Undo;
+- `TranslationalRepeatSpec` supports deterministic ΔX/ΔY/ΔZ, repeat count excluding reference, `NONE`, `CONSECUTIVE`, and `FROM_REFERENCE` connection modes;
+- collision resolutions are explicit `USE_EXISTING`, `SKIP_STEP`, or `CANCEL`; later step positions remain deterministic;
+- repeat preview reports actual new/reused/skipped Node counts, actual new Member count, and final coordinate;
+- repeat ghost preview suppresses existing incidence rather than displaying a member that will not be committed;
+- entire repeat is built before apply and executes as one `CompositeRepair` / one history item / one Undo;
+- independent frame-line test locked exact UUID-coordinate/incidence sets and exact graph/revision restoration after Undo;
+- a CREATE_NODE mouse-routing regression was found and fixed: Create Node no longer falls through to Delete behavior;
+- real Windows Qt/VTK precision smoke passed Exact, Relative+Member, Repeat, preview, Undo, navigation, and exact graph restoration.
+
+Fresh verification before docs close:
+- unit: **231 passed**;
+- UI: **79 passed**;
+- integration: **5 passed**;
+- total: **315 tests passed**;
+- real smoke: `PRECISION_CREATE_SMOKE_PASS exact=pass relative=pass repeat=pass preview=pass undo=pass navigation=pass graph=restored`;
+- Ruff: passed;
+- strict mypy on T19 source boundary: **0 errors**;
+- `git diff --check`: passed.
+
 VTK/NumPy deprecation warnings remain third-party only.
 
 ## Next Task
 
-**T19 — Precision Create Node + Translational Repeat**
+**T20 — Numbering + Member Direction Controls**
 
-T19 is READY. Do not start it until the user explicitly continues after the T18 checkpoint.
+T20 is READY. Do not start it until the user explicitly continues after the T19 checkpoint.
+
 
 ## T24 cleanup boundary
 

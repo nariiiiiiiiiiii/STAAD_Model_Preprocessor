@@ -276,23 +276,23 @@ Commit:
 - Produces `build_relative_create(model, spec, tolerance_m) -> RepairCommand`.
 - Produces `build_translational_repeat(model, spec, resolutions, tolerance_m) -> CompositeRepair`.
 
-- [ ] **Step 1: RED — exact XYZ and relative-coordinate math**
+- [x] **Step 1: RED — exact XYZ and relative-coordinate math**
 
 Independent expected-value tests use reference `(10,4,3)` and offset `(+1, -0, +0)` to require `(11,4,3)`. Reject non-finite values and a zero-length all-zero relative offset when it would create a duplicate reference node.
 
-- [ ] **Step 2: GREEN — pure spec-to-position calculation**
+- [x] **Step 2: GREEN — pure spec-to-position calculation**
 
 No UI/VTK dependency. Canonical Y remains vertical. Return/construct commands only after collision analysis succeeds.
 
-- [ ] **Step 3: RED — Create Member checkbox atomic behavior**
+- [x] **Step 3: RED — Create Member checkbox atomic behavior**
 
 Assert unchecked creates only one node; checked creates node + reference->new member as one Undo item. If target matches existing node, do not create a duplicate; return a resolution-required result before mutation.
 
-- [ ] **Step 4: GREEN — relative-create command factory + dialog preview**
+- [x] **Step 4: GREEN — relative-create command factory + dialog preview**
 
 Dialog labels coordinates `STAAD X`, `STAAD Y (Vertical)`, `STAAD Z`, shows reference/current/result coordinates, `Create Member` checkbox, `Preview/Create/Cancel`. Preview uses ghost geometry only.
 
-- [ ] **Step 5: RED — Translational Repeat semantics**
+- [x] **Step 5: RED — Translational Repeat semantics**
 
 For reference `(0,0,0)`, `dx=1`, repeats=5 require new positions exactly `1,2,3,4,5` metres and count excludes the reference. Test diagonal vector repeat. Test `CONSECUTIVE` incidence chain and `FROM_REFERENCE` star incidences independently.
 
@@ -301,11 +301,11 @@ Test collision resolution:
 - `SKIP_STEP` creates no node/member for that step and preserves deterministic subsequent positions;
 - `CANCEL` returns no command and model stays unchanged.
 
-- [ ] **Step 6: GREEN — one atomic repeat history item**
+- [x] **Step 6: GREEN — one atomic repeat history item**
 
 Build the complete repeat command before applying it. Preview reports new-node count, new-member count, reused/skipped nodes, and final coordinate. One Undo reverts all repeat-created topology.
 
-- [ ] **Step 7: Strict verification and commit**
+- [x] **Step 7: Strict verification and commit**
 
 Use an independent frame-line test to compare exact UUID-coordinate/incidence sets after repeat and after Undo. Run targeted UI tests, Ruff, mypy, affected real viewport smoke.
 

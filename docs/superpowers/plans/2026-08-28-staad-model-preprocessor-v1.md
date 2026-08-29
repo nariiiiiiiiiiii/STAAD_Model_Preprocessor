@@ -799,6 +799,8 @@ Detailed executable plan: `docs/superpowers/plans/2026-08-28-manual-model-editin
 
 **Deliverable:** Create Node by exact XYZ or relative to selected Node, optional Create Member, collision preview, STAAD-like Translational Repeat with ΔX/ΔY/ΔZ, repeat count excluding reference Node, Consecutive / From Reference member modes, and one atomic history item.
 
+Status: **COMPLETE** — implementation, strict verification, documentation, and Git commit completed.
+
 Commit: `feat: create precise repeated structural nodes`
 
 ---

@@ -16,7 +16,8 @@ Primary workflow:
 - T16 complete: safe SketchUp-style viewport navigation, selection filters, overlap cycling, labels, focus/context actions, and non-mutating SELECT foundation.
 - T17 complete: deterministic canonical-space Node/Endpoint/Midpoint/Intersection inference, X/Y/Z axis locks, explicit work-plane ray intersection, and viewport keyboard constraint foundation.
 - T18 complete: reversible Create/Move, atomic CompositeRepair, Draw/Move-Snap/Delete/Split viewport editing, ghost previews, exact Undo graph restoration, and real Qt/VTK manual-edit smoke.
-- V1 execution plan now runs through T24: remaining Manual Editing T19-T20, READY/packaging/acceptance T21-T23, then non-destructive unused-file quarantine to project-local `DEL/` in T24.
+- T19 complete: click/snap + exact/relative Node creation, collision-safe optional member creation, STAAD-like Translational Repeat, ghost preview, explicit Use Existing/Skip/Cancel resolution, deterministic collision handling, and one-step atomic Undo.
+- V1 execution plan now runs through T24: remaining Manual Editing T20, READY/packaging/acceptance T21-T23, then non-destructive unused-file quarantine to project-local `DEL/` in T24.
 - Primary OS: Windows 11.
 - Primary language: Python.
 - UI: PySide6.

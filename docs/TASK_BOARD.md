@@ -22,8 +22,8 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T16 | SketchUp-style navigation + selection/filter/label foundation | STANDARD | **COMPLETE** |
 | T17 | Snap/inference + working-plane + axis-lock engine | **STRICT HR-1/HR-2** | **COMPLETE** |
 | T18 | Manual Node/Member editing + atomic repair UI | **STRICT HR-2** | **COMPLETE** |
-| T19 | Exact/Relative Create Node + Translational Repeat | **STRICT HR-2** | **READY** |
-| T20 | Auto numbering + member direction controls | **STRICT HR-2/HR-4** | READY after T19 by execution order |
+| T19 | Exact/Relative Create Node + Translational Repeat | **STRICT HR-2** | **COMPLETE** |
+| T20 | Auto numbering + member direction controls | **STRICT HR-2/HR-4** | **READY** |
 | T21 | End-to-end READY gate + golden dirty-model suite + audit report | **STRICT HR-1..HR-4** | BLOCKED by T18,T19,T20 |
 | T22 | Windows packaging (`.exe`) + production path/log policy | STANDARD | BLOCKED by T21 |
 | T23 | Real-project acceptance + target STAAD.Pro verification | **STRICT acceptance** | BLOCKED by T22 |
@@ -66,8 +66,8 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 
 ## Next Task
 
-**T19 — Precision Create Node + Translational Repeat**
+**T20 — Numbering + Member Direction Controls**
 
-Risk: **STRICT HR-2 already covered by the approved high-risk envelope.**
+Risk: **STRICT HR-2/HR-4 already covered by the approved high-risk envelope.**
 
-T18 is complete. T19 is READY but must not start until the user explicitly continues after this checkpoint.
+T19 is complete. T20 is READY but has not started.

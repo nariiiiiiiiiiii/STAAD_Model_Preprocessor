@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from collections.abc import Iterable
 from dataclasses import replace
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 import numpy as np
@@ -14,6 +14,12 @@ from PySide6.QtWidgets import QMenu, QVBoxLayout, QWidget
 from pyvistaqt import QtInteractor
 from vtkmodules.vtkRenderingCore import vtkCellPicker
 
+from staadprep.editing.create_node import (
+    ExistingNodeResolution,
+    RepeatConnectionMode,
+    TranslationalRepeatPreview,
+    TranslationalRepeatSpec,
+)
 from staadprep.editing.inference import AxisLock, InferenceEngine, InferenceHit, SnapKind
 from staadprep.editing.manual_ops import (
     build_delete_member,
@@ -21,9 +27,12 @@ from staadprep.editing.manual_ops import (
     build_draw_member_existing,
     build_draw_member_new,
     build_move_or_snap_node,
+    build_split_intersection,
+    build_split_member,
 )
 from staadprep.model.geometry import Vec3
 from staadprep.model.project import ProjectModel
+from staadprep.repair.commands import CreateNode
 from staadprep.viewer.interaction import (
     EditMode,
     InteractionState,
@@ -74,6 +83,10 @@ class StructuralViewport(QWidget):
         self._edit_preview_position: Vec3 | None = None
         self._ghost_actor: Any | None = None
         self._ghost_connected_member_count = 0
+        self._precision_node_actor: Any | None = None
+        self._precision_member_actor: Any | None = None
+        self._precision_ghost_node_count = 0
+        self._precision_ghost_member_count = 0
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -108,6 +121,10 @@ class StructuralViewport(QWidget):
         self._edit_preview_position = None
         self._ghost_actor = None
         self._ghost_connected_member_count = 0
+        self._precision_node_actor = None
+        self._precision_member_actor = None
+        self._precision_ghost_node_count = 0
+        self._precision_ghost_member_count = 0
         if not self._off_screen:
             self.plotter.disable_picking()
         self.plotter.clear()
@@ -331,6 +348,164 @@ class StructuralViewport(QWidget):
         )
         self.plotter.render()
 
+    def clear_precision_preview(self) -> None:
+        self._remove_actor(self._precision_node_actor)
+        self._remove_actor(self._precision_member_actor)
+        self._precision_node_actor = None
+        self._precision_member_actor = None
+        self._precision_ghost_node_count = 0
+        self._precision_ghost_member_count = 0
+        self.plotter.render()
+
+    def _render_precision_geometry(
+        self,
+        points: list[Vec3],
+        segments: list[tuple[Vec3, Vec3]],
+    ) -> None:
+        self.clear_precision_preview()
+        if points:
+            point_mesh = pv.PolyData(
+                np.asarray([point.as_tuple() for point in points], dtype=float)
+            )
+            self._precision_node_actor = self.plotter.add_mesh(
+                point_mesh,
+                point_size=13,
+                render_points_as_spheres=True,
+                style="points",
+                opacity=0.7,
+                pickable=False,
+            )
+        if segments:
+            line_points: list[tuple[float, float, float]] = []
+            line_cells: list[int] = []
+            for index, (start, end) in enumerate(segments):
+                base = index * 2
+                line_points.extend((start.as_tuple(), end.as_tuple()))
+                line_cells.extend((2, base, base + 1))
+            line_mesh = pv.PolyData(
+                np.asarray(line_points, dtype=float),
+                lines=np.asarray(line_cells, dtype=np.int64),
+            )
+            self._precision_member_actor = self.plotter.add_mesh(
+                line_mesh,
+                line_width=3,
+                opacity=0.55,
+                pickable=False,
+            )
+        self._precision_ghost_node_count = len(points)
+        self._precision_ghost_member_count = len(segments)
+        self.plotter.render()
+
+    def show_precise_node_preview(
+        self,
+        position: Vec3,
+        *,
+        reference_node: UUID | None = None,
+        create_member: bool = False,
+    ) -> None:
+        segments: list[tuple[Vec3, Vec3]] = []
+        if create_member:
+            if (
+                self._model is None
+                or reference_node is None
+                or reference_node not in self._model.nodes
+            ):
+                raise ValueError("Create Member preview requires a valid reference node")
+            segments.append((self._model.nodes[reference_node].position, position))
+        self._render_precision_geometry([position], segments)
+
+    def show_translational_repeat_preview(
+        self,
+        preview: TranslationalRepeatPreview,
+        spec: TranslationalRepeatSpec,
+        resolutions: dict[int, ExistingNodeResolution],
+    ) -> None:
+        if self._model is None or spec.reference_node not in self._model.nodes:
+            raise ValueError("Translational Repeat preview requires a valid reference node")
+        reference_position = self._model.nodes[spec.reference_node].position
+        previous_position = reference_position
+        previous_key: UUID | None = spec.reference_node
+        points: list[Vec3] = []
+        segments: list[tuple[Vec3, Vec3]] = []
+
+        for step in preview.steps:
+            resolution = resolutions.get(step.index)
+            if resolution is not None:
+                resolution = ExistingNodeResolution(resolution)
+            if resolution in {ExistingNodeResolution.SKIP_STEP, ExistingNodeResolution.CANCEL}:
+                continue
+
+            current = step.position
+            current_key = (
+                step.existing_node if resolution is ExistingNodeResolution.USE_EXISTING else None
+            )
+            points.append(current)
+
+            if spec.connection_mode is RepeatConnectionMode.CONSECUTIVE:
+                source_position = previous_position
+                source_key = previous_key
+            elif spec.connection_mode is RepeatConnectionMode.FROM_REFERENCE:
+                source_position = reference_position
+                source_key = spec.reference_node
+            else:
+                source_position = None
+                source_key = None
+
+            should_draw = source_position is not None
+            if should_draw and source_key is not None and current_key is not None:
+                if source_key == current_key:
+                    should_draw = False
+                else:
+                    should_draw = not any(
+                        {member.start, member.end} == {source_key, current_key}
+                        for member in self._model.members.values()
+                    )
+            if should_draw and source_position is not None:
+                segments.append((source_position, current))
+
+            if spec.connection_mode is RepeatConnectionMode.CONSECUTIVE:
+                previous_position = current
+                previous_key = current_key
+
+        self._render_precision_geometry(points, segments)
+
+    def request_create_node_hit(self, hit: InferenceHit) -> None:
+        if self._model is None:
+            return
+        if hit.kind in {SnapKind.NODE, SnapKind.ENDPOINT}:
+            if not hit.entity_keys:
+                raise ValueError("Node/endpoint inference requires a Node key")
+            node_key = hit.entity_keys[0]
+            if node_key not in self._model.nodes:
+                raise ValueError(f"Node {node_key} does not exist")
+            self.highlight_nodes((node_key,))
+            return
+        if hit.kind is SnapKind.MIDPOINT:
+            if len(hit.entity_keys) != 1:
+                raise ValueError("Midpoint inference requires one Member key")
+            self.manual_command_requested.emit(build_split_member(hit.entity_keys[0], hit.position))
+            return
+        if hit.kind is SnapKind.INTERSECTION:
+            if len(hit.entity_keys) != 2:
+                raise ValueError("Intersection inference requires two Member keys")
+            self.manual_command_requested.emit(
+                build_split_intersection(
+                    hit.entity_keys[0],
+                    hit.entity_keys[1],
+                    hit.position,
+                )
+            )
+            return
+        if hit.kind in {
+            SnapKind.WORK_PLANE,
+            SnapKind.AXIS_X,
+            SnapKind.AXIS_Y,
+            SnapKind.AXIS_Z,
+        }:
+            self.manual_command_requested.emit(CreateNode(hit.position))
+            return
+        raise ValueError(f"Unsupported Create Node inference kind: {hit.kind}")
+
     def set_selection_filter(self, selection_filter: SelectionFilter) -> None:
         self.interaction_state = replace(
             self.interaction_state,
@@ -434,7 +609,7 @@ class StructuralViewport(QWidget):
             raise RuntimeError("No model is loaded")
         if not self.interaction_state.selection_filter.members:
             return None
-        member_key = self.scene.member_key_for_cell(cell_index)
+        member_key = cast(UUID, self.scene.member_key_for_cell(cell_index))
         self.selection.select_member(member_key, additive=additive)
         self._render_selection_highlights()
         self.member_selected.emit(member_key)
@@ -445,7 +620,7 @@ class StructuralViewport(QWidget):
             raise RuntimeError("No model is loaded")
         if not self.interaction_state.selection_filter.nodes:
             return None
-        node_key = self.scene.point_keys[point_index]
+        node_key = cast(UUID, self.scene.point_keys[point_index])
         self.selection.select_node(node_key, additive=additive)
         self._render_selection_highlights()
         self.node_selected.emit(node_key)
@@ -774,9 +949,11 @@ class StructuralViewport(QWidget):
         else:
             focus_text = "Focus Selected"
         focus_action = menu.addAction(focus_text)
-        focus_action.setEnabled(has_nodes or has_members)
         fit_action = menu.addAction("Fit Model")
         clear_action = menu.addAction("Clear Selection")
+        if focus_action is None or fit_action is None or clear_action is None:
+            return
+        focus_action.setEnabled(has_nodes or has_members)
         clear_action.setEnabled(has_nodes or has_members)
         chosen = menu.exec(global_position)
         if chosen is focus_action:
@@ -805,6 +982,7 @@ class StructuralViewport(QWidget):
                     self._left_press_pos = point
                     return True
                 if self.interaction_state.mode in {
+                    EditMode.CREATE_NODE,
                     EditMode.DRAW_MEMBER,
                     EditMode.MOVE_SNAP_NODE,
                     EditMode.DELETE,
@@ -852,6 +1030,7 @@ class StructuralViewport(QWidget):
                 self.end_navigation()
                 return True
             if event.button() == Qt.MouseButton.LeftButton and self.interaction_state.mode in {
+                EditMode.CREATE_NODE,
                 EditMode.DRAW_MEMBER,
                 EditMode.MOVE_SNAP_NODE,
                 EditMode.DELETE,
@@ -864,6 +1043,28 @@ class StructuralViewport(QWidget):
                     for candidate in candidates
                     if candidate.entity is SelectionEntity.NODE
                 )
+
+                if self.interaction_state.mode is EditMode.CREATE_NODE:
+                    if node_candidates and self._model is not None:
+                        node_key = node_candidates[0].key
+                        self.request_create_node_hit(
+                            InferenceHit(
+                                self._model.nodes[node_key].position,
+                                SnapKind.NODE,
+                                (node_key,),
+                                "NODE",
+                            )
+                        )
+                    else:
+                        world = self._pick_world_at(*point)
+                        if world is not None:
+                            hit = self.resolve_inference(
+                                Vec3(*world),
+                                tolerance_m=1e-9,
+                            )
+                            if hit is not None:
+                                self.request_create_node_hit(hit)
+                    return True
 
                 if self.interaction_state.mode is EditMode.DRAW_MEMBER:
                     if self._draw_start_node is None:
@@ -962,6 +1163,7 @@ class StructuralViewport(QWidget):
                 return True
             if event.key() == Qt.Key.Key_Escape:
                 self.cancel_edit_preview()
+                self.clear_precision_preview()
                 self.set_axis_lock(AxisLock.NONE)
                 return True
 
