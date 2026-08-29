@@ -17,6 +17,7 @@ class SceneData:
     point_keys: tuple[UUID, ...]
     member_keys: tuple[UUID, ...]
     point_index_by_key: dict[UUID, int]
+    member_endpoint_points: np.ndarray
     member_midpoints: np.ndarray
     local_x_vectors: np.ndarray
 
@@ -34,6 +35,7 @@ class SceneData:
 
         member_keys = tuple(sorted(model.members, key=str))
         line_rows: list[tuple[int, int, int]] = []
+        endpoint_points: list[np.ndarray] = []
         midpoints: list[np.ndarray] = []
         local_x_vectors: list[np.ndarray] = []
         for member_key in member_keys:
@@ -49,6 +51,7 @@ class SceneData:
 
             start = points[start_index]
             end = points[end_index]
+            endpoint_points.append(np.asarray((start, end), dtype=float))
             vector = end - start
             length = float(np.linalg.norm(vector))
             midpoints.append((start + end) / 2.0)
@@ -61,6 +64,11 @@ class SceneData:
             np.array(line_rows, dtype=np.int64)
             if line_rows
             else np.empty((0, 3), dtype=np.int64)
+        )
+        member_endpoint_points = (
+            np.asarray(endpoint_points, dtype=float).reshape((-1, 2, 3))
+            if endpoint_points
+            else np.empty((0, 2, 3), dtype=float)
         )
         member_midpoints = (
             np.asarray(midpoints, dtype=float).reshape((-1, 3))
@@ -78,6 +86,7 @@ class SceneData:
             point_keys=point_keys,
             member_keys=member_keys,
             point_index_by_key=point_index_by_key,
+            member_endpoint_points=member_endpoint_points,
             member_midpoints=member_midpoints,
             local_x_vectors=local_x,
         )

@@ -8,6 +8,8 @@ os.environ.setdefault("QT_API", "pyside6")
 
 from PySide6.QtWidgets import QApplication
 
+from staadprep.editing.inference import AxisLock, SnapKind
+from staadprep.model.geometry import Vec3
 from staadprep.viewer.demo import build_demo_frame
 from staadprep.viewer.interaction import EditMode, LabelVisibility, SelectionFilter
 from staadprep.viewer.widget import StructuralViewport
@@ -106,6 +108,44 @@ def main() -> int:
     if model.revision != initial_revision:
         raise RuntimeError("Selection/label visibility mutated the canonical model")
 
+    inference_hit = viewport.resolve_inference(
+        Vec3(0.001, 0.0, 0.0),
+        tolerance_m=0.01,
+    )
+    if inference_hit is None or inference_hit.kind is not SnapKind.ENDPOINT:
+        raise RuntimeError("Viewport inference did not resolve the expected endpoint")
+    if inference_hit.position != Vec3(0.0, 0.0, 0.0):
+        raise RuntimeError("Viewport inference returned the wrong endpoint coordinate")
+
+    axis_messages: list[str] = []
+    viewport.axis_lock_changed.connect(lambda _lock, text: axis_messages.append(text))
+    viewport.set_axis_lock(AxisLock.Y)
+    axis_hit = viewport.resolve_inference(
+        Vec3(88.0, 9.0, -66.0),
+        tolerance_m=0.01,
+        reference_position=Vec3(1.0, 2.0, 3.0),
+    )
+    if axis_hit is None or axis_hit.kind is not SnapKind.AXIS_Y:
+        raise RuntimeError("Y axis lock did not return AXIS_Y inference")
+    if axis_hit.position != Vec3(1.0, 9.0, 3.0):
+        raise RuntimeError("Y axis lock did not preserve reference X/Z")
+    if not axis_messages or axis_messages[-1] != "Y AXIS — Vertical":
+        raise RuntimeError("Y axis helper did not identify the vertical axis")
+    viewport.set_axis_lock(AxisLock.NONE)
+
+    plane_hit = viewport.resolve_work_plane_inference(
+        ray_origin=Vec3(1.0, 2.0, 10.0),
+        ray_direction=Vec3(0.0, 0.0, -1.0),
+        plane_origin=Vec3(0.0, 0.0, 4.0),
+        plane_normal=Vec3(0.0, 0.0, 1.0),
+    )
+    if plane_hit is None or plane_hit.kind is not SnapKind.WORK_PLANE:
+        raise RuntimeError("Explicit ray/plane inference did not resolve")
+    if plane_hit.position != Vec3(1.0, 2.0, 4.0):
+        raise RuntimeError("Work-plane inference returned the wrong coordinate")
+    if model.revision != initial_revision:
+        raise RuntimeError("Inference/axis/work-plane operations mutated the canonical model")
+
     viewport.close()
     app.processEvents()
     print(
@@ -117,6 +157,9 @@ def main() -> int:
         "navigation=pass",
         "selection=pass",
         "labels=pass",
+        "inference=pass",
+        "axis_lock=pass",
+        "work_plane=pass",
         "revision=stable",
     )
     return 0

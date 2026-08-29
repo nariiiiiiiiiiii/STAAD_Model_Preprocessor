@@ -114,16 +114,16 @@
 - [x] Context menu valid operations by entity type.
 
 ## M10 — Snap / inference / axis lock (T17)
-- [ ] Existing Node inference.
-- [ ] Member endpoint inference.
-- [ ] Member midpoint inference.
-- [ ] Member intersection inference.
-- [ ] Canonical X/Y/Z axis inference.
-- [ ] Working plane/grid inference.
-- [ ] X/Y/Z keyboard axis locks.
-- [ ] Y explicitly labeled Vertical.
-- [ ] No arbitrary depth guess when inference is unresolved.
-- [ ] Deterministic tie-break between equal candidates.
+- [x] Existing Node inference.
+- [x] Member endpoint inference.
+- [x] Member midpoint inference.
+- [x] Member intersection inference.
+- [x] Canonical X/Y/Z axis inference.
+- [x] Working plane/grid inference.
+- [x] X/Y/Z keyboard axis locks.
+- [x] Y explicitly labeled Vertical.
+- [x] No arbitrary depth guess when inference is unresolved.
+- [x] Deterministic tie-break between equal candidates.
 
 ## M11 — Manual analytical editing (T18)
 - [ ] CreateNode reversible command.

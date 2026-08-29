@@ -138,7 +138,7 @@ Commit:
 - Produces `InferenceEngine.resolve(model, candidate_position, *, tolerance_m, axis_lock, reference_position=None) -> InferenceHit | None` for canonical-space deterministic inference; viewer projection only supplies the candidate/model-space ray hit.
 - Axis locks constrain the final candidate in canonical STAAD X/Y/Z; Y is vertical.
 
-- [ ] **Step 1: RED — exact node/endpoint/midpoint inference**
+- [x] **Step 1: RED — exact node/endpoint/midpoint inference**
 
 Hand-author nodes and members and assert:
 - within tolerance of existing node -> `NODE` at exact canonical node coordinate;
@@ -147,11 +147,11 @@ Hand-author nodes and members and assert:
 
 Run targeted test and confirm RED because engine is missing.
 
-- [ ] **Step 2: GREEN — deterministic spatial inference primitives**
+- [x] **Step 2: GREEN — deterministic spatial inference primitives**
 
 Implement finite canonical-space calculations. Tie-break equal-distance candidates by stable UUID. Never mutate the model.
 
-- [ ] **Step 3: RED — intersection and axis lock**
+- [x] **Step 3: RED — intersection and axis lock**
 
 Tests must independently calculate:
 - two crossing line segments produce exact intersection hit;
@@ -160,11 +160,11 @@ Tests must independently calculate:
 - Y lock preserves X/Z and changes only vertical Y;
 - Z lock preserves X/Y and changes only Z.
 
-- [ ] **Step 4: GREEN — intersection/work-plane/axis labels**
+- [x] **Step 4: GREEN — intersection/work-plane/axis labels**
 
 Implement axis labels exactly `X AXIS`, `Y AXIS`, `Z AXIS`; Y UI helper text includes `Vertical`. Work-plane resolution must require an explicit plane/ray intersection; unresolved depth returns no committable hit.
 
-- [ ] **Step 5: Independent verification and commit**
+- [x] **Step 5: Independent verification and commit**
 
 Add a hand-calculated diagonal/intersection case independent from production helpers. Verify inference has no model revision/mutation. Run affected regression + Ruff + mypy.
 

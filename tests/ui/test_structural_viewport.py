@@ -31,4 +31,7 @@ def test_structural_viewport_smoke_runs_in_isolated_process() -> None:
     assert "navigation=pass" in completed.stdout
     assert "selection=pass" in completed.stdout
     assert "labels=pass" in completed.stdout
+    assert "inference=pass" in completed.stdout
+    assert "axis_lock=pass" in completed.stdout
+    assert "work_plane=pass" in completed.stdout
     assert "revision=stable" in completed.stdout

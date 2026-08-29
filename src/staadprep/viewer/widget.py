@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QMenu, QVBoxLayout, QWidget
 from pyvistaqt import QtInteractor
 from vtkmodules.vtkRenderingCore import vtkCellPicker
 
+from staadprep.editing.inference import AxisLock, InferenceEngine, InferenceHit
 from staadprep.model.geometry import Vec3
 from staadprep.model.project import ProjectModel
 from staadprep.viewer.interaction import (
@@ -37,6 +38,7 @@ class StructuralViewport(QWidget):
 
     member_selected = Signal(object)
     node_selected = Signal(object)
+    axis_lock_changed = Signal(object, str)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -47,6 +49,7 @@ class StructuralViewport(QWidget):
         self._model: ProjectModel | None = None
         self.selection = SelectionState()
         self.interaction_state = InteractionState()
+        self.axis_lock = AxisLock.NONE
         self._member_actor = None
         self._node_actor = None
         self._member_highlight_actor = None
@@ -138,6 +141,46 @@ class StructuralViewport(QWidget):
 
     def set_edit_mode(self, mode: EditMode) -> None:
         self.interaction_state = replace(self.interaction_state, mode=EditMode(mode))
+
+    def set_axis_lock(self, axis_lock: AxisLock) -> None:
+        self.axis_lock = AxisLock(axis_lock)
+        if self.axis_lock is AxisLock.NONE:
+            helper_text = "Axis lock cleared"
+        else:
+            helper_text = InferenceEngine.axis_helper_text(self.axis_lock)
+        self.axis_lock_changed.emit(self.axis_lock, helper_text)
+
+    def resolve_inference(
+        self,
+        candidate_position: Vec3,
+        *,
+        tolerance_m: float,
+        reference_position: Vec3 | None = None,
+    ) -> InferenceHit | None:
+        if self._model is None:
+            return None
+        return InferenceEngine.resolve(
+            self._model,
+            candidate_position,
+            tolerance_m=tolerance_m,
+            axis_lock=self.axis_lock,
+            reference_position=reference_position,
+        )
+
+    @staticmethod
+    def resolve_work_plane_inference(
+        *,
+        ray_origin: Vec3,
+        ray_direction: Vec3,
+        plane_origin: Vec3,
+        plane_normal: Vec3,
+    ) -> InferenceHit | None:
+        return InferenceEngine.resolve_work_plane(
+            ray_origin=ray_origin,
+            ray_direction=ray_direction,
+            plane_origin=plane_origin,
+            plane_normal=plane_normal,
+        )
 
     def set_selection_filter(self, selection_filter: SelectionFilter) -> None:
         self.interaction_state = replace(
@@ -677,6 +720,18 @@ class StructuralViewport(QWidget):
                 and event.modifiers() & Qt.KeyboardModifier.ShiftModifier
             ):
                 self.fit_model()
+                return True
+            if event.key() == Qt.Key.Key_X:
+                self.set_axis_lock(AxisLock.X)
+                return True
+            if event.key() == Qt.Key.Key_Y:
+                self.set_axis_lock(AxisLock.Y)
+                return True
+            if event.key() == Qt.Key.Key_Z:
+                self.set_axis_lock(AxisLock.Z)
+                return True
+            if event.key() == Qt.Key.Key_Escape:
+                self.set_axis_lock(AxisLock.NONE)
                 return True
 
         return bool(super().eventFilter(watched, event))

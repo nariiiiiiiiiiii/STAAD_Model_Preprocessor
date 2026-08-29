@@ -751,7 +751,7 @@ Commit: `feat: bridge SketchUp Ruby geometry into canonical import`
 
 ### Task 16: SketchUp-Style Navigation + Selection Foundation
 
-**Status:** COMPLETE on `task/16-navigation-selection` (final commit step pending).
+**Status:** COMPLETE on `task/16-navigation-selection` (`43636af`).
 
 **Risk:** STANDARD
 
@@ -764,6 +764,8 @@ Commit: `feat: add safe SketchUp-style viewport controls`
 ---
 
 ### Task 17: Snap / Inference + Axis Lock Engine
+
+**Status:** COMPLETE on `task/17-snap-inference`.
 
 **Risk:** **STRICT HR-1 / HR-2**
 
