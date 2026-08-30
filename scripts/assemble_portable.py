@@ -107,7 +107,11 @@ def _write_zip(package_root: Path, archive_path: Path) -> None:
             info = zipfile.ZipInfo(f"{prefix}{directory}/", date_time=(1980, 1, 1, 0, 0, 0))
             info.external_attr = (0o40755 << 16) | 0x10
             archive.writestr(info, b"")
-        for path in sorted(item for item in package_root.rglob("*") if item.is_file()):
+        package_files = [item for item in package_root.rglob("*") if item.is_file()]
+        for path in sorted(
+            package_files,
+            key=lambda item: item.relative_to(package_root).as_posix(),
+        ):
             relative = path.relative_to(package_root).as_posix()
             info = zipfile.ZipInfo(f"{prefix}{relative}", date_time=(1980, 1, 1, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED

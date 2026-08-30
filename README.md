@@ -21,10 +21,11 @@ Primary workflow:
 - Final T20 verification: **243 unit + 88 UI + 5 integration = 336 tests passed**. Ruff passed; T20-local strict mypy reports **0 issues in 5 affected source files**. Four inherited `dxf_reader.py` typing errors remain outside T20 when the full import graph is reported.
 - T21 complete: authoritative `ReadyGate`/`READY FOR STAAD`, golden 01-11 end-to-end coverage, combined dirty-model repair/manual-edit convergence, direction/numbering invariants, independent `.STD` parser round-trip, and project-local validation/audit JSON are implemented.
 - Final T21 verification: **275 unit+integration + 92 UI = 367 tests passed**. UI verification uses the permanent MCP-safe isolated runner (**62 lightweight + 30 VTK/renderer**); Ruff passed, T21-local strict mypy reports **0 issues in 4 affected source/runner files**, and `git diff --check` passed.
-- T22 Portable Standalone Windows Packaging is **IN PROGRESS** on branch `task/22-portable-packaging` in this worktree; the latest documentation checkpoint is commit `034456a`.
-- T22 completed so far: portable `Data/` path policy, version contract `0.1.0`, SketchUp `.rbz` builder, portable assembler, ZIP/manifest/hash contract, manual-update contract, portable inbox support, and source-level packaged workflow smoke.
-- T22 checkpoint evidence: source unit/integration regression **303/303 PASS** (excluding final-package tests that require the real `.exe`), T22-local strict mypy **0 issues**, and relevant Ruff checks passed.
-- T22 current blocker: Nuitka dependency analysis produced `build/windows/retry1/nuitka-report.xml`, but the final standalone `STAAD Model Preprocessor.exe` has not yet been emitted. Final relocation, no-Python, packaged T21 workflow, and release ZIP gates remain pending.
+- T22 Portable Standalone Windows Packaging is **COMPLETE** on branch `task/22-portable-packaging` in this worktree; T23 remains not started.
+- Final deliverables are `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/` and `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip`.
+- The Nuitka standalone `.exe` launches without Python from a different CWD and after relocation to paths containing spaces/Unicode; all runtime state remains under package-local `Data/`.
+- Final verification: **307/307 unit+integration**, **3/3 affected UI**, **6/6 final-package gates**, manifest hashes **811/811**, T22-local strict mypy **0 issues**, and Ruff passed.
+- Extract the ZIP to a writable, reasonably short path such as `D:\STAAD_Preprocessor\`; deeply nested paths can exceed the legacy Windows DLL path limit used by bundled VTK modules.
 - The synchronized documentation map and live-status entry point is [`docs/INDEX.md`](docs/INDEX.md).
 - Primary OS: Windows 11.
 - Primary language: Python.

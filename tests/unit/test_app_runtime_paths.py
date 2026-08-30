@@ -9,6 +9,49 @@ import staadprep.app as app_module
 from staadprep.portable_paths import PortablePaths
 
 
+def test_main_reports_unwritable_portable_root_without_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    messages: list[tuple[str, str]] = []
+
+    monkeypatch.setattr(app_module, "create_application", lambda: object())
+    monkeypatch.setattr(
+        app_module,
+        "resolve_runtime_paths",
+        lambda: (_ for _ in ()).throw(PermissionError("portable Data is not writable")),
+    )
+    monkeypatch.setattr(
+        app_module.QMessageBox,
+        "critical",
+        lambda _parent, title, message: messages.append((title, message)),
+    )
+
+    assert app_module.main() == 2
+    assert messages == [
+        ("Portable folder is not writable", "portable Data is not writable"),
+    ]
+
+
+def test_packaged_workflow_smoke_hook_runs_only_when_requested(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[object] = []
+    window = object()
+    monkeypatch.delenv("STAADPREP_PACKAGED_WORKFLOW_SMOKE", raising=False)
+    monkeypatch.setattr(
+        app_module,
+        "run_packaged_workflow_smoke",
+        lambda received: calls.append(received),
+    )
+
+    app_module.run_optional_packaged_workflow_smoke(window)  # type: ignore[arg-type]
+    assert calls == []
+
+    monkeypatch.setenv("STAADPREP_PACKAGED_WORKFLOW_SMOKE", "1")
+    app_module.run_optional_packaged_workflow_smoke(window)  # type: ignore[arg-type]
+    assert calls == [window]
+
+
 def test_resolve_runtime_paths_prepares_detected_portable_layout(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

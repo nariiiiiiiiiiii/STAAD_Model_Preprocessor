@@ -1,4 +1,4 @@
-Status: **T21 COMPLETE and merged to `master`; T22 Portable Standalone Windows Packaging is IN PROGRESS on `task/22-portable-packaging`.**
+Status: **T21 COMPLETE and merged to `master`; T22 Portable Standalone Windows Packaging is COMPLETE on `task/22-portable-packaging`; T23 is not started.**
 
 ## Canonical project root
 
@@ -273,7 +273,7 @@ Operational note:
 
 ## Current Task — T22 Portable Standalone Windows Packaging
 
-Status: **IN PROGRESS** on branch `task/22-portable-packaging` in worktree `.worktrees/task-22-portable-packaging`.
+Status: **COMPLETE** on branch `task/22-portable-packaging` in worktree `.worktrees/task-22-portable-packaging`.
 
 User-approved packaging contract:
 - portable/no-install Windows x64 release;
@@ -295,7 +295,7 @@ Completed T22 checkpoints and commits:
 - `22510bc` — `build: assemble update-ready portable release`
 - `056d906` — `fix: support portable SketchUp inbox`
 
-Implemented/verified so far:
+Final implementation and verification:
 - `PortablePaths` resolves compiled runtime from the executable/compiled containing directory, never launch CWD;
 - package-local writable hierarchy: `Data/Config`, `Projects`, `Inbox/SketchUp`, `Exports`, `Reports`, `Logs`, `Cache`, `Temp`, `Backups`;
 - development `ProjectPaths` remains backward-compatible and packaged runtime does not auto-create development `build/dist/vendor` directories under `Data/`;
@@ -304,33 +304,36 @@ Implemented/verified so far:
 - SketchUp exporter accepts both legacy development `artifacts/sketchup_bridge/inbox` and portable `Data/Inbox/SketchUp` paths;
 - portable assembler, ZIP layout, `Update/package-manifest.json`, per-file SHA-256, preserved `Data/`, and manual update documentation are implemented;
 - source-level packaged workflow smoke exercises Neutral import -> existing `ConnectNodes` repair -> renumber -> ReadyGate -> `.STD` -> `.validation.json` using production paths;
-- source regression at the current checkpoint: **303/303 PASS** for unit+integration excluding only the final-package tests that require the real built `.exe`;
+- final source regression: **307/307 PASS** for unit+integration;
 - T22-local strict mypy: **0 issues in 4 affected source files**;
-- relevant Ruff checks: passed.
+- relevant Ruff checks: passed;
+- affected UI regression: **3/3 PASS**;
+- final-package integration gates: **6/6 PASS**;
+- Nuitka standalone build completed and emitted `build/windows/final/app.dist/STAAD Model Preprocessor.exe`.
 
-Current blocker / evidence:
-- Nuitka 4.2, Python 3.14.3 x64, and MSVC `cl 14.5` are available; no toolchain download is currently required;
-- the real standalone build has completed dependency analysis and produced `build/windows/retry1/nuitka-report.xml`, but no final `.exe` was emitted;
-- report target is `build/windows/retry1/app.dist/STAAD Model Preprocessor.exe`;
-- the app import graph is large (~1,293 loaded modules in the development environment), including required PySide6/PyVista/VTK/NumPy/SciPy/matplotlib/ezdxf dependencies;
-- a real viewport probe proved matplotlib cannot be safely excluded because PyVista imports `matplotlib.colors` during viewport startup;
-- the prior long build populated substantial project-local Nuitka cache, so the next build attempt should reuse that cache rather than changing dependencies speculatively;
-- MCP/command lifetime can return HTTP 502 on long build/test calls; use short launch/poll/inspect calls and avoid duplicate concurrent Nuitka processes writing the same output directory.
+Final build and release evidence:
+- Nuitka 4.2, Python 3.14.3 x64, and MSVC `cl 14.5` completed the real standalone build;
+- `build/windows/final/nuitka-report.xml` records `mode="standalone"` and `completion="yes"`;
+- emitted executable: `build/windows/final/app.dist/STAAD Model Preprocessor.exe`;
+- executable size: **159,788,032 bytes**;
+- executable SHA-256: `2401E9C0689CE6ACFDA0E7E7BBE6859F6848780CD79792322CCCADAC2ADB1A57`;
+- `scripts/build_windows.ps1` now establishes the project-local Nuitka cache before preflight and uses non-interactive download acceptance;
+- Dependency Walker is cached under project-local `.cache/nuitka/downloads/depends/x86_64/`;
+- final folder: `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/` (**812 files**, **708,028,512 bytes**);
+- final ZIP: `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip` (**225,136,191 bytes**, SHA-256 `D31A70005D7F0B2C09B467D6A5591892868E9E56AC35874434BA38CFC4687115`);
+- manifest independently verified **811/811 managed files** with no size/hash errors;
+- final `.exe` and freshly extracted ZIP both launched with Python absent from `PATH`, exit code 0;
+- different CWD, spaces/Unicode relocation, reopen with existing `Data/`, and packaged T21 READY/STD/report workflow passed;
+- package README recommends a reasonably short extraction path because deeply nested paths can exceed the legacy Windows DLL path limit used by bundled VTK modules;
+- no Setup/MSI/NSIS/automatic-updater/one-file production artifacts were produced.
 
-Exact next actions when resuming T22:
-1. inspect the Nuitka report/build state and run one cached standalone build attempt into a unique output directory;
-2. do not launch a second build if the first is still running; poll process/artifact state in short calls;
-3. when `.exe` exists, run real Qt/VTK smoke with sanitized PATH (no Python exposed);
-4. assemble the final portable folder + ZIP using the verified `.exe` and rebuilt `.rbz`;
-5. run final-package tests for different CWD, relocation to a path with spaces/Thai text, reopen with existing `Data/`, and packaged T21 workflow;
-6. verify manifest hashes and absence of Setup/MSI/NSIS/auto-updater/one-file artifacts;
-7. run fresh source/UI/static regression, update docs, commit the required T22 task checkpoint, then stop before T23.
+Next action: review/use the final folder or ZIP. Start T23 real-project and target STAAD.Pro acceptance only after an explicit user instruction.
 
 ### USER ACTION REQUIRED
 
 **None currently.** Do not install/download Python, Nuitka, Visual Studio/MSVC, PySide6, VTK, or other packaging tools unless a later build error proves a specific missing component. If a future step genuinely requires a manual download/install that is easier or safer for the user to perform, record the exact item/version/link/reason here before proceeding.
 
-T23 remains **not started** and blocked until T22 passes the real packaged `.exe` acceptance gate.
+T23 remains **not started**. Its T22 prerequisite is satisfied, but its STRICT acceptance work must not start automatically.
 
 ## T24 cleanup boundary
 

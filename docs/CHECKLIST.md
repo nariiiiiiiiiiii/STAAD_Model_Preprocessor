@@ -180,21 +180,24 @@ Status: **COMPLETE — implementation, strict verification, documentation, and t
 
 ## M14 — End-to-End READY / production readiness (T21-T23)
 
-### T22 live progress checkpoint — 2026-08-30
+### T22 final checkpoint — 2026-08-30
 - [x] Portable `Data/` runtime path policy implemented and source-tested.
 - [x] Version contract `0.1.0` synchronized across app/package/RBZ tooling.
 - [x] SketchUp `.rbz` builder and portable inbox path support implemented.
 - [x] Portable assembler, manual-update contract, package manifest, and SHA-256 logic implemented.
 - [x] Source-level packaged T21 workflow smoke implemented.
-- [x] Source regression at checkpoint: **303/303 PASS** excluding final-package tests requiring the real `.exe`.
+- [x] Final source regression: **307/307 unit+integration PASS**.
 - [x] T22-local strict mypy: **0 issues**; relevant Ruff checks passed.
-- [ ] Nuitka standalone `.exe` emitted and launched with real PySide6/VTK.
-- [ ] Final portable folder and ZIP assembled from the verified `.exe`.
-- [ ] No-Python PATH, different-CWD, relocation, spaces/Unicode, and `Data/` containment gates passed.
-- [ ] Packaged T21 READY -> `.STD` -> validation-report workflow passed.
-- [ ] Final T22 docs/checkpoint commit complete; T23 remains not started.
+- [x] Nuitka standalone `.exe` emitted; report records successful standalone completion.
+- [x] Emitted `.exe` launched with real PySide6/VTK.
+- [x] Final portable folder and ZIP assembled from the verified `.exe`.
+- [x] No-Python PATH, different-CWD, relocation, spaces/Unicode, existing-`Data`, and `Data/` containment gates passed.
+- [x] Manifest hashes verified: **811/811 managed files**; bundled `.rbz` and entrypoint present.
+- [x] Packaged T21 READY -> `.STD` -> validation-report workflow passed.
+- [x] Relevant affected UI regression: **3/3 PASS**; Ruff and T22-local strict mypy passed.
+- [x] Final T22 docs/checkpoint complete; T23 remains not started.
 
-The detailed live status is maintained in [`docs/INDEX.md`](INDEX.md) and [`docs/HANDOFF.md`](HANDOFF.md). The remaining unchecked M14 items below are product/acceptance gates and are not silently marked complete by source-level T22 tests.
+The final T22 evidence is maintained in [`docs/INDEX.md`](INDEX.md) and [`docs/HANDOFF.md`](HANDOFF.md). Remaining unchecked M14 items below belong to T23 production acceptance or later work and are not silently marked complete by T22 packaging tests.
 
 - [ ] Save/open project workflow completed as required by final product.
 - [ ] Crash-safe audit/logging.
@@ -202,7 +205,7 @@ The detailed live status is maintained in [`docs/INDEX.md`](INDEX.md) and [`docs
 - [x] Full SketchUp-Ruby and Direct-DXF -> repair/manual edit -> normalize -> numbering -> READY -> STD pipeline.
 - [x] READY gate report JSON.
 - [ ] Large-model smoke test.
-- [ ] Package Windows executable.
+- [x] Package Windows executable.
 - [ ] Real-project acceptance test.
 - [ ] Open final `.STD` in target STAAD.Pro.
 - [ ] Update final HANDOFF.

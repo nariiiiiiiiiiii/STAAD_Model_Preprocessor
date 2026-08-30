@@ -25,8 +25,8 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T19 | Exact/Relative Create Node + Translational Repeat | **STRICT HR-2** | **COMPLETE** |
 | T20 | Auto numbering + member direction controls | **STRICT HR-2/HR-4** | **COMPLETE** |
 | T21 | End-to-end READY gate + golden dirty-model suite + audit report | **STRICT HR-1..HR-4** | **COMPLETE** |
-| T22 | Portable standalone Windows packaging (`.exe` + bundled `.rbz` + update-ready manifest) | STANDARD | **IN PROGRESS — architecture/package tooling complete; final Nuitka `.exe` gate pending** |
-| T23 | Real-project acceptance + target STAAD.Pro verification | **STRICT acceptance** | BLOCKED by T22 |
+| T22 | Portable standalone Windows packaging (`.exe` + bundled `.rbz` + update-ready manifest) | STANDARD | **COMPLETE** |
+| T23 | Real-project acceptance + target STAAD.Pro verification | **STRICT acceptance** | READY / not started |
 | T24 | Post-acceptance unused-file audit + quarantine to project-local `DEL/` | STANDARD | BLOCKED by T23 |
 
 ## Operational rules
@@ -96,10 +96,10 @@ Final verified state:
 
 ## Current Task
 
-**T22 — Portable Standalone Windows Packaging** is **IN PROGRESS** on `task/22-portable-packaging`.
+**T22 — Portable Standalone Windows Packaging** is **COMPLETE** on `task/22-portable-packaging`.
 
-Current checkpoint: portable runtime paths/version contract/RBZ/portable assembler/update manifest are implemented and source-level regression is green; the remaining critical gate is producing and validating the real Nuitka standalone `.exe`, then relocation/no-Python/package regression and final docs close.
+Final evidence: Nuitka standalone build completion `yes`; real Qt/VTK launch without Python; different-CWD and spaces/Unicode relocation; package-local `Data/`; versioned folder/ZIP; 811/811 manifest hashes; packaged T21 READY/STD/report workflow; 307/307 unit+integration; 3/3 affected UI; Ruff and T22-local strict mypy clean.
 
 Detailed live checkpoint: `docs/superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md`, `docs/HANDOFF.md`, and `docs/INDEX.md`.
 
-**USER ACTION REQUIRED: none currently.** T23 remains blocked until T22 is complete.
+**USER ACTION REQUIRED: none currently.** T23 is ready but remains not started until explicitly requested.

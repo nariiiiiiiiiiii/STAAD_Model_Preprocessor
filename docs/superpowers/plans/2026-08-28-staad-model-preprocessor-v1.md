@@ -889,7 +889,7 @@ Commit: `test: verify end-to-end clean model readiness`
 
 **Detailed executable plan:** `docs/superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md`
 
-**Live status 2026-08-30:** T22 is **IN PROGRESS** on `task/22-portable-packaging` in `.worktrees/task-22-portable-packaging`. Portable paths, version contract, `.rbz`, assembler, manifest/hash contract, manual-update contract, portable inbox support, and source-level workflow smoke are complete. The real Nuitka `.exe` and final package acceptance gates remain pending. See [`docs/INDEX.md`](../../INDEX.md) and the active worktree handoff at `D:/Dizayn59/CLICodex/gpt_mcp_workshop/STAAD_Model_Preprocessor/.worktrees/task-22-portable-packaging/docs/HANDOFF.md`.
+**Final status 2026-08-30:** T22 is **COMPLETE** on `task/22-portable-packaging` in `.worktrees/task-22-portable-packaging`. The real Nuitka standalone `.exe`, versioned folder/ZIP, no-Python/different-CWD/relocation/Unicode gates, package-local `Data/`, manifest hashes, bundled `.rbz`, and packaged T21 workflow all passed. T23 remains not started. See [`docs/INDEX.md`](../../INDEX.md) and the active worktree handoff at `D:/Dizayn59/CLICodex/gpt_mcp_workshop/STAAD_Model_Preprocessor/.worktrees/task-22-portable-packaging/docs/HANDOFF.md`.
 
 **Required outputs:**
 - `dist/STAAD_Model_Preprocessor_<VERSION>_win64_portable/`
@@ -913,15 +913,15 @@ Commit: `test: verify end-to-end clean model readiness`
 
 - [x] **Step 3: Build and validate version-matched SketchUp `.rbz`**
 
-- [ ] **Step 4: Build Nuitka Windows x64 `--mode=standalone` package and prove real Qt/VTK launch without Python on PATH** *(IN PROGRESS: dependency analysis/report exists; final `.exe` is not emitted.)*
+- [x] **Step 4: Build Nuitka Windows x64 `--mode=standalone` package and prove real Qt/VTK launch without Python on PATH**
 
-- [ ] **Step 5: Assemble versioned portable folder + ZIP + update manifest/hashes/manual-update docs** *(PARTIAL: assembler, manifest/hash logic, and manual-update docs exist; final assembly awaits the verified `.exe`.)*
+- [x] **Step 5: Assemble versioned portable folder + ZIP + update manifest/hashes/manual-update docs**
 
-- [ ] **Step 6: Prove relocation, different-CWD launch, spaces/Unicode paths, and package-local runtime writes**
+- [x] **Step 6: Prove relocation, different-CWD launch, spaces/Unicode paths, and package-local runtime writes**
 
-- [ ] **Step 7: Run packaged golden import/manual-edit/READY/STD/report smoke plus full relevant regression** *(PARTIAL: source-level smoke/regression is green; final packaged executable evidence is pending.)*
+- [x] **Step 7: Run packaged golden import/manual-edit/READY/STD/report smoke plus full relevant regression**
 
-- [ ] **Step 8: Close T22 docs/checkpoint; keep T23 not started**
+- [x] **Step 8: Close T22 docs/checkpoint; keep T23 not started**
 
 Commit: `build: package Windows desktop application`
 

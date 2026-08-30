@@ -8,18 +8,18 @@ from the process current working directory.
 from __future__ import annotations
 
 import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 
 def _compiled_containing_dir() -> Path | None:
-    """Return Nuitka's compiled containing directory, or ``None`` in Python mode."""
+    """Return the executable directory for a compiled build, else ``None``."""
     compiled: Any = globals().get("__compiled__")
-    containing_dir = getattr(compiled, "containing_dir", None)
-    if not containing_dir:
+    if compiled is None or not sys.executable:
         return None
-    return Path(str(containing_dir)).expanduser().resolve()
+    return Path(sys.executable).expanduser().resolve().parent
 
 
 @dataclass(frozen=True, slots=True)

@@ -3,6 +3,7 @@ from __future__ import annotations
 from PySide6.QtWidgets import QApplication
 
 from staadprep.ui.panels import ViewportPlaceholder
+from staadprep.version import __version__
 
 
 def test_main_window_has_approved_regions(qtbot) -> None:
@@ -42,4 +43,5 @@ def test_application_factory_reuses_qapplication() -> None:
     app = create_application()
 
     assert isinstance(app, QApplication)
+    assert app.applicationVersion() == __version__
     assert create_application() is app

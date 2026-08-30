@@ -10,9 +10,9 @@
 
 **Spec:** `docs/PROJECT_SPEC.md` plus the T22 entry in `docs/superpowers/plans/2026-08-28-staad-model-preprocessor-v1.md`.
 
-## Live execution checkpoint — 2026-08-29
+## Final execution checkpoint — 2026-08-30
 
-**Status:** T22 is **IN PROGRESS** on branch `task/22-portable-packaging` / worktree `.worktrees/task-22-portable-packaging`. T21 remains complete and unchanged.
+**Status:** T22 is **COMPLETE** on branch `task/22-portable-packaging` / worktree `.worktrees/task-22-portable-packaging`. T21 remains complete and unchanged; T23 is ready but not started.
 
 Completed committed checkpoints:
 
@@ -22,36 +22,31 @@ Completed committed checkpoints:
 - `22510bc` — `build: assemble update-ready portable release`
 - `056d906` — `fix: support portable SketchUp inbox`
 
-Verified behavior at this checkpoint:
+Final verified behavior:
 
 - portable `Data/` runtime layout and compiled-root/CWD separation are implemented;
 - canonical version remains `0.1.0` until T23 acceptance decides production V1 promotion;
 - version-matched `.rbz` builds successfully and accepts portable `Data/Inbox/SketchUp` plus the legacy development inbox;
 - portable folder/ZIP assembler, preserved `Data/`, manual update docs, manifest schema, deterministic normalized file ordering, and per-file SHA-256 contract are implemented;
 - source-level packaged workflow smoke reuses production Neutral import, `ConnectNodes`, renumbering, ReadyGate, `.STD`, and `.validation.json` paths;
-- current source regression: **303/303 unit+integration PASS**, excluding only the final-package tests that deliberately require the real `.exe`;
+- final source regression: **307/307 unit+integration PASS**;
+- affected UI regression: **3/3 PASS**;
+- final-package gates: **6/6 PASS**;
 - T22-local strict mypy: **0 issues in 4 affected source files**;
 - relevant Ruff checks pass.
 
-Current build blocker/evidence:
+Final build and release evidence:
 
-- available toolchain: Nuitka **4.2**, Python **3.14.3 x64**, MSVC `cl 14.5`;
-- no toolchain download/install is currently proven necessary;
-- the long Nuitka run completed dependency analysis and wrote `build/windows/retry1/nuitka-report.xml`, targeting `build/windows/retry1/app.dist/STAAD Model Preprocessor.exe`, but no final executable was emitted;
-- the development import graph is large (~1,293 loaded modules), including required PySide6/PyVista/VTK/NumPy/SciPy/matplotlib/ezdxf dependencies;
-- matplotlib was independently probed and cannot be safely excluded because PyVista imports `matplotlib.colors` during real viewport startup;
-- substantial project-local Nuitka cache was populated and should be reused on the next build attempt;
-- long build/test calls can outlive the MCP request and return HTTP 502; resume with short launch/poll/inspect calls and never run two Nuitka processes against the same output directory.
+- Nuitka **4.2**, Python **3.14.3 x64**, and MSVC `cl 14.5` completed a real standalone build;
+- successful report: `build/windows/final/nuitka-report.xml` with `completion="yes"`;
+- executable: `build/windows/final/app.dist/STAAD Model Preprocessor.exe`;
+- executable size: **159,788,032 bytes**; SHA-256: `2401E9C0689CE6ACFDA0E7E7BBE6859F6848780CD79792322CCCADAC2ADB1A57`;
+- final folder: `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/`;
+- final ZIP: `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip`, **225,136,191 bytes**, SHA-256 `D31A70005D7F0B2C09B467D6A5591892868E9E56AC35874434BA38CFC4687115`;
+- real Qt/VTK, sanitized-PATH/no-Python, different-CWD, relocation with spaces/Unicode, existing-`Data`, packaged workflow, freshly extracted ZIP launch, and 811/811 manifest hash gates passed;
+- no Setup/MSI/NSIS/automatic-updater/one-file production artifact exists.
 
-**Resume exactly here:**
-
-1. inspect the previous report/cache; launch one cached standalone build into a **unique** output directory;
-2. poll the single build process in short calls; do not duplicate it after timeout/502;
-3. once `.exe` exists, prove real Qt/VTK startup with sanitized PATH exposing no Python;
-4. assemble final portable folder/ZIP with the verified `.exe` and current rebuilt `.rbz`;
-5. run the final-package tests: different CWD, path with spaces/Thai text, relocation, reopen with existing `Data/`, and packaged T21 workflow;
-6. recompute/verify package manifest hashes and verify no Setup/MSI/NSIS/auto-updater/onefile artifact exists;
-7. run fresh source + UI isolated + Ruff + mypy + `git diff --check`, sync docs, commit T22 close, then stop before T23.
+**Next action:** review/use the final release. Start T23 only after explicit user instruction.
 
 ### USER ACTION REQUIRED
 
@@ -74,9 +69,9 @@ The following requirements are binding for T22:
 11. T22 remains **STANDARD risk**. It must not change structural/model/ReadyGate mathematics or validation semantics.
 12. T23 remains responsible for real-project + target STAAD.Pro production acceptance; T22 packages and proves the desktop runtime only.
 
-## Live checkpoint — 2026-08-30
+## Final checkpoint — 2026-08-30
 
-T22 is **IN PROGRESS** on `task/22-portable-packaging` in `.worktrees/task-22-portable-packaging`.
+T22 is **COMPLETE** on `task/22-portable-packaging` in `.worktrees/task-22-portable-packaging`.
 
 Completed and evidenced in the active worktree:
 
@@ -85,12 +80,14 @@ Completed and evidenced in the active worktree:
 - deterministic SketchUp `.rbz` builder and portable inbox support;
 - portable assembler, manual-update contract, ZIP/manifest/hash logic;
 - source-level packaged T21 workflow smoke;
-- **303/303** source unit+integration regression pass, excluding final-package tests that require the real `.exe`;
-- T22-local strict mypy **0 issues** and relevant Ruff checks passed.
+- **307/307** unit+integration regression pass;
+- **3/3** affected UI regression pass and **6/6** final-package gates pass;
+- T22-local strict mypy **0 issues** and relevant Ruff checks passed;
+- real Nuitka standalone `.exe` emitted with successful completion report.
 
-The remaining critical gate is the real Nuitka standalone build. Dependency analysis has produced `build/windows/retry1/nuitka-report.xml`, but no final `STAAD Model Preprocessor.exe` has been emitted yet. After that, T22 must still prove no-Python launch, different-CWD launch, relocation to spaces/Unicode paths, runtime-write containment under `Data/`, final portable ZIP assembly, manifest hashes, and the packaged T21 READY/STD/report workflow.
+The real `.exe` Qt/VTK launch, no-Python launch, different-CWD launch, relocation to spaces/Unicode paths, runtime-write containment under `Data/`, final portable ZIP assembly, manifest hashes, and packaged T21 READY/STD/report workflow are all evidenced.
 
-The synchronized documentation entry point is [`docs/INDEX.md`](../../INDEX.md). Do not start T23 until the final T22 gate is complete.
+The synchronized documentation entry point is [`docs/INDEX.md`](../../INDEX.md). T23 remains not started until explicit user continuation.
 
 ## Important portability boundary
 
@@ -192,7 +189,7 @@ Rules for this layout:
 - Produces: `PortablePaths.assert_writable() -> None`
 - Consumes: existing `ProjectPaths`/`MainWindow`/`NeutralReader` behavior without changing model semantics.
 
-- [ ] **Step 1: Write failing unit tests for exact portable directories**
+- [x] **Step 1: Write failing unit tests for exact portable directories**
 
 ```python
 from pathlib import Path
@@ -219,7 +216,7 @@ def test_portable_layout_is_relative_to_release_root(tmp_path: Path) -> None:
 
 Add a second test proving every writable path is inside `root`, and a third proving a path traversal/escape is rejected.
 
-- [ ] **Step 2: Run the new tests and confirm RED**
+- [x] **Step 2: Run the new tests and confirm RED**
 
 Run:
 
@@ -229,7 +226,7 @@ python -m pytest -q tests/unit/test_portable_paths.py
 
 Expected: FAIL because `staadprep.portable_paths` does not exist.
 
-- [ ] **Step 3: Implement the minimum immutable path object**
+- [x] **Step 3: Implement the minimum immutable path object**
 
 The implementation must derive paths only from an explicit root and must not touch the filesystem in `from_root`.
 
@@ -252,7 +249,7 @@ class PortablePaths:
     def from_root(cls, root: Path) -> "PortablePaths": ...
 ```
 
-- [ ] **Step 4: Add compiled-root detection that never depends on CWD**
+- [x] **Step 4: Add compiled-root detection that never depends on CWD**
 
 Production detection must use Nuitka's containing-directory mechanism when available. Uncompiled development keeps the explicit `STAADPREP_PROJECT_ROOT`/development behavior.
 
@@ -272,23 +269,23 @@ def detect_portable_root() -> Path | None:
 
 Do **not** use `Path.cwd()` as the packaged application's portable root.
 
-- [ ] **Step 5: Add writeability and environment routing tests**
+- [x] **Step 5: Add writeability and environment routing tests**
 
 Tests must verify `apply_environment()` routes at least `TEMP`, `TMP`, `PYTHONPYCACHEPREFIX`, `STAADPREP_CACHE_DIR`, `STAADPREP_LOG_DIR`, and the app's project/runtime root under `Data/`.
 
 No production fallback to system temp/AppData is allowed.
 
-- [ ] **Step 6: Inject production paths before the UI is constructed**
+- [x] **Step 6: Inject production paths before the UI is constructed**
 
 `app.main()` must resolve portable paths before `MainWindow()` in compiled mode. Development/test injection remains possible and existing tests must not require a compiled executable.
 
 `MainWindow` must consume injected paths/root rather than independently deriving packaged paths from CWD.
 
-- [ ] **Step 7: Keep development paths backward-compatible**
+- [x] **Step 7: Keep development paths backward-compatible**
 
 `ProjectPaths.from_root(project_root)` remains the canonical development/test behavior. Refactor `ensure_layout()` only as needed to avoid production creation of development-only `build/dist/vendor` directories.
 
-- [ ] **Step 8: Run focused regression**
+- [x] **Step 8: Run focused regression**
 
 Run:
 
@@ -299,7 +296,7 @@ python -m ruff check src/staadprep/portable_paths.py src/staadprep/paths.py src/
 
 Expected: PASS.
 
-- [ ] **Step 9: Commit the path boundary**
+- [x] **Step 9: Commit the path boundary**
 
 ```bash
 git add src/staadprep/portable_paths.py src/staadprep/paths.py src/staadprep/app.py src/staadprep/ui/main_window.py src/staadprep/importers/neutral_reader.py tests/unit/test_portable_paths.py
@@ -320,7 +317,7 @@ git commit -m "feat: add portable runtime path policy"
 - Produces: `staadprep.version.__version__: str`
 - Build scripts consume the same version for executable metadata, folder/archive names, RBZ name, and manifest.
 
-- [ ] **Step 1: Write failing version consistency tests**
+- [x] **Step 1: Write failing version consistency tests**
 
 The test must verify:
 
@@ -332,7 +329,7 @@ Python canonical version
 
 It must reject blank versions and versions containing path separators.
 
-- [ ] **Step 2: Confirm RED**
+- [x] **Step 2: Confirm RED**
 
 Run:
 
@@ -342,7 +339,7 @@ python -m pytest -q tests/unit/test_version_contract.py
 
 Expected: FAIL because no canonical runtime version module exists.
 
-- [ ] **Step 3: Add canonical version module and package plumbing**
+- [x] **Step 3: Add canonical version module and package plumbing**
 
 Keep the canonical value in a tiny dependency-free module:
 
@@ -354,18 +351,18 @@ Configure `pyproject.toml` so project metadata obtains the version from that mod
 
 T22 must **not** automatically declare production `1.0.0` acceptance; T23 remains the gate that can promote the accepted V1 release version.
 
-- [ ] **Step 4: Make the Ruby extension contract testable against that version**
+- [x] **Step 4: Make the Ruby extension contract testable against that version**
 
 The Ruby loader's `EXTENSION.version` must match the canonical app version used for the package being assembled. Build tooling may substitute the value in a staged copy, but it must never silently emit a mismatched RBZ.
 
-- [ ] **Step 5: Run tests/lint**
+- [x] **Step 5: Run tests/lint**
 
 ```powershell
 python -m pytest -q tests/unit/test_version_contract.py tests/unit/test_sketchup_ruby_contract.py
 python -m ruff check src/staadprep/version.py tests/unit/test_version_contract.py
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/staadprep/version.py pyproject.toml extensions/sketchup_staadprep/staadprep_loader.rb tests/unit/test_version_contract.py
@@ -387,11 +384,11 @@ git commit -m "build: establish portable release version contract"
 - Produces: `build/sketchup/STAAD_Prep_Bridge_<VERSION>.rbz`
 - The RBZ archive root contains `staadprep_loader.rb` and `staadprep/exporter.rb` with no extra parent directory.
 
-- [ ] **Step 1: Write failing RBZ archive test**
+- [x] **Step 1: Write failing RBZ archive test**
 
 Use `zipfile.ZipFile` to assert exact required entries and inspect `staadprep_loader.rb` inside the archive for the expected version.
 
-- [ ] **Step 2: Confirm RED**
+- [x] **Step 2: Confirm RED**
 
 ```powershell
 python -m pytest -q tests/integration/test_rbz_package.py
@@ -399,7 +396,7 @@ python -m pytest -q tests/integration/test_rbz_package.py
 
 Expected: FAIL because the RBZ builder does not exist.
 
-- [ ] **Step 3: Implement deterministic project-local RBZ build**
+- [x] **Step 3: Implement deterministic project-local RBZ build**
 
 `scripts/build_sketchup_rbz.py` must:
 
@@ -410,7 +407,7 @@ Expected: FAIL because the RBZ builder does not exist.
 5. never write into SketchUp's real Plugins directory;
 6. return non-zero on missing/mismatched required files.
 
-- [ ] **Step 4: Run RBZ test and existing Ruby contract test**
+- [x] **Step 4: Run RBZ test and existing Ruby contract test**
 
 ```powershell
 python scripts/build_sketchup_rbz.py
@@ -419,7 +416,7 @@ python -m pytest -q tests/integration/test_rbz_package.py tests/unit/test_sketch
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/build_sketchup_rbz.py tests/integration/test_rbz_package.py packaging/INSTALL_RBZ.md
@@ -438,7 +435,7 @@ git commit -m "build: package SketchUp bridge extension"
 - Produces an unassembled Nuitka standalone directory under `build/windows/`.
 - Final distribution is assembled later; the build script must not create Setup/MSI/NSIS output.
 
-- [ ] **Step 1: Make the script fail fast on the wrong environment**
+- [x] **Step 1: Make the script fail fast on the wrong environment**
 
 The script validates:
 
@@ -448,7 +445,7 @@ The script validates:
 - source tree/project root is resolved from the script location;
 - all `TEMP/TMP` and build outputs are redirected under project-local `.tmp/`, `.cache/`, and `build/`.
 
-- [ ] **Step 2: Build standalone, not accelerated/onefile**
+- [x] **Step 2: Build standalone, not accelerated/onefile**
 
 The command must be equivalent to:
 
@@ -470,21 +467,21 @@ The build script must source product/file version flags from the canonical versi
 
 Do not manually copy missing DLLs after the build. Missing Qt/VTK/native dependencies must be solved through supported Nuitka/package configuration and then regression-tested.
 
-- [ ] **Step 3: Prove the standalone executable launches**
+- [x] **Step 3: Prove the standalone executable launches**
 
 Use existing smoke support (`STAADPREP_SMOKE_MS`) or an equivalent explicit packaged smoke hook so the executable opens Qt/VTK and exits itself without user interaction.
 
-- [ ] **Step 4: Prove no Python runtime installation is required by the app**
+- [x] **Step 4: Prove no Python runtime installation is required by the app**
 
 Launch the built `.exe` with a sanitized child `PATH` that does not expose the development Python/venv. The smoke must still exit successfully.
 
 This test does not claim that every Windows installation is identical; final acceptance must also use a clean/representative Windows environment. If compiler runtime libraries are absent on the target, T22 must resolve that using app-local/standalone-compatible distribution or a different proven build toolchain — never by requiring the user to install Python or the development environment.
 
-- [ ] **Step 5: Prove PySide6/VTK packaged behavior**
+- [x] **Step 5: Prove PySide6/VTK packaged behavior**
 
 Launch real viewport smoke against the executable. A package that starts but cannot create the real Qt/VTK viewport is a failed build.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/build_windows.ps1 pyproject.toml
@@ -507,7 +504,7 @@ git commit -m "build: compile Windows standalone application"
 - Produces: `dist/STAAD_Model_Preprocessor_<VERSION>_win64_portable.zip`
 - Produces: `Update/package-manifest.json` inside the portable folder.
 
-- [ ] **Step 1: Write failing manifest contract test**
+- [x] **Step 1: Write failing manifest contract test**
 
 The generated manifest must contain at least:
 
@@ -530,13 +527,13 @@ Every application-managed file entry must contain normalized relative `path`, by
 
 `Data/` must not appear as a replace-managed application root.
 
-- [ ] **Step 2: Confirm RED**
+- [x] **Step 2: Confirm RED**
 
 ```powershell
 python -m pytest -q tests/integration/test_package_manifest.py
 ```
 
-- [ ] **Step 3: Implement release assembly**
+- [x] **Step 3: Implement release assembly**
 
 `assemble_portable.py` must:
 
@@ -550,7 +547,7 @@ python -m pytest -q tests/integration/test_package_manifest.py
 8. create the portable ZIP;
 9. fail if package version, RBZ version, manifest version, or executable metadata input disagree.
 
-- [ ] **Step 4: Define manual update semantics now**
+- [x] **Step 4: Define manual update semantics now**
 
 `UPDATE_MANUAL.md` must document the safe V1 procedure:
 
@@ -563,7 +560,7 @@ python -m pytest -q tests/integration/test_package_manifest.py
 
 The future automatic updater must follow the same `preserve_roots`/manifest contract. T22 does not download or install updates itself.
 
-- [ ] **Step 5: Validate hashes and archive contents**
+- [x] **Step 5: Validate hashes and archive contents**
 
 ```powershell
 python scripts/assemble_portable.py
@@ -572,7 +569,7 @@ python -m pytest -q tests/integration/test_package_manifest.py tests/integration
 
 Expected: PASS, and every manifest hash recomputes exactly.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/assemble_portable.py packaging/README_PORTABLE.md packaging/UPDATE_MANUAL.md tests/integration/test_package_manifest.py
@@ -591,7 +588,7 @@ git commit -m "build: assemble update-ready portable release"
 - Consumes assembled portable release.
 - Proves the product behaves as portable software rather than a repository-bound Python app.
 
-- [ ] **Step 1: Add a packaged-path smoke under a path with spaces and Unicode**
+- [x] **Step 1: Add a packaged-path smoke under a path with spaces and Unicode**
 
 Test/staging location must remain project-local, for example:
 
@@ -601,7 +598,7 @@ Test/staging location must remain project-local, for example:
 
 Run the `.exe` while the child process CWD is a different directory. Verify startup succeeds and runtime state is written under that release's `Data/`.
 
-- [ ] **Step 2: Add a relocation test**
+- [x] **Step 2: Add a relocation test**
 
 Copy the exact assembled release to a second project-local location:
 
@@ -611,7 +608,7 @@ Copy the exact assembled release to a second project-local location:
 
 Launch without rebuilding/reconfiguring. Verify the new release root is used and no path points back to location A.
 
-- [ ] **Step 3: Assert runtime containment**
+- [x] **Step 3: Assert runtime containment**
 
 After smoke activity, enumerate new runtime-created files. Every implicit write must resolve below the relocated release's `Data/` hierarchy.
 
@@ -625,11 +622,11 @@ Reject any implicit write to:
 - old package path;
 - hard-coded `D:\Dizayn59\...`.
 
-- [ ] **Step 4: Prove unwritable-root behavior**
+- [x] **Step 4: Prove unwritable-root behavior**
 
 Use an injectable/path-level unit boundary rather than changing real system ACLs where practical. `PortablePaths.assert_writable()` must raise a specific error that the app converts into a clear startup message. No hidden fallback is permitted.
 
-- [ ] **Step 5: Run packaged path integration**
+- [x] **Step 5: Run packaged path integration**
 
 ```powershell
 python -m pytest -q tests/integration/test_packaged_paths.py
@@ -637,7 +634,7 @@ python -m pytest -q tests/integration/test_packaged_paths.py
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tests/integration/test_packaged_paths.py src/staadprep/portable_paths.py src/staadprep/app.py src/staadprep/ui/main_window.py src/staadprep/importers/neutral_reader.py
@@ -656,27 +653,27 @@ git commit -m "test: verify relocatable portable runtime"
 **Interfaces:**
 - Proves the compiled app can execute the already-approved T21 workflow without structural logic changes.
 
-- [ ] **Step 1: Launch packaged executable with real Qt/VTK UI**
+- [x] **Step 1: Launch packaged executable with real Qt/VTK UI**
 
 Use a non-interactive smoke hook only for automation. The normal executable remains a GUI app.
 
-- [ ] **Step 2: Exercise one representative golden import**
+- [x] **Step 2: Exercise one representative golden import**
 
 Import a known golden DXF/Neutral model through production code from a project-local staged path.
 
-- [ ] **Step 3: Perform one existing manual edit command**
+- [x] **Step 3: Perform one existing manual edit command**
 
 Use an already-tested T18/T19 command path; do not invent a packaging-only mutation path.
 
-- [ ] **Step 4: Validate and export**
+- [x] **Step 4: Validate and export**
 
 The model must reach the same T21 `ReadyGate`, export `.STD`, and emit `.validation.json`. Default smoke outputs go under portable `Data/Exports` and `Data/Reports` (or the explicitly defined production equivalents).
 
-- [ ] **Step 5: Close and reopen the packaged app**
+- [x] **Step 5: Close and reopen the packaged app**
 
 Verify the package remains launchable after generated Data exists and that the SketchUp inbox remains under `Data/Inbox/SketchUp`.
 
-- [ ] **Step 6: Document actual user workflow**
+- [x] **Step 6: Document actual user workflow**
 
 `README.md` and `packaging/README_PORTABLE.md` must state clearly:
 
@@ -691,7 +688,7 @@ Verify the package remains launchable after generated Data exists and that the S
 8. For manual updates, preserve/copy Data/ into the new release
 ```
 
-- [ ] **Step 7: Run regression gates appropriate to T22**
+- [x] **Step 7: Run regression gates appropriate to T22**
 
 Run fresh:
 
@@ -704,7 +701,7 @@ Run renderer-heavy UI through the established single-file MCP-safe strategy when
 
 Also run Ruff, T22-local mypy, and `git diff --check`.
 
-- [ ] **Step 8: Commit documentation/runtime smoke changes**
+- [x] **Step 8: Commit documentation/runtime smoke changes**
 
 ```bash
 git add README.md packaging/README_PORTABLE.md tests/integration/test_packaged_paths.py
@@ -725,7 +722,7 @@ git commit -m "test: verify packaged Windows workflow"
 - Produces the exact T22 evidence T23 will consume.
 - Does not start T23.
 
-- [ ] **Step 1: Verify package artifacts exist**
+- [x] **Step 1: Verify package artifacts exist**
 
 Required:
 
@@ -739,19 +736,19 @@ dist/STAAD_Model_Preprocessor_<VERSION>_win64_portable.zip
 .../Update/UPDATE_MANUAL.md
 ```
 
-- [ ] **Step 2: Verify release manifest/hashes**
+- [x] **Step 2: Verify release manifest/hashes**
 
 Recompute SHA-256 from the final release tree. Any mismatch fails T22.
 
-- [ ] **Step 3: Verify portable relocation one final time on final artifacts**
+- [x] **Step 3: Verify portable relocation one final time on final artifacts**
 
 The exact final package, not a pre-final build, must launch from a second writable path and different CWD.
 
-- [ ] **Step 4: Verify no forbidden installer/updater artifacts were introduced**
+- [x] **Step 4: Verify no forbidden installer/updater artifacts were introduced**
 
 There must be no T22-produced `Setup.exe`, `.msi`, NSIS output, automatic update downloader/service, registry installation action, or one-file build replacing the standalone baseline.
 
-- [ ] **Step 5: Record limitations truthfully**
+- [x] **Step 5: Record limitations truthfully**
 
 Documentation must state:
 
@@ -760,7 +757,7 @@ Documentation must state:
 - T22 provides manual patch/update readiness, not an automatic updater;
 - T23 real-project + target STAAD.Pro acceptance is still required before declaring production V1 accepted.
 
-- [ ] **Step 6: Commit T22**
+- [x] **Step 6: Commit T22**
 
 Final required task commit subject from the main plan remains:
 
@@ -770,7 +767,7 @@ build: package Windows desktop application
 
 If intermediate commits were used, finish with a docs/checkpoint commit after the implementation commit rather than rewriting tested history.
 
-- [ ] **Step 7: Stop**
+- [x] **Step 7: Stop**
 
 Set T22 to COMPLETE, T23 to READY/not started, and stop for user review. Do not start T23 automatically.
 
@@ -828,25 +825,25 @@ The following are **not** part of T22 and must not be added opportunistically:
 
 T22 is complete only when all of the following are evidenced on the final tree:
 
-- [ ] Portable standalone folder builds successfully.
-- [ ] Portable ZIP builds successfully.
-- [ ] Final `.exe` launches with real PySide6/VTK without Python on PATH.
-- [ ] Final package launches when CWD differs from package root.
-- [ ] Final package launches after being copied/relocated to another writable path containing spaces/Unicode.
-- [ ] All implicit runtime writes remain below portable `Data/`.
-- [ ] Unwritable-root behavior is explicit and has no hidden fallback.
-- [ ] SketchUp `.rbz` is included and archive contract passes.
-- [ ] App/RBZ/package/manifest versions agree.
-- [ ] Package manifest hashes verify exactly.
-- [ ] Manual update procedure preserves `Data/`.
-- [ ] No Setup/MSI/NSIS/automatic updater/onefile production artifact is created.
-- [ ] Existing T21 READY/STD workflow passes from the packaged app.
-- [ ] Relevant unit/integration/UI regression is green.
-- [ ] Ruff passes.
-- [ ] T22-local strict mypy passes for affected typed Python files.
-- [ ] `git diff --check` passes.
-- [ ] README/HANDOFF/CHECKLIST/TASK_BOARD reflect exact tested package behavior.
-- [ ] T23 remains not started until explicit user continuation.
+- [x] Portable standalone folder builds successfully.
+- [x] Portable ZIP builds successfully.
+- [x] Final `.exe` launches with real PySide6/VTK without Python on PATH.
+- [x] Final package launches when CWD differs from package root.
+- [x] Final package launches after being copied/relocated to another writable path containing spaces/Unicode.
+- [x] All implicit runtime writes remain below portable `Data/`.
+- [x] Unwritable-root behavior is explicit and has no hidden fallback.
+- [x] SketchUp `.rbz` is included and archive contract passes.
+- [x] App/RBZ/package/manifest versions agree.
+- [x] Package manifest hashes verify exactly.
+- [x] Manual update procedure preserves `Data/`.
+- [x] No Setup/MSI/NSIS/automatic updater/onefile production artifact is created.
+- [x] Existing T21 READY/STD workflow passes from the packaged app.
+- [x] Relevant unit/integration/UI regression is green.
+- [x] Ruff passes.
+- [x] T22-local strict mypy passes for affected typed Python files.
+- [x] `git diff --check` passes.
+- [x] README/HANDOFF/CHECKLIST/TASK_BOARD reflect exact tested package behavior.
+- [x] T23 remains not started until explicit user continuation.
 
 ## Reference notes
 

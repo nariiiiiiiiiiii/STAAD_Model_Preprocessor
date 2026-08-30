@@ -1,12 +1,31 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 import staadprep.portable_paths as portable_paths_module
 from staadprep.portable_paths import PortablePaths
+
+
+def test_compiled_root_uses_executable_parent_not_nuitka_build_parent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    release = tmp_path / "Portable App ไทย"
+    executable = release / "STAAD Model Preprocessor.exe"
+    nuitka_build_parent = tmp_path / "build" / "windows" / "final"
+    monkeypatch.setattr(sys, "executable", str(executable))
+    monkeypatch.setattr(
+        portable_paths_module,
+        "__compiled__",
+        SimpleNamespace(containing_dir=str(nuitka_build_parent)),
+        raising=False,
+    )
+
+    assert portable_paths_module._compiled_containing_dir() == release.resolve()
 
 
 def test_portable_layout_is_relative_to_release_root(tmp_path: Path) -> None:

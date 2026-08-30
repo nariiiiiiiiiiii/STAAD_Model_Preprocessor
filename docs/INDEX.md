@@ -9,13 +9,13 @@ This file is the navigation and synchronization index for the project. It record
 | Task | Status | Authoritative location |
 |---|---|---|
 | T01–T21 | Complete | `master` / historical task checkpoints |
-| T22 | **IN PROGRESS** | branch `task/22-portable-packaging`, worktree `.worktrees/task-22-portable-packaging` |
-| T23 | Blocked by T22; not started | Target STAAD.Pro acceptance |
+| T22 | **COMPLETE** | branch `task/22-portable-packaging`, worktree `.worktrees/task-22-portable-packaging` |
+| T23 | Ready; not started | Target STAAD.Pro acceptance |
 | T24 | Blocked by T23; not started | Project-local `DEL/` quarantine only |
 
 The active T22 handoff is [`task-22-portable-packaging/docs/HANDOFF.md`](D:/Dizayn59/CLICodex/gpt_mcp_workshop/STAAD_Model_Preprocessor/.worktrees/task-22-portable-packaging/docs/HANDOFF.md). The root `master` checkout contains T21 plus the T22 plan; the active T22 implementation is isolated in the dedicated worktree.
 
-## T22 live checkpoint
+## T22 final checkpoint
 
 ### Completed
 
@@ -24,14 +24,10 @@ The active T22 handoff is [`task-22-portable-packaging/docs/HANDOFF.md`](D:/Diza
 - Deterministic SketchUp `.rbz` builder and portable SketchUp inbox support.
 - Portable assembler, manual-update contract, ZIP/manifest/hash logic.
 - Source-level T21 workflow smoke: import → repair/manual path → renumber → READY → `.STD` + validation report.
-- Checkpoint evidence reported in the active handoff: **303/303 source unit+integration PASS**, excluding final-package tests requiring the real `.exe`; T22-local strict mypy **0 issues**; relevant Ruff checks passed.
-
-### Remaining critical gate
-
-- Nuitka standalone build must emit the real `STAAD Model Preprocessor.exe`.
-- `build/windows/retry1/nuitka-report.xml` exists, but the final `.exe` has not yet been emitted.
-- After the `.exe`: run sanitized-PATH/no-Python smoke, different-CWD launch, relocation to spaces/Unicode paths, existing-`Data/` reopen, final folder/ZIP assembly, manifest/hash verification, and packaged T21 READY/STD/report smoke.
-- T22 must receive a final documentation/checkpoint commit before T23 can begin.
+- Final evidence reported in the active handoff: **307/307 unit+integration PASS**, **3/3 affected UI PASS**, **6/6 final-package gates PASS**, T22-local strict mypy **0 issues**, and Ruff passed.
+- Nuitka standalone build emitted `build/windows/final/app.dist/STAAD Model Preprocessor.exe`; report completion is `yes`.
+- Final folder/ZIP exist under `dist/`; sanitized-PATH/no-Python, different-CWD, spaces/Unicode relocation, existing-`Data`, freshly extracted ZIP, and packaged T21 READY/STD/report gates passed.
+- `Update/package-manifest.json` independently verifies **811/811 managed files**; no forbidden installer/updater/one-file artifact exists.
 
 ### T22 commit map
 
@@ -49,7 +45,7 @@ The active T22 handoff is [`task-22-portable-packaging/docs/HANDOFF.md`](D:/Diza
 | Checkout | Expected role | Current truth |
 |---|---|---|
 | `master` | Stable integrated baseline | T21 complete; T22 plan present; T22 implementation not merged here |
-| `.worktrees/task-22-portable-packaging` | Live T22 development | T22 in progress; source continuation is intentionally uncommitted while the `.exe` gate is being completed |
+| `.worktrees/task-22-portable-packaging` | T22 final source/release | T22 complete; final portable folder and ZIP are generated under this worktree's `dist/` |
 
 Do not report T22 as “not started” merely because the current shell is at `master`. Always inspect the active worktree and its handoff first.
 
@@ -63,7 +59,7 @@ STAAD_Model_Preprocessor/
 ├─ tests/                         Unit, integration, UI, golden, and smoke tests
 ├─ docs/                          Project specifications, plans, status, and this index
 ├─ build/                         Project-local intermediate build/RBZ/Nuitka output
-├─ dist/                          Final distributables; T22 ZIP/folder pending
+├─ dist/                          Final T22 portable folder and ZIP
 ├─ artifacts/                     Project-local evidence and generated reports
 ├─ .tmp/                          Project-local temporary test files
 ├─ .cache/                        Project-local caches
@@ -95,9 +91,10 @@ Expected/implemented source files in the active T22 worktree include:
 Current evidence/artifacts:
 
 - `build/sketchup/STAAD_Prep_Bridge_0.1.0.rbz` exists.
-- `build/windows/retry1/nuitka-report.xml` exists.
-- Final `STAAD Model Preprocessor.exe` is pending.
-- Final `dist/STAAD_Model_Preprocessor_<VERSION>_win64_portable/` and `.zip` are pending.
+- `build/windows/final/nuitka-report.xml` records successful standalone completion.
+- `build/windows/final/app.dist/STAAD Model Preprocessor.exe` exists (159,788,032 bytes; SHA-256 `2401E9C0689CE6ACFDA0E7E7BBE6859F6848780CD79792322CCCADAC2ADB1A57`).
+- `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/` exists (812 files; 708,028,512 bytes).
+- `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip` exists (225,136,191 bytes; SHA-256 `D31A70005D7F0B2C09B467D6A5591892868E9E56AC35874434BA38CFC4687115`).
 
 ## Documentation catalog
 
@@ -123,7 +120,7 @@ Current evidence/artifacts:
 
 - [`superpowers/plans/2026-08-28-staad-model-preprocessor-v1.md`](superpowers/plans/2026-08-28-staad-model-preprocessor-v1.md) — master task plan T01–T24.
 - [`superpowers/plans/2026-08-28-manual-model-editing-v1.md`](superpowers/plans/2026-08-28-manual-model-editing-v1.md) — T16–T20 implementation plan.
-- [`superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md`](superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md) — detailed T22 plan and live checkpoint.
+- [`superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md`](superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md) — detailed T22 plan and final checkpoint.
 - [`superpowers/specs/2026-08-28-staad-model-preprocessor-design.md`](superpowers/specs/2026-08-28-staad-model-preprocessor-design.md) — approved V1 design.
 - [`superpowers/specs/2026-08-28-manual-model-editing-design.md`](superpowers/specs/2026-08-28-manual-model-editing-design.md) — approved manual-editing design.
 - [`superpowers/specs/2026-08-28-sketchup-ruby-bridge-design.md`](superpowers/specs/2026-08-28-sketchup-ruby-bridge-design.md) — approved SketchUp Ruby bridge design.
@@ -150,5 +147,4 @@ At every task checkpoint, update these together:
 5. `README.md`: update only user-visible behavior and tested packaging instructions.
 6. `docs/INDEX.md`: synchronize cross-tree location, artifacts, commit map, and document catalog.
 
-Do not mark T22 complete until the real `.exe`, final portable folder/ZIP, relocation/no-Python gates, manifest hashes, packaged T21 workflow, regression, lint/type checks, and final documentation checkpoint are all evidenced. Do not start T23 automatically.
-
+T22 is complete because the real `.exe`, final portable folder/ZIP, relocation/no-Python gates, manifest hashes, packaged T21 workflow, regression, lint/type checks, and documentation checkpoint are evidenced. Do not start T23 automatically.

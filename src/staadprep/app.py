@@ -5,25 +5,28 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+from typing import cast
 
 from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QMessageBox
 
+from staadprep.packaged_smoke import run_packaged_workflow_smoke
 from staadprep.paths import ProjectPaths
 from staadprep.portable_paths import PortablePaths
 from staadprep.ui.main_window import MainWindow
 from staadprep.ui.theme import APP_STYLESHEET
+from staadprep.version import __version__
 from staadprep.viewer.demo import build_demo_frame
+from staadprep.viewer.widget import StructuralViewport
 
 
 def create_application() -> QApplication:
     """Return the process QApplication, creating and styling it when needed."""
     existing = QApplication.instance()
-    if existing is not None:
-        return existing
+    app = QApplication(sys.argv) if existing is None else cast(QApplication, existing)
 
-    app = QApplication(sys.argv)
     app.setApplicationName("STAAD Model Preprocessor")
+    app.setApplicationVersion(__version__)
     app.setOrganizationName("STAAD Model Preprocessor")
     app.setStyle("Fusion")
     app.setStyleSheet(APP_STYLESHEET)
@@ -42,19 +45,31 @@ def resolve_runtime_paths() -> tuple[ProjectPaths | None, Path | None]:
     return ProjectPaths.from_runtime_root(portable.data), portable.sketchup_inbox
 
 
+def run_optional_packaged_workflow_smoke(window: MainWindow) -> None:
+    """Run the non-interactive packaged workflow only when explicitly requested."""
+    if os.environ.get("STAADPREP_PACKAGED_WORKFLOW_SMOKE") == "1":
+        run_packaged_workflow_smoke(window)
+
+
 def main() -> int:
     app = create_application()
-    project_paths, sketchup_inbox = resolve_runtime_paths()
+    try:
+        project_paths, sketchup_inbox = resolve_runtime_paths()
+    except PermissionError as exc:
+        QMessageBox.critical(None, "Portable folder is not writable", str(exc))
+        return 2
+
     window = MainWindow(
         project_paths=project_paths,
         sketchup_inbox=sketchup_inbox,
     )
 
     if os.environ.get("STAADPREP_DEMO") == "1":
-        window.viewport_host.set_model(build_demo_frame())
+        cast(StructuralViewport, window.viewport_host).set_model(build_demo_frame())
         window.statusBar().showMessage("Development demo model — not validated")
 
     window.show()
+    run_optional_packaged_workflow_smoke(window)
 
     smoke_ms = os.environ.get("STAADPREP_SMOKE_MS")
     if smoke_ms:

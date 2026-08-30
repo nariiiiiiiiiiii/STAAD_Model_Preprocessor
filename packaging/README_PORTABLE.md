@@ -8,6 +8,10 @@ This release is a no-install portable Windows x64 application.
 2. Open the extracted folder.
 3. Double-click `STAAD Model Preprocessor.exe`.
 
+Keep the extraction path reasonably short, for example `D:\STAAD_Preprocessor\`.
+Some bundled Windows/VTK DLLs can hit the legacy Windows path-length limit when
+the package is nested below an unusually deep folder hierarchy.
+
 Python, pip, PySide6, VTK, and the source repository are not required on the target machine.
 
 ## Portable data
