@@ -1,5 +1,13 @@
 Status: **T21 COMPLETE and merged to `master`; T22 Portable Standalone Windows Packaging is COMPLETE on `task/22-portable-packaging`; T23 is not started.**
 
+Post-package user testing on 2026-08-30 identified nine usability corrections. Requirements and execution are captured in:
+
+- `docs/superpowers/specs/2026-08-30-post-t22-usability-design.md`;
+- `docs/superpowers/plans/2026-08-30-sketchup-bridge-usability.md` (requirements 1-2, execute first);
+- `docs/superpowers/plans/2026-08-30-desktop-interaction-usability.md` (requirements 3-9, execute after RBZ acceptance).
+
+Inline execution of the first checkpoint is accepted in real SketchUp. The RBZ bridge window opened and was usable; source/package contract tests passed 3/3, Ruff and `git diff --check` passed, and the accepted artifact is `build/sketchup/STAAD_Prep_Bridge_0.1.0.rbz`. Record the checkpoint commits below, then stop. Do not change or rebuild the desktop executable until the user explicitly starts the desktop checkpoint.
+
 ## Canonical project root
 
 `D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`

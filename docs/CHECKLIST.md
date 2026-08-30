@@ -199,6 +199,15 @@ Status: **COMPLETE — implementation, strict verification, documentation, and t
 
 The final T22 evidence is maintained in [`docs/INDEX.md`](INDEX.md) and [`docs/HANDOFF.md`](HANDOFF.md). Remaining unchecked M14 items below belong to T23 production acceptance or later work and are not silently marked complete by T22 packaging tests.
 
+### Post-T22 usability checkpoint — SketchUp Bridge
+
+- [x] RBZ opens a dedicated interface explaining the geometry handoff.
+- [x] Interface provides Export Geometry, Choose Inbox, and Close actions.
+- [x] Export names use compact `SP_YYYYMMDD_HHMMSS.json` format with collision suffixes.
+- [x] RBZ source/package contract verification: **3/3 PASS**; Ruff and `git diff --check` passed.
+- [x] User accepted the rebuilt RBZ in real SketchUp; the window opened and was usable.
+- [ ] Desktop selection/context/reset/tool-order requirements 3-9 remain pending explicit continuation.
+
 - [ ] Save/open project workflow completed as required by final product.
 - [ ] Crash-safe audit/logging.
 - [x] Complete golden dirty-model fixtures.

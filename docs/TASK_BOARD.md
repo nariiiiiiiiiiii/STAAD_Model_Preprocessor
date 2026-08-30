@@ -100,6 +100,8 @@ Final verified state:
 
 Final evidence: Nuitka standalone build completion `yes`; real Qt/VTK launch without Python; different-CWD and spaces/Unicode relocation; package-local `Data/`; versioned folder/ZIP; 811/811 manifest hashes; packaged T21 READY/STD/report workflow; 307/307 unit+integration; 3/3 affected UI; Ruff and T22-local strict mypy clean.
 
+Post-T22 usability checkpoint: SketchUp Bridge requirements 1-2 are **USER ACCEPTED** after real SketchUp testing. Desktop interaction requirements 3-9 are planned but not started; do not start them without explicit user continuation.
+
 Detailed live checkpoint: `docs/superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md`, `docs/HANDOFF.md`, and `docs/INDEX.md`.
 
 **USER ACTION REQUIRED: none currently.** T23 is ready but remains not started until explicitly requested.

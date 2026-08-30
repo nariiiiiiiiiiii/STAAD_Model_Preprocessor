@@ -29,10 +29,18 @@ def test_rbz_builder_emits_version_matched_extension_with_exact_required_entries
         names = sorted(archive.namelist())
         assert names == ["staadprep/exporter.rb", "staadprep_loader.rb"]
         loader = archive.read("staadprep_loader.rb").decode("utf-8")
+        exporter = archive.read("staadprep/exporter.rb").decode("utf-8")
 
     match = re.search(r"EXTENSION\.version\s*=\s*['\"]([^'\"]+)['\"]", loader)
     assert match is not None
     assert match.group(1) == __version__
+    assert "UI::HtmlDialog.new" in exporter
+    assert "STAAD Prep Bridge" in exporter
+    assert "Export Geometry" in exporter
+    assert "Choose Inbox" in exporter
+    assert "dialog_ready" in exporter
+    assert "SP_#{now.strftime('%Y%m%d_%H%M%S')}" in exporter
+    assert "SecureRandom" not in exporter
 
 
 def test_rbz_builder_stages_only_under_project_build_tree() -> None:

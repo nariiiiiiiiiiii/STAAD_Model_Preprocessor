@@ -13,6 +13,10 @@ This file is the navigation and synchronization index for the project. It record
 | T23 | Ready; not started | Target STAAD.Pro acceptance |
 | T24 | Blocked by T23; not started | Project-local `DEL/` quarantine only |
 
+Post-package user testing on 2026-08-30 produced a nine-item usability patch request. It is split into a SketchUp bridge checkpoint (requirements 1-2) and a desktop interaction checkpoint (requirements 3-9); no structural calculation, topology, repair, or `.STD` semantic change is included.
+
+SketchUp bridge checkpoint status: **USER ACCEPTED** — the new HtmlDialog opened and was usable in real SketchUp, compact `SP_YYYYMMDD_HHMMSS.json` naming is packaged, and desktop requirements 3-9 remain pending explicit continuation.
+
 The active T22 handoff is [`task-22-portable-packaging/docs/HANDOFF.md`](D:/Dizayn59/CLICodex/gpt_mcp_workshop/STAAD_Model_Preprocessor/.worktrees/task-22-portable-packaging/docs/HANDOFF.md). The root `master` checkout contains T21 plus the T22 plan; the active T22 implementation is isolated in the dedicated worktree.
 
 ## T22 final checkpoint
@@ -122,9 +126,12 @@ Current evidence/artifacts:
 - [`superpowers/plans/2026-08-28-staad-model-preprocessor-v1.md`](superpowers/plans/2026-08-28-staad-model-preprocessor-v1.md) — master task plan T01–T24.
 - [`superpowers/plans/2026-08-28-manual-model-editing-v1.md`](superpowers/plans/2026-08-28-manual-model-editing-v1.md) — T16–T20 implementation plan.
 - [`superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md`](superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md) — detailed T22 plan and final checkpoint.
+- [`superpowers/plans/2026-08-30-sketchup-bridge-usability.md`](superpowers/plans/2026-08-30-sketchup-bridge-usability.md) — post-smoke RBZ interface and compact export-name patch.
+- [`superpowers/plans/2026-08-30-desktop-interaction-usability.md`](superpowers/plans/2026-08-30-desktop-interaction-usability.md) — post-smoke selection, context-menu, toolbar, active-mode, and Reset View patch.
 - [`superpowers/specs/2026-08-28-staad-model-preprocessor-design.md`](superpowers/specs/2026-08-28-staad-model-preprocessor-design.md) — approved V1 design.
 - [`superpowers/specs/2026-08-28-manual-model-editing-design.md`](superpowers/specs/2026-08-28-manual-model-editing-design.md) — approved manual-editing design.
 - [`superpowers/specs/2026-08-28-sketchup-ruby-bridge-design.md`](superpowers/specs/2026-08-28-sketchup-ruby-bridge-design.md) — approved SketchUp Ruby bridge design.
+- [`superpowers/specs/2026-08-30-post-t22-usability-design.md`](superpowers/specs/2026-08-30-post-t22-usability-design.md) — binding design for the nine post-package usability corrections.
 
 ## Source-of-truth order
 

@@ -30,6 +30,15 @@ def test_ruby_extension_uses_public_sketchup_api_and_neutral_source_space_contra
     assert "artifacts/sketchup_bridge/inbox" in exporter
     assert "Data/Inbox/SketchUp" in exporter
     assert "Select STAAD Prep inbox" in exporter
+    assert "UI::HtmlDialog.new" in exporter
+    assert "STAAD Prep Bridge" in exporter
+    assert "Export Geometry" in exporter
+    assert "Choose Inbox" in exporter
+    assert "dialog_ready" in exporter
+    assert "DOMContentLoaded" in exporter
+    assert "SP_#{now.strftime('%Y%m%d_%H%M%S')}" in exporter
+    assert "File.exist?(candidate)" in exporter
+    assert "SecureRandom" not in exporter
 
     forbidden = ("sketchup_z_up_to_staad_y_up", "STAAD(", "http://", "https://", "SketchUpAPI")
     assert not any(token in combined for token in forbidden)
