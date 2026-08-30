@@ -179,6 +179,23 @@ Status: **COMPLETE — implementation, strict verification, documentation, and t
 - [x] T20 task commit + post-commit clean/doc gate complete.
 
 ## M14 — End-to-End READY / production readiness (T21-T23)
+
+### T22 live progress checkpoint — 2026-08-30
+- [x] Portable `Data/` runtime path policy implemented and source-tested.
+- [x] Version contract `0.1.0` synchronized across app/package/RBZ tooling.
+- [x] SketchUp `.rbz` builder and portable inbox path support implemented.
+- [x] Portable assembler, manual-update contract, package manifest, and SHA-256 logic implemented.
+- [x] Source-level packaged T21 workflow smoke implemented.
+- [x] Source regression at checkpoint: **303/303 PASS** excluding final-package tests requiring the real `.exe`.
+- [x] T22-local strict mypy: **0 issues**; relevant Ruff checks passed.
+- [ ] Nuitka standalone `.exe` emitted and launched with real PySide6/VTK.
+- [ ] Final portable folder and ZIP assembled from the verified `.exe`.
+- [ ] No-Python PATH, different-CWD, relocation, spaces/Unicode, and `Data/` containment gates passed.
+- [ ] Packaged T21 READY -> `.STD` -> validation-report workflow passed.
+- [ ] Final T22 docs/checkpoint commit complete; T23 remains not started.
+
+The detailed live status is maintained in [`docs/INDEX.md`](INDEX.md) and [`docs/HANDOFF.md`](HANDOFF.md). The remaining unchecked M14 items below are product/acceptance gates and are not silently marked complete by source-level T22 tests.
+
 - [ ] Save/open project workflow completed as required by final product.
 - [ ] Crash-safe audit/logging.
 - [x] Complete golden dirty-model fixtures.

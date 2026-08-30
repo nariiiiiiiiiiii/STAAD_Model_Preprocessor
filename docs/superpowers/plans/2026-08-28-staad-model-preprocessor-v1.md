@@ -889,6 +889,8 @@ Commit: `test: verify end-to-end clean model readiness`
 
 **Detailed executable plan:** `docs/superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md`
 
+**Live status 2026-08-30:** T22 is **IN PROGRESS** on `task/22-portable-packaging` in `.worktrees/task-22-portable-packaging`. Portable paths, version contract, `.rbz`, assembler, manifest/hash contract, manual-update contract, portable inbox support, and source-level workflow smoke are complete. The real Nuitka `.exe` and final package acceptance gates remain pending. See [`docs/INDEX.md`](../../INDEX.md) and the active worktree handoff at `D:/Dizayn59/CLICodex/gpt_mcp_workshop/STAAD_Model_Preprocessor/.worktrees/task-22-portable-packaging/docs/HANDOFF.md`.
+
 **Required outputs:**
 - `dist/STAAD_Model_Preprocessor_<VERSION>_win64_portable/`
 - `dist/STAAD_Model_Preprocessor_<VERSION>_win64_portable.zip`
@@ -905,19 +907,19 @@ Commit: `test: verify end-to-end clean model readiness`
 - Target machine requires no Python/pip/PySide6/VTK installation.
 - `Data/` is the preserved state root for manual patches and the future updater contract.
 
-- [ ] **Step 1: Implement/test portable runtime path policy and writeability gate**
+- [x] **Step 1: Implement/test portable runtime path policy and writeability gate**
 
-- [ ] **Step 2: Establish synchronized app/package/RBZ version contract**
+- [x] **Step 2: Establish synchronized app/package/RBZ version contract**
 
-- [ ] **Step 3: Build and validate version-matched SketchUp `.rbz`**
+- [x] **Step 3: Build and validate version-matched SketchUp `.rbz`**
 
-- [ ] **Step 4: Build Nuitka Windows x64 `--mode=standalone` package and prove real Qt/VTK launch without Python on PATH**
+- [ ] **Step 4: Build Nuitka Windows x64 `--mode=standalone` package and prove real Qt/VTK launch without Python on PATH** *(IN PROGRESS: dependency analysis/report exists; final `.exe` is not emitted.)*
 
-- [ ] **Step 5: Assemble versioned portable folder + ZIP + update manifest/hashes/manual-update docs**
+- [ ] **Step 5: Assemble versioned portable folder + ZIP + update manifest/hashes/manual-update docs** *(PARTIAL: assembler, manifest/hash logic, and manual-update docs exist; final assembly awaits the verified `.exe`.)*
 
 - [ ] **Step 6: Prove relocation, different-CWD launch, spaces/Unicode paths, and package-local runtime writes**
 
-- [ ] **Step 7: Run packaged golden import/manual-edit/READY/STD/report smoke plus full relevant regression**
+- [ ] **Step 7: Run packaged golden import/manual-edit/READY/STD/report smoke plus full relevant regression** *(PARTIAL: source-level smoke/regression is green; final packaged executable evidence is pending.)*
 
 - [ ] **Step 8: Close T22 docs/checkpoint; keep T23 not started**
 

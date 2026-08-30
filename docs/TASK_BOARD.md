@@ -100,6 +100,6 @@ Final verified state:
 
 Current checkpoint: portable runtime paths/version contract/RBZ/portable assembler/update manifest are implemented and source-level regression is green; the remaining critical gate is producing and validating the real Nuitka standalone `.exe`, then relocation/no-Python/package regression and final docs close.
 
-Detailed live checkpoint: `docs/superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md` and `docs/HANDOFF.md`.
+Detailed live checkpoint: `docs/superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md`, `docs/HANDOFF.md`, and `docs/INDEX.md`.
 
 **USER ACTION REQUIRED: none currently.** T23 remains blocked until T22 is complete.

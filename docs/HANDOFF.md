@@ -286,6 +286,7 @@ User-approved packaging contract:
 
 Detailed implementation plan:
 - `docs/superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md`
+- synchronized project index: `docs/INDEX.md`
 
 Completed T22 checkpoints and commits:
 - `7d0ee2b` — `feat: add portable runtime path boundary`

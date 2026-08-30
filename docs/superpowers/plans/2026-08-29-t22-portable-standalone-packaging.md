@@ -74,6 +74,24 @@ The following requirements are binding for T22:
 11. T22 remains **STANDARD risk**. It must not change structural/model/ReadyGate mathematics or validation semantics.
 12. T23 remains responsible for real-project + target STAAD.Pro production acceptance; T22 packages and proves the desktop runtime only.
 
+## Live checkpoint — 2026-08-30
+
+T22 is **IN PROGRESS** on `task/22-portable-packaging` in `.worktrees/task-22-portable-packaging`.
+
+Completed and evidenced in the active worktree:
+
+- portable runtime path policy and `Data/` hierarchy;
+- version contract `0.1.0`;
+- deterministic SketchUp `.rbz` builder and portable inbox support;
+- portable assembler, manual-update contract, ZIP/manifest/hash logic;
+- source-level packaged T21 workflow smoke;
+- **303/303** source unit+integration regression pass, excluding final-package tests that require the real `.exe`;
+- T22-local strict mypy **0 issues** and relevant Ruff checks passed.
+
+The remaining critical gate is the real Nuitka standalone build. Dependency analysis has produced `build/windows/retry1/nuitka-report.xml`, but no final `STAAD Model Preprocessor.exe` has been emitted yet. After that, T22 must still prove no-Python launch, different-CWD launch, relocation to spaces/Unicode paths, runtime-write containment under `Data/`, final portable ZIP assembly, manifest hashes, and the packaged T21 READY/STD/report workflow.
+
+The synchronized documentation entry point is [`docs/INDEX.md`](../../INDEX.md). Do not start T23 until the final T22 gate is complete.
+
 ## Important portability boundary
 
 “Extract anywhere and run” means **any writable location** supported by Windows. A protected/read-only directory cannot satisfy the requirement to save `Data/` beside the executable. The app must detect an unwritable portable root at startup and show a clear error; it must **not silently fall back** to `%TEMP%`, `%APPDATA%`, registry state, or another hidden location.
