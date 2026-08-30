@@ -21,6 +21,7 @@ Completed committed checkpoints:
 - `6afaea9` — `build: package SketchUp bridge extension`
 - `22510bc` — `build: assemble update-ready portable release`
 - `056d906` — `fix: support portable SketchUp inbox`
+- `dcc2d6e` — `build: package Windows desktop application`
 
 Final verified behavior:
 

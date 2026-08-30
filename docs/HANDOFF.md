@@ -294,6 +294,7 @@ Completed T22 checkpoints and commits:
 - `6afaea9` — `build: package SketchUp bridge extension`
 - `22510bc` — `build: assemble update-ready portable release`
 - `056d906` — `fix: support portable SketchUp inbox`
+- `dcc2d6e` — `build: package Windows desktop application`
 
 Final implementation and verification:
 - `PortablePaths` resolves compiled runtime from the executable/compiled containing directory, never launch CWD;
