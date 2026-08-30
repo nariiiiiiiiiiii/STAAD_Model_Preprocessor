@@ -44,6 +44,7 @@ The active T22 handoff is [`task-22-portable-packaging/docs/HANDOFF.md`](D:/Diza
 | `056d906` | Portable SketchUp inbox support |
 | `034456a` | T22 documentation checkpoint |
 | `dcc2d6e` | Final Windows standalone package implementation and verification |
+| `e7ce6ad` | User-accepted SketchUp bridge interface and compact JSON export names |
 
 ## Checkout alignment
 

@@ -24,7 +24,7 @@
 - [x] Compact `SP_YYYYMMDD_HHMMSS.json` naming with `_02` collision suffix implemented.
 - [x] Version-matched RBZ rebuilt under `build/sketchup/`.
 - [x] User installed and accepted the rebuilt RBZ in real SketchUp; the bridge window opened and was usable.
-- [ ] Commit this checkpoint after user acceptance.
+- [x] Feature checkpoint committed as `e7ce6ad` (`feat: add SketchUp bridge interface`).
 
 ---
 

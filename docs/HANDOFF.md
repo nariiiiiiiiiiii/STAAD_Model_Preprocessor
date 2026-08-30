@@ -8,6 +8,9 @@ Post-package user testing on 2026-08-30 identified nine usability corrections. R
 
 Inline execution of the first checkpoint is accepted in real SketchUp. The RBZ bridge window opened and was usable; source/package contract tests passed 3/3, Ruff and `git diff --check` passed, and the accepted artifact is `build/sketchup/STAAD_Prep_Bridge_0.1.0.rbz`. Record the checkpoint commits below, then stop. Do not change or rebuild the desktop executable until the user explicitly starts the desktop checkpoint.
 
+Post-T22 usability commit:
+- `e7ce6ad` — `feat: add SketchUp bridge interface`
+
 ## Canonical project root
 
 `D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`
