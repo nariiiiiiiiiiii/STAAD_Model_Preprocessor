@@ -1,6 +1,6 @@
 Execution policy: **run exactly one Task at a time**. Every Task must end with its verification, Git commit, documentation/status update, and a hard stop for user review before the next Task begins.
 
-Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 through HR-4 on 2026-08-28. Manual Editing + SketchUp-style controls and SketchUp Ruby Bridge + Direct DXF V1 import architecture approved on 2026-08-28.**
+Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 through HR-4 on 2026-08-28. Manual Editing + SketchUp-style controls and SketchUp Ruby Bridge + Direct DXF V1 import architecture approved on 2026-08-28. Post-T22 HR-2 Delete/Merge/Member-Repeat correction scope explicitly approved on 2026-08-30.**
 
 | Task | Deliverable | Risk | Status |
 |---|---|---|---|
@@ -100,8 +100,48 @@ Final verified state:
 
 Final evidence: Nuitka standalone build completion `yes`; real Qt/VTK launch without Python; different-CWD and spaces/Unicode relocation; package-local `Data/`; versioned folder/ZIP; 811/811 manifest hashes; packaged T21 READY/STD/report workflow; 307/307 unit+integration; 3/3 affected UI; Ruff and T22-local strict mypy clean.
 
-Post-T22 usability checkpoint: SketchUp Bridge requirements 1-2 are **USER ACCEPTED** after real SketchUp testing. Desktop interaction requirements 3-9 are planned but not started; do not start them without explicit user continuation.
+Post-T22 usability checkpoint: SketchUp Bridge requirements 1-2 are **USER ACCEPTED** after real SketchUp testing. The separate desktop requirements 3-9 package is verified historical evidence and is **SUPERSEDED** by the consolidated ten-item editing-correction package; no separate acceptance remains on `post-t22-ux-final`.
+
+Post-T22 ten-item editing corrections are a **VERIFIED HISTORICAL PACKAGE CHECKPOINT** on the same
+T22 worktree: **325/325 unit+integration**, **111/111 UI**, real Windows smokes, Ruff, strict mypy,
+exact package gates **4/4**, manifest **811/811**, and extracted-ZIP launch all passed. Release:
+`dist/post-t22-editing-final/`. It is superseded for current acceptance by accepted source
+follow-ups; T23 remains not started.
+
+Targeted archive checkpoint (user-authorized, 2026-08-31): superseded baseline and
+`post-t22-ux-final` release artifacts moved recoverably to `DEL/standalone-archive-20260831/` with
+`DEL/UNUSED_FILES_MANIFEST.md`. Current editing-final and latest build input are preserved; this
+does not start full T24 cleanup.
 
 Detailed live checkpoint: `docs/superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md`, `docs/HANDOFF.md`, and `docs/INDEX.md`.
 
-**USER ACTION REQUIRED: none currently.** T23 is ready but remains not started until explicitly requested.
+**USER ACTION REQUIRED:** test and accept the new package. Nuitka compile step 1, isolated
+portable-folder/ZIP assembly, and package-only verification (**7/7 PASS**) are complete under
+`dist/post-t22-refresh-save-final/`; the historical `dist/post-t22-editing-final/` package does
+not contain every accepted source follow-up. T23 remains not started until package acceptance and
+an explicit instruction.
+
+Incremental follow-up (2026-08-31): all agreed source features are **USER ACCEPTED**, including
+Apply/OK repair refresh, repeated-Orphan handling, Project Explorer selection, engineering
+Properties, Member Repeat/Local Axes, Save/Open Project JSON, and corrected Exit confirmation.
+Task 7 full source verification is **COMPLETE**: **332/332 source unit+integration**, **140/140 UI**,
+six real Windows source smokes, focused Save/Open **5/5**, Ruff, strict mypy, and diff checks pass.
+The user authorized compile step 1 and the fresh Nuitka standalone build completed successfully.
+Portable assembly and ZIP creation completed under `dist/post-t22-refresh-save-final/`; package-only
+verification is **7/7 PASS** and real package acceptance is **PASS** (2026-08-31). This follow-up
+does not start T23.
+
+
+## 2026-08-31 source handoff checkpoint
+
+- User-accepted source behavior before handoff: Member Translational Repeat preview, engineering Properties, Project Explorer entity selection, Member Local Axes XYZ, three-row toolbar with visible View controls, Save/Open Project JSON, import-derived save filename, `SAVED` / `NOT SAVED` title state, Ctrl+S save confirmation, readable Node/Member/Coordinate labels, Global Axis X/Y/Z labels, and Exit confirmation UI.
+- Latest real-user defect was clicking window `X` and choosing `Yes` without closing the application.
+- Latest source fix: exit dialog now compares the native Qt button result with equality (`==`) and the accepted close path delegates to `QMainWindow.closeEvent()`.
+- Exit regression evidence after fix: `tests/ui/test_exit_confirmation.py` **4/4 PASS**; Ruff PASS; strict mypy 0 issues for `main_window.py`; `git diff --check` PASS.
+- Status of latest close fix: **SOURCE VERIFIED / USER ACCEPTED — 2026-08-31**.
+- Full source verification is **COMPLETE**: **332/332 source unit+integration PASS**, **102/102
+  lightweight UI PASS**, **38/38 isolated VTK UI PASS**, six real source smokes exit 0, focused
+  Save/Open **5/5 PASS**, Ruff PASS, strict mypy 0 issues, and diff check PASS.
+- The package-only verification suite was run against the new package after explicit authorization:
+  **7/7 PASS**. Nuitka compilation, portable assembly, and ZIP creation completed under
+  `dist/post-t22-refresh-save-final/`; real package acceptance is **PASS** (2026-08-31).

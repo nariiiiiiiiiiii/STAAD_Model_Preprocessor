@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from .entities import Member, Node
 from .geometry import Vec3
@@ -43,11 +44,10 @@ def _metadata_to_dict(metadata: ModelMetadata) -> dict[str, Any]:
     }
 
 
-def save_project(model: ProjectModel, path: Path) -> None:
-    """Serialize *model* to deterministic UTF-8 JSON."""
+def _project_json_text(model: ProjectModel) -> str:
+    """Return deterministic schema-version-1 project JSON text."""
     if model.metadata.schema_version != _SCHEMA_VERSION:
         raise ValueError(f"Unsupported schema version: {model.metadata.schema_version}")
-
     payload = {
         "schema_version": _SCHEMA_VERSION,
         "revision": model.revision,
@@ -57,11 +57,28 @@ def save_project(model: ProjectModel, path: Path) -> None:
             _member_to_dict(model.members[key]) for key in sorted(model.members, key=str)
         ],
     }
+    return json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+
+
+def save_project_atomic(model: ProjectModel, path: Path, *, temp_dir: Path) -> None:
+    """Atomically serialize *model* without risking a partial destination file."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    temp_path = temp_dir / f".{path.name}.{uuid4().hex}.tmp"
+    try:
+        with temp_path.open("w", encoding="utf-8", newline="\n") as stream:
+            stream.write(_project_json_text(model))
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temp_path, path)
+    finally:
+        temp_path.unlink(missing_ok=True)
+
+
+def save_project(model: ProjectModel, path: Path) -> None:
+    """Serialize *model* to deterministic UTF-8 JSON."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(_project_json_text(model), encoding="utf-8")
 
 
 def _load_node(data: dict[str, Any]) -> Node:

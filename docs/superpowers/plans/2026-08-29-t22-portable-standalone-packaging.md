@@ -14,6 +14,13 @@
 
 **Status:** T22 is **COMPLETE** on branch `task/22-portable-packaging` / worktree `.worktrees/task-22-portable-packaging`. T21 remains complete and unchanged; T23 is ready but not started.
 
+**Current post-T22 checkpoint (2026-08-31):** all agreed source follow-ups are user accepted and
+full source verification passes **332/332 source unit+integration** plus **140/140 UI**. The
+verified `dist/post-t22-editing-final/` folder/ZIP is historical and lacks later follow-ups. The
+user authorized compile step 1 and a fresh Nuitka standalone build completed; portable assembly
+and ZIP creation also completed under `dist/post-t22-refresh-save-final/`. Package-only gates and
+T23 are still not started.
+
 Completed committed checkpoints:
 
 - `7d0ee2b` — `feat: add portable runtime path boundary`
@@ -47,11 +54,18 @@ Final build and release evidence:
 - real Qt/VTK, sanitized-PATH/no-Python, different-CWD, relocation with spaces/Unicode, existing-`Data`, packaged workflow, freshly extracted ZIP launch, and 811/811 manifest hash gates passed;
 - no Setup/MSI/NSIS/automatic-updater/one-file production artifact exists.
 
-**Next action:** review/use the final release. Start T23 only after explicit user instruction.
+**Next action:** obtain real user acceptance of the new isolated standalone/ZIP. Package-only
+verification is **7/7 PASS**. Start T23 only after explicit user instruction and package acceptance.
 
 ### USER ACTION REQUIRED
 
-**None currently.** Do not download or install additional Python/toolchain/runtime packages preemptively. If a later build error proves a missing external prerequisite, record the exact prerequisite/version/source/reason here and ask the user to perform the manual download/install only when that is simpler or safer than automated handling.
+**Next user action: test and accept the new package.** Nuitka compile step 1, isolated
+portable-folder/ZIP assembly, and package-only verification (**7/7 PASS**) are complete under
+`dist/post-t22-refresh-save-final/`; the editing-final standalone folder/ZIP is a historical
+checkpoint and not the current acceptance target. Do not download or install additional
+Python/toolchain/runtime packages preemptively. If a later build error proves a missing external
+prerequisite, record the exact prerequisite/version/source/reason here and ask the user to perform
+the manual download/install only when that is simpler or safer than automated handling.
 
 ## User-approved packaging contract — 2026-08-29
 

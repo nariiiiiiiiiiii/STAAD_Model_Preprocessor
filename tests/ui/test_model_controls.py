@@ -14,11 +14,17 @@ from staadprep.numbering.renumber import NumberingPolicy
 from staadprep.orientation.normalize import needs_reverse
 from staadprep.ui.main_window import MainWindow
 from staadprep.ui.model_controls import NumberingPreviewDialog
+from staadprep.ui.repair_apply_dialog import RepairApplyDialog
 from staadprep.viewer.interaction import EditMode, LabelVisibility
 
 
 def _key(value: int) -> UUID:
     return UUID(int=value)
+
+
+def _apply_repair(dialog: RepairApplyDialog) -> None:
+    dialog.apply_button.click()
+    dialog.ok_button.click()
 
 
 class ModelControlsViewport(QWidget):
@@ -107,7 +113,7 @@ def test_toolbar_exposes_all_t20_numbering_and_direction_actions(qtbot) -> None:
     assert window.auto_member_number_action.text() == "Auto Member Number"
     assert window.auto_number_all_action.text() == "Auto Number All"
     assert window.auto_fix_axis_action.text() == "Auto Fix Axis"
-    assert window.auto_fix_selected_action.text() == "Auto Fix Selected"
+    assert window.auto_fix_selected_action.text() == "Auto Fix Direction"
     assert window.flip_selected_action.text() == "Flip Selected"
     assert window.set_direction_action.text() == "Set Direction"
 
@@ -174,7 +180,10 @@ def test_set_direction_requires_one_member_and_endpoint_click_sets_start_with_lo
 
 def test_auto_fix_selected_is_atomic_and_only_changes_selected_incidence(qtbot) -> None:
     viewport = ModelControlsViewport()
-    window = MainWindow(viewport_factory=lambda: viewport)
+    window = MainWindow(
+        viewport_factory=lambda: viewport,
+        repair_dialog_runner=_apply_repair,
+    )
     qtbot.addWidget(window)
     model = _model()
     window.set_canonical_model(model)

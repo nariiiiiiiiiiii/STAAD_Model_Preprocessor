@@ -75,17 +75,24 @@ class IssueConsole(QFrame):
         return self._by_id.get(str(issue_id))
 
     def set_issues(self, issues: list[Issue] | tuple[Issue, ...]) -> None:
-        self._issues = tuple(issues)
-        self._by_id = {issue.id: issue for issue in self._issues}
-        counts = {severity: 0 for severity in IssueSeverity}
-        for issue in self._issues:
-            counts[issue.severity] += 1
-        self.counts_label.setText(
-            f"Errors {counts[IssueSeverity.ERROR]}  |  "
-            f"Warnings {counts[IssueSeverity.WARNING]}  |  "
-            f"Info {counts[IssueSeverity.INFO]}"
-        )
-        self._rebuild_table()
+        signals_were_blocked = self.table.blockSignals(True)
+        try:
+            self.table.clearSelection()
+            self.table.setCurrentCell(-1, -1)
+            self._issues = tuple(issues)
+            self._by_id = {issue.id: issue for issue in self._issues}
+            counts = {severity: 0 for severity in IssueSeverity}
+            for issue in self._issues:
+                counts[issue.severity] += 1
+            self.counts_label.setText(
+                f"Errors {counts[IssueSeverity.ERROR]}  |  "
+                f"Warnings {counts[IssueSeverity.WARNING]}  |  "
+                f"Info {counts[IssueSeverity.INFO]}"
+            )
+            self._rebuild_table()
+        finally:
+            self.table.blockSignals(signals_were_blocked)
+        self._update_isolate_button()
 
     def select_issue(self, issue_id: str) -> None:
         for row in range(self.table.rowCount()):

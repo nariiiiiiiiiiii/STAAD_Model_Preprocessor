@@ -9,10 +9,16 @@ from staadprep.model.geometry import Vec3
 from staadprep.model.project import ProjectModel
 from staadprep.orientation.normalize import needs_reverse
 from staadprep.ui.main_window import MainWindow
+from staadprep.ui.repair_apply_dialog import RepairApplyDialog
 
 
 def _key(value: int) -> UUID:
     return UUID(int=value)
+
+
+def _apply_repair(dialog: RepairApplyDialog) -> None:
+    dialog.apply_button.click()
+    dialog.ok_button.click()
 
 
 class OrientationViewport(QWidget):
@@ -69,7 +75,10 @@ def test_canonical_model_previews_local_x_reverse_count_and_arrows(qtbot) -> Non
 
 def test_normalize_all_runs_reverse_commands_through_repair_history_and_revalidates(qtbot) -> None:
     viewport = OrientationViewport()
-    window = MainWindow(viewport_factory=lambda: viewport)
+    window = MainWindow(
+        viewport_factory=lambda: viewport,
+        repair_dialog_runner=_apply_repair,
+    )
     qtbot.addWidget(window)
     model = _orientation_model()
 
@@ -83,12 +92,15 @@ def test_normalize_all_runs_reverse_commands_through_repair_history_and_revalida
     assert not window.normalize_axis_action.isEnabled()
     assert "Local X     0 reverse / 3 total" in window.validation_panel.summary_label.text()
     assert window.repair_history is not None
-    assert len(window.repair_history.audit.entries) == 2
+    assert len(window.repair_history.audit.entries) == 1
 
 
 def test_undo_after_normalization_restores_one_direction_and_preview_count(qtbot) -> None:
     viewport = OrientationViewport()
-    window = MainWindow(viewport_factory=lambda: viewport)
+    window = MainWindow(
+        viewport_factory=lambda: viewport,
+        repair_dialog_runner=_apply_repair,
+    )
     qtbot.addWidget(window)
     model = _orientation_model()
 
@@ -96,6 +108,6 @@ def test_undo_after_normalization_restores_one_direction_and_preview_count(qtbot
     window.normalize_member_directions()
     window.undo_repair()
 
-    assert sum(needs_reverse(model, member) for member in model.members.values()) == 1
-    assert window.orientation_reverse_count == 1
+    assert sum(needs_reverse(model, member) for member in model.members.values()) == 2
+    assert window.orientation_reverse_count == 2
     assert window.normalize_axis_action.isEnabled()

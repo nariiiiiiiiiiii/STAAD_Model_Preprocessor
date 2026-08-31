@@ -9,8 +9,15 @@ from pathlib import Path
 from staadprep.version import __version__
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-PACKAGE_ROOT = (
-    PROJECT_ROOT / "dist" / f"STAAD_Model_Preprocessor_{__version__}_win64_portable"
+PACKAGE_ROOT = Path(
+    os.environ.get(
+        "STAADPREP_PACKAGE_ROOT",
+        str(
+            PROJECT_ROOT
+            / "dist"
+            / f"STAAD_Model_Preprocessor_{__version__}_win64_portable"
+        ),
+    )
 )
 ENTRYPOINT = "STAAD Model Preprocessor.exe"
 _EXPECTED_DATA_DIRS = (

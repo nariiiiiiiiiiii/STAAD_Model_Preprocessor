@@ -188,14 +188,40 @@ def _count_by_file(node_ids: Sequence[str]) -> Counter[str]:
     return counts
 
 
-def _run_pytest(project_root: Path, files: Sequence[Path], *, env: dict[str, str]) -> int:
+def _pytest_runtime_args(*, run_id: str, key: str) -> tuple[str, ...]:
+    safe_key = key.replace("/", "_").replace("\\", "_").replace(":", "_")
+    invocation = f"{run_id}-{os.getpid()}-{safe_key}"
+    return (
+        f"--basetemp=.tmp/tests/ui-isolated/{invocation}",
+        "-o",
+        f"cache_dir=.cache/pytest-ui-isolated/{invocation}",
+    )
+
+
+def _run_pytest(
+    project_root: Path,
+    files: Sequence[Path],
+    *,
+    env: dict[str, str],
+    run_id: str,
+    key: str,
+) -> int:
     if not files:
         return 0
+    (project_root / ".tmp" / "tests" / "ui-isolated").mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    (project_root / ".cache" / "pytest-ui-isolated").mkdir(
+        parents=True,
+        exist_ok=True,
+    )
     command = [
         sys.executable,
         "-m",
         "pytest",
         "-q",
+        *_pytest_runtime_args(run_id=run_id, key=key),
         *(_relative_test_arg(project_root, path) for path in files),
     ]
     return subprocess.run(command, cwd=project_root, env=env, check=False).returncode
@@ -349,7 +375,16 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if lightweight:
         print("\n[1/2] Running lightweight UI tests in one process...")
-        if _run_pytest(project_root, lightweight, env=env) != 0:
+        if (
+            _run_pytest(
+                project_root,
+                lightweight,
+                env=env,
+                run_id=args.run_id,
+                key="lightweight",
+            )
+            != 0
+        ):
             failed_files.append("lightweight-group")
             save_result(result_dir, "lightweight", passed=0, total=lightweight_total)
         else:
@@ -368,7 +403,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"[{index}/{len(renderer_heavy)}] {relative}")
             test_count = count_by_file[path.name]
             result_key = f"renderer-{path.name}"
-            if _run_pytest(project_root, (path,), env=env) != 0:
+            if (
+                _run_pytest(
+                    project_root,
+                    (path,),
+                    env=env,
+                    run_id=args.run_id,
+                    key=result_key,
+                )
+                != 0
+            ):
                 save_result(result_dir, result_key, passed=0, total=test_count)
                 failed_files.append(path.name)
                 break

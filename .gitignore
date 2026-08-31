@@ -12,6 +12,10 @@ build/
 dist/
 artifacts/
 
+# Recoverable user-controlled quarantine: keep only its audit manifest in Git.
+DEL/*
+!DEL/UNUSED_FILES_MANIFEST.md
+
 # Native build outputs
 *.obj
 *.pdb

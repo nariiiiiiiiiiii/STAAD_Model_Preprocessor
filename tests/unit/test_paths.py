@@ -11,6 +11,8 @@ def test_generated_paths_are_under_project(tmp_path: Path) -> None:
     paths = ProjectPaths.from_root(root)
     paths.ensure_layout()
 
+    assert paths.projects == root.resolve() / "artifacts" / "projects"
+    assert paths.projects.is_dir()
     for path in paths.generated_dirs:
         assert path.is_relative_to(root)
         assert path.exists()
@@ -56,7 +58,9 @@ def test_runtime_paths_use_portable_data_directories_without_creating_build_outp
     assert paths.tmp == data.resolve() / "Temp"
     assert paths.cache == data.resolve() / "Cache"
     assert paths.logs == data.resolve() / "Logs"
+    assert paths.projects == data.resolve() / "Projects"
     assert paths.artifacts == data.resolve()
+    assert (data / "Projects").is_dir()
     assert (data / "Temp").is_dir()
     assert (data / "Cache").is_dir()
     assert (data / "Logs").is_dir()

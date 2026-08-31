@@ -20,7 +20,7 @@ FIXTURE = PROJECT_ROOT / "tests/golden_models/01_dxf_lines/source.dxf"
 
 def main() -> int:
     app = create_application()
-    window = MainWindow()
+    window = MainWindow(confirm_exit=lambda _dirty: True)
     batch = window.load_raw_dxf(FIXTURE)
     window.show()
     app.processEvents()

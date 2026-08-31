@@ -42,7 +42,10 @@ def _load_fixture() -> ProjectModel:
 
 def main() -> int:
     app = create_application()
-    window = MainWindow(confirm_delete=lambda _message: True)
+    window = MainWindow(
+        confirm_delete=lambda _message: True,
+        confirm_exit=lambda _dirty: True,
+    )
     window.set_canonical_model(_load_fixture())
     app.processEvents()
 

@@ -7,7 +7,7 @@ from PySide6.QtCore import Qt
 from staadprep.model.entities import Member, Node
 from staadprep.model.geometry import Vec3
 from staadprep.model.project import ProjectModel
-from staadprep.repair.commands import ConnectNodes, DeleteMember, MergeNodes, MoveNode
+from staadprep.repair.commands import ConnectNodes, MergeNodes, MoveNode
 from staadprep.repair.composite import CompositeRepair
 from staadprep.viewer.interaction import EditMode
 from staadprep.viewer.widget import StructuralViewport
@@ -88,16 +88,15 @@ def test_delete_request_emits_exact_selected_member_only(qtbot) -> None:
     qtbot.addWidget(viewport)
     model = _model()
     viewport.set_model(model)
-    emitted: list[object] = []
-    viewport.manual_command_requested.connect(emitted.append)
+    requests: list[bool] = []
+    viewport.delete_selection_requested.connect(lambda: requests.append(True))
     viewport.set_edit_mode(EditMode.DELETE)
     viewport.highlight_members((_key(102),))
 
     viewport.request_delete_selection()
 
-    assert len(emitted) == 1
-    assert isinstance(emitted[0], DeleteMember)
-    assert emitted[0].member_key == _key(102)
+    assert requests == [True]
+    assert viewport.selection.selected_members == (_key(102),)
     assert _key(101) in model.members and _key(102) in model.members
 
 

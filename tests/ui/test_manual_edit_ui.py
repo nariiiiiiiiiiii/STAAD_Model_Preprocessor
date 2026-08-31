@@ -28,6 +28,8 @@ def _key(value: int) -> UUID:
 
 class ManualViewport(QWidget):
     manual_command_requested = Signal(object)
+    delete_selection_requested = Signal()
+    selection_changed = Signal(object, object)
 
     def __init__(self) -> None:
         super().__init__()
@@ -36,6 +38,7 @@ class ManualViewport(QWidget):
         self.filter = SelectionFilter()
         self.labels = LabelVisibility()
         self.selection = SelectionState()
+        self.focus_calls = 0
 
     def set_model(self, model: ProjectModel) -> None:
         self.model = model
@@ -48,6 +51,9 @@ class ManualViewport(QWidget):
 
     def set_label_visibility(self, visibility: LabelVisibility) -> None:
         self.labels = visibility
+
+    def focus_interactor(self) -> None:
+        self.focus_calls += 1
 
 
 def _model() -> ProjectModel:
@@ -77,6 +83,45 @@ def test_manual_edit_actions_switch_explicit_edit_modes(qtbot) -> None:
     assert viewport.mode is EditMode.DELETE
     window.select_mode_action.trigger()
     assert viewport.mode is EditMode.SELECT
+
+
+def test_edit_modes_force_compatible_selection_filters(qtbot) -> None:
+    viewport = ManualViewport()
+    window = MainWindow(viewport_factory=lambda: viewport)
+    qtbot.addWidget(window)
+
+    window.select_nodes_action.setChecked(False)
+    window.select_members_action.setChecked(True)
+    window.draw_member_action.trigger()
+    assert viewport.filter == SelectionFilter(nodes=True, members=False)
+
+    window.select_members_action.setChecked(True)
+    window.move_snap_action.trigger()
+    assert viewport.filter == SelectionFilter(nodes=True, members=False)
+
+    window.delete_mode_action.trigger()
+    assert viewport.filter == SelectionFilter(nodes=True, members=True)
+
+
+def test_edit_mode_activation_focuses_viewport_and_explains_next_click(qtbot) -> None:
+    viewport = ManualViewport()
+    window = MainWindow(viewport_factory=lambda: viewport)
+    qtbot.addWidget(window)
+    initial_focus_calls = viewport.focus_calls
+
+    window.draw_member_action.trigger()
+
+    assert viewport.focus_calls == initial_focus_calls + 1
+    assert "start Node" in window.statusBar().currentMessage()
+
+
+def test_precision_create_actions_have_distinct_labels(qtbot) -> None:
+    window = MainWindow(viewport_factory=ManualViewport)
+    qtbot.addWidget(window)
+
+    assert window.create_node_mode_action.text() == "Create Node (Click)"
+    assert window.create_node_dialog_action.text() == "Create Node (XYZ)…"
+    assert window.auto_fix_selected_action.text() == "Auto Fix Direction"
 
 
 def test_draw_existing_member_request_executes_through_one_history_entry(qtbot) -> None:
@@ -250,3 +295,76 @@ def test_delete_selected_standalone_node_requires_confirmation_and_is_undoable(q
     assert _key(50) not in model.nodes
     window.undo_repair()
     assert model.nodes[_key(50)].position == Vec3(20.0, 0.0, 0.0)
+
+
+def test_delete_toolbar_removes_current_orphan_selection_without_second_click(qtbot) -> None:
+    viewport = ManualViewport()
+    confirmations: list[str] = []
+    window = MainWindow(
+        viewport_factory=lambda: viewport,
+        confirm_delete=lambda message: confirmations.append(message) or True,
+    )
+    qtbot.addWidget(window)
+    model = _model()
+    model.nodes[_key(50)] = Node(_key(50), Vec3(20.0, 0.0, 0.0))
+    window.set_canonical_model(model)
+    viewport.selection.set_nodes((_key(50),))
+
+    window.delete_mode_action.trigger()
+
+    assert _key(50) not in model.nodes
+    assert confirmations == ["Delete 1 Node(s) and 0 Member(s)?"]
+    assert window.repair_history is not None
+    assert len(window.repair_history.undo_stack) == 1
+
+
+def test_delete_key_routes_current_member_selection_through_confirmation(qtbot) -> None:
+    viewport = ManualViewport()
+    window = MainWindow(
+        viewport_factory=lambda: viewport,
+        confirm_delete=lambda _message: True,
+    )
+    qtbot.addWidget(window)
+    window.show()
+    model = _model()
+    window.set_canonical_model(model)
+    viewport.selection.set_members((_key(101),))
+    viewport.setFocus()
+
+    window.delete_selection_action.trigger()
+
+    assert _key(101) not in model.members
+
+
+def test_merge_members_action_applies_one_undoable_command(qtbot) -> None:
+    viewport = ManualViewport()
+    window = MainWindow(
+        viewport_factory=lambda: viewport,
+        confirm_delete=lambda _message: True,
+    )
+    qtbot.addWidget(window)
+    model = ProjectModel(
+        nodes={
+            _key(1): Node(_key(1), Vec3(0.0, 0.0, 0.0)),
+            _key(2): Node(_key(2), Vec3(4.0, 0.0, 0.0)),
+            _key(3): Node(_key(3), Vec3(8.0, 0.0, 0.0)),
+        },
+        members={
+            _key(101): Member(_key(101), _key(1), _key(2)),
+            _key(102): Member(_key(102), _key(2), _key(3)),
+        },
+    )
+    window.set_canonical_model(model)
+    viewport.selection.set_members((_key(101), _key(102)))
+    viewport.selection_changed.emit((), (_key(101), _key(102)))
+
+    assert window.merge_members_action.isEnabled()
+    window.merge_members_action.trigger()
+
+    assert set(model.members) == {_key(101)}
+    assert set(model.nodes) == {_key(1), _key(3)}
+    assert window.repair_history is not None
+    assert len(window.repair_history.undo_stack) == 1
+    window.undo_repair()
+    assert set(model.members) == {_key(101), _key(102)}
+    assert set(model.nodes) == {_key(1), _key(2), _key(3)}

@@ -92,3 +92,18 @@ def test_saved_mcp_summary_reports_missing_renderer_shard(tmp_path: Path) -> Non
     )
 
     assert failed == ("missing:renderer-b.py",)
+
+
+def test_pytest_runtime_args_isolate_temp_and_cache_per_invocation() -> None:
+    runner = _load_runner()
+
+    args = runner._pytest_runtime_args(
+        run_id="post-t22",
+        key="renderer:test_viewport.py",
+    )
+
+    assert args[0].startswith("--basetemp=.tmp/tests/ui-isolated/post-t22-")
+    assert args[0].endswith("-renderer_test_viewport.py")
+    assert args[1] == "-o"
+    assert args[2].startswith("cache_dir=.cache/pytest-ui-isolated/post-t22-")
+    assert args[2].endswith("-renderer_test_viewport.py")

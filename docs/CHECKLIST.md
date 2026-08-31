@@ -206,9 +206,63 @@ The final T22 evidence is maintained in [`docs/INDEX.md`](INDEX.md) and [`docs/H
 - [x] Export names use compact `SP_YYYYMMDD_HHMMSS.json` format with collision suffixes.
 - [x] RBZ source/package contract verification: **3/3 PASS**; Ruff and `git diff --check` passed.
 - [x] User accepted the rebuilt RBZ in real SketchUp; the window opened and was usable.
-- [ ] Desktop selection/context/reset/tool-order requirements 3-9 remain pending explicit continuation.
+- [x] Desktop requirements 3-9 implemented in source: scaled Node/Member picking, visible highlights, functional entity/empty-space context menu, Reset View, usage-order toolbar rows, and active-mode styling.
+- [x] Desktop source verification: **311/311 unit+integration PASS**, **100/100 UI PASS**, real viewport smoke `selection=pass reset_view=pass`.
+- [x] Rebuilt standalone report `completion="yes"`; exact package manifest **811/811**, package gates **3/3**, and freshly extracted ZIP launch passed.
+- [x] Separate `post-t22-ux-final` acceptance checkpoint superseded by the consolidated ten-item editing-correction package; its evidence remains historical.
 
-- [ ] Save/open project workflow completed as required by final product.
+### Post-T22 editing corrections — 2026-08-31
+
+- [x] Reset View uses canonical STAAD Y-up isometric camera.
+- [x] selected/create/orphan Nodes and selected Members delete through one confirmed, undoable path.
+- [x] keyboard `Delete`, toolbar Delete, and context Delete Selected are wired.
+- [x] Crop to Selection frames selected geometry without model mutation.
+- [x] Properties shows selected Node/Member identity, coordinates/incidence, length, and metadata.
+- [x] Merge Members restores two split collinear Members and is exactly undoable.
+- [x] orphan Issue Quick Fix and viewport selection deletion both remain available.
+- [x] selected-Member Translational Repeat preserves shared topology and rejects duplicate incidence.
+- [x] Create Node actions are distinguished as `(Click)` and `(XYZ)`.
+- [x] Draw/Move/Delete modes force compatible filters, focus the viewport, show next-click guidance,
+  and remain visibly checked while active.
+- [x] STRICT graph tests include exact undo, incidence, collision, metadata, and invalid-case checks.
+- [x] Verification: **299/299 unit**, **26/26 integration**, **77/77 lightweight UI**, and
+  **34/34 isolated VTK UI**; Ruff and strict mypy for 7 affected source files pass.
+- [x] Rebuilt standalone folder/ZIP under `dist/post-t22-editing-final/`; exact package gates **4/4**, manifest **811/811**, and extracted-ZIP launch passed.
+- [x] User-authorized targeted archive moved superseded baseline and `post-t22-ux-final` releases into `DEL/standalone-archive-20260831/`; current editing-final release and latest build input remain in place.
+- [ ] Real user acceptance of all ten corrections from `dist/post-t22-editing-final/` and commit of the accepted checkpoint.
+
+### Planned follow-up — repair refresh, Properties, Save/Open, exit confirmation
+
+- [x] Read-only diagnosis and binding design recorded on 2026-08-31.
+- [x] Detailed implementation/verification plan recorded; implementation intentionally not started during usage-limit pause.
+- [x] Record the user-mandated source-first, one-correction-at-a-time workflow and explicit pre-compile stop gate.
+- [x] Obtain explicit STRICT / Full TDD approval for Apply-before-OK Delete/Merge/Quick-Fix/Auto-Fix orchestration when execution resumes.
+- [x] Implement and source-verify Apply→OK exact-once command execution and automatic refresh without requiring Undo.
+- [x] User accepted the Apply→OK interaction in the development app.
+- [x] Add STRICT multi-Orphan regression and clear stale Issue Console row/current selection after each validation rebuild.
+- [x] Obtain user retest acceptance for repeated Orphan Quick Fix before starting Properties.
+- [x] Add expandable, STAAD-number-sorted Node/Member rows to Project Explorer.
+- [x] Route individual/group Explorer clicks to exact/select-all viewport highlighting and matching selection filters.
+- [x] Source verification for Explorer selection: **16/16 affected UI PASS** and Ruff clean.
+- [x] Obtain user development-app acceptance for Project Explorer entity lists and highlighting.
+- [x] Replace visible UUID/source fields with requested Node/Member engineering Properties in source.
+- [x] Verify exact Node/Member Properties contracts: affected regression **15/15 PASS**, Ruff clean, strict mypy **0 issues**.
+- [x] Obtain user development-app acceptance for UUID-free engineering Properties.
+- [x] Add atomic canonical Project JSON Save/Open under project-local `Projects`.
+- [x] Add confirmed application exit with explicit packaged-smoke bypass.
+- [x] Obtain user acceptance of the corrected `X -> No` / `X -> Yes` close behavior.
+- [x] Present each completed source correction for user testing and wait for an explicit instruction before continuing to the next correction.
+- [x] Run agreed source regression: **332/332 source unit+integration**, **140/140 UI**, six real
+  source smokes, focused Save/Open **5/5**, Ruff, strict mypy, and diff checks pass; stopped at the
+  mandatory pre-compile gate.
+- [x] Obtain explicit user approval and complete the fresh Nuitka standalone compile.
+- [x] Obtain the next explicit user instruction before portable-folder assembly or ZIP creation.
+- [x] After compile approval, rebuild/package and create the isolated portable folder/ZIP under
+  `dist/post-t22-refresh-save-final/`.
+- [x] Run executable-only/package-path gates against the new package: **7/7 PASS**.
+- [x] Obtain real package acceptance: **PASS** (user-tested 2026-08-31).
+
+- [x] Save/open project workflow completed as required by the accepted source checkpoint.
 - [ ] Crash-safe audit/logging.
 - [x] Complete golden dirty-model fixtures.
 - [x] Full SketchUp-Ruby and Direct-DXF -> repair/manual edit -> normalize -> numbering -> READY -> STD pipeline.
@@ -217,7 +271,7 @@ The final T22 evidence is maintained in [`docs/INDEX.md`](INDEX.md) and [`docs/H
 - [x] Package Windows executable.
 - [ ] Real-project acceptance test.
 - [ ] Open final `.STD` in target STAAD.Pro.
-- [ ] Update final HANDOFF.
+- [x] Update final HANDOFF for the post-T22 editing-correction package checkpoint.
 
 
 ## M15 — Post-acceptance cleanup / DEL quarantine (T24)
@@ -266,3 +320,18 @@ Create/complete at minimum:
 - [x] Critical validation passes and READY gate is authoritative.
 - [ ] `.STD` opens in STAAD.Pro with intended geometry/incidence/numbering.
 - [ ] Manual STAAD geometry cleanup is materially reduced.
+
+
+## 2026-08-31 source handoff checkpoint
+
+- User-accepted source behavior before handoff: Member Translational Repeat preview, engineering Properties, Project Explorer entity selection, Member Local Axes XYZ, three-row toolbar with visible View controls, Save/Open Project JSON, import-derived save filename, `SAVED` / `NOT SAVED` title state, Ctrl+S save confirmation, readable Node/Member/Coordinate labels, Global Axis X/Y/Z labels, and Exit confirmation UI.
+- Latest real-user defect was clicking window `X` and choosing `Yes` without closing the application.
+- Latest source fix: exit dialog now compares the native Qt button result with equality (`==`) and the accepted close path delegates to `QMainWindow.closeEvent()`.
+- Exit regression evidence after fix: `tests/ui/test_exit_confirmation.py` **4/4 PASS**; Ruff PASS; strict mypy 0 issues for `main_window.py`; `git diff --check` PASS.
+- Status of latest close fix: **SOURCE VERIFIED / USER ACCEPTED — 2026-08-31**.
+- Full source verification is **COMPLETE**: **332/332 source unit+integration PASS**, **102/102
+  lightweight UI PASS**, **38/38 isolated VTK UI PASS**, six real source smokes exit 0, focused
+  Save/Open **5/5 PASS**, Ruff PASS, strict mypy 0 issues, and diff check PASS.
+- The package-only verification suite was run after the user authorized step 3: **7/7 PASS**.
+  Nuitka compilation, portable assembly, and ZIP creation are complete under
+  `dist/post-t22-refresh-save-final/`; real package acceptance is **PASS** (2026-08-31).

@@ -282,17 +282,17 @@ Commit: `feat: add canonical structural model contract`
 - Produces: `StructuralViewport.set_model(model)`
 - Produces: `StructuralViewport.highlight_nodes(keys)` / `highlight_members(keys)`
 
-- [ ] **Step 1: Test scene-array generation without GUI**
+- [x] **Step 1: Test scene-array generation without GUI**
 
 For a two-member frame, assert point array shape `(3, 3)`, line connectivity count `2`, and stable mapping from rendered cell index to member UUID.
 
-- [ ] **Step 2: Run RED, implement `SceneData`, run GREEN**
+- [x] **Step 2: Run RED, implement `SceneData`, run GREEN**
 
-- [ ] **Step 3: Embed PyVista/VTK Qt viewport**
+- [x] **Step 3: Embed PyVista/VTK Qt viewport**
 
 Render a synthetic multi-bay frame on startup only in development/demo mode; include Y-Up axis triad and member selection callback.
 
-- [ ] **Step 4: Smoke check selection/highlight and commit**
+- [x] **Step 4: Smoke check selection/highlight and commit**
 
 Commit: `feat: add structural 3D viewport`
 
@@ -890,6 +890,10 @@ Commit: `test: verify end-to-end clean model readiness`
 **Detailed executable plan:** `docs/superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md`
 
 **Final status 2026-08-30:** T22 is **COMPLETE** on `task/22-portable-packaging` in `.worktrees/task-22-portable-packaging`. The real Nuitka standalone `.exe`, versioned folder/ZIP, no-Python/different-CWD/relocation/Unicode gates, package-local `Data/`, manifest hashes, bundled `.rbz`, and packaged T21 workflow all passed. T23 remains not started. See [`docs/INDEX.md`](../../INDEX.md) and the active worktree handoff at `D:/Dizayn59/CLICodex/gpt_mcp_workshop/STAAD_Model_Preprocessor/.worktrees/task-22-portable-packaging/docs/HANDOFF.md`.
+
+**Current post-T22 checkpoint 2026-08-31:** the consolidated refresh-save-final folder/ZIP is
+package-verified and real-user accepted. The earlier ten-item editing-final and UX-only packages
+are superseded historical artifacts. T23 remains not started.
 
 **Required outputs:**
 - `dist/STAAD_Model_Preprocessor_<VERSION>_win64_portable/`

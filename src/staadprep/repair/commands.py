@@ -20,6 +20,7 @@ from staadprep.validation.validators import validate_model
 
 _SPLIT_DISTANCE_TOLERANCE_M = 1e-9
 _SPLIT_PARAMETER_EPS = 1e-9
+_MERGE_COLLINEAR_REL_TOLERANCE = 1e-9
 
 
 @dataclass(frozen=True, slots=True)
@@ -461,6 +462,142 @@ class SplitMember(_ReversibleCommand):
 
     def audit_parameters(self) -> dict[str, object]:
         return {"member": str(self.member_key), "position": self.position.as_tuple()}
+
+
+class MergeMembers(_ReversibleCommand):
+    def __init__(self, first_member: UUID, second_member: UUID) -> None:
+        super().__init__()
+        self.first_member = first_member
+        self.second_member = second_member
+        self.primary_member_key: UUID | None = None
+        self.secondary_member_key: UUID | None = None
+        self.shared_node_key: UUID | None = None
+        self._shared_node_before: Node | None = None
+        self._primary_before: Member | None = None
+        self._secondary_before: Member | None = None
+
+    @staticmethod
+    def _outer(member: Member, shared: UUID) -> UUID:
+        return member.end if member.start == shared else member.start
+
+    def apply(self, model: ProjectModel) -> RepairResult:
+        before_revision = self._begin_apply(model)
+        if self.first_member == self.second_member:
+            raise ValueError("MergeMembers requires two different Members")
+        first = _require_member(model, self.first_member)
+        second = _require_member(model, self.second_member)
+        shared_nodes = {first.start, first.end} & {second.start, second.end}
+        if len(shared_nodes) != 1:
+            raise ValueError("MergeMembers requires exactly one shared Node")
+        shared = next(iter(shared_nodes))
+        incident = {
+            member.key
+            for member in model.members.values()
+            if member.start == shared or member.end == shared
+        }
+        if incident != {first.key, second.key}:
+            raise ValueError("MergeMembers shared Node must have degree exactly two")
+
+        primary, secondary = sorted((first, second), key=lambda member: member.key.int)
+        primary_outer = self._outer(primary, shared)
+        secondary_outer = self._outer(secondary, shared)
+        if primary_outer == secondary_outer:
+            raise ValueError("MergeMembers would create a zero-length Member")
+        shared_position = _require_node(model, shared).position
+        primary_position = _require_node(model, primary_outer).position
+        secondary_position = _require_node(model, secondary_outer).position
+        first_vector = (
+            primary_position.x - shared_position.x,
+            primary_position.y - shared_position.y,
+            primary_position.z - shared_position.z,
+        )
+        second_vector = (
+            secondary_position.x - shared_position.x,
+            secondary_position.y - shared_position.y,
+            secondary_position.z - shared_position.z,
+        )
+        first_length_sq = sum(value * value for value in first_vector)
+        second_length_sq = sum(value * value for value in second_vector)
+        cross = (
+            first_vector[1] * second_vector[2] - first_vector[2] * second_vector[1],
+            first_vector[2] * second_vector[0] - first_vector[0] * second_vector[2],
+            first_vector[0] * second_vector[1] - first_vector[1] * second_vector[0],
+        )
+        cross_sq = sum(value * value for value in cross)
+        if (
+            first_length_sq <= 0.0
+            or second_length_sq <= 0.0
+            or cross_sq
+            > (_MERGE_COLLINEAR_REL_TOLERANCE**2)
+            * first_length_sq
+            * second_length_sq
+        ):
+            raise ValueError("MergeMembers requires collinear Members")
+        dot = sum(a * b for a, b in zip(first_vector, second_vector, strict=True))
+        if dot >= 0.0:
+            raise ValueError("MergeMembers requires opposite directions from the shared Node")
+        for member in model.members.values():
+            if member.key in {primary.key, secondary.key}:
+                continue
+            if {member.start, member.end} == {primary_outer, secondary_outer}:
+                raise ValueError("MergeMembers would create duplicate incidence")
+
+        self.primary_member_key = primary.key
+        self.secondary_member_key = secondary.key
+        self.shared_node_key = shared
+        self._shared_node_before = model.nodes[shared]
+        self._primary_before = primary
+        self._secondary_before = secondary
+        if primary.end == shared:
+            merged_start, merged_end = primary.start, secondary_outer
+        else:
+            merged_start, merged_end = secondary_outer, primary.end
+        model.members[primary.key] = replace(
+            primary,
+            start=merged_start,
+            end=merged_end,
+        )
+        del model.members[secondary.key]
+        del model.nodes[shared]
+        affected = {primary.key, secondary.key, shared, primary_outer, secondary_outer}
+        return self._finish_apply(model, before_revision, affected)
+
+    def revert(self, model: ProjectModel) -> RepairResult:
+        before_revert = self._begin_revert(model)
+        if (
+            self.primary_member_key is None
+            or self.secondary_member_key is None
+            or self.shared_node_key is None
+            or self._shared_node_before is None
+            or self._primary_before is None
+            or self._secondary_before is None
+        ):
+            raise RuntimeError("MergeMembers has no snapshot to revert")
+        model.nodes[self.shared_node_key] = self._shared_node_before
+        model.members[self.primary_member_key] = self._primary_before
+        model.members[self.secondary_member_key] = self._secondary_before
+        affected = {
+            self.primary_member_key,
+            self.secondary_member_key,
+            self.shared_node_key,
+            self._primary_before.start,
+            self._primary_before.end,
+            self._secondary_before.start,
+            self._secondary_before.end,
+        }
+        return self._finish_revert(model, before_revert, affected)
+
+    def audit_parameters(self) -> dict[str, object]:
+        return {
+            "first_member": str(self.first_member),
+            "second_member": str(self.second_member),
+            "retained_member": (
+                str(self.primary_member_key) if self.primary_member_key is not None else None
+            ),
+            "removed_node": (
+                str(self.shared_node_key) if self.shared_node_key is not None else None
+            ),
+        }
 
 
 class ReverseMember(_ReversibleCommand):

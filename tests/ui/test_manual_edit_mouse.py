@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QApplication
 from staadprep.model.entities import Member, Node
 from staadprep.model.geometry import Vec3
 from staadprep.model.project import ProjectModel
-from staadprep.repair.commands import ConnectNodes, DeleteMember, MoveNode
+from staadprep.repair.commands import ConnectNodes, MoveNode
 from staadprep.viewer.interaction import EditMode
 from staadprep.viewer.selection import SelectionCandidate, SelectionEntity
 from staadprep.viewer.widget import StructuralViewport
@@ -100,14 +100,14 @@ def test_mouse_move_free_emits_move_node(qtbot, monkeypatch) -> None:
     assert not viewport.preview_active
 
 
-def test_mouse_delete_emits_exact_picked_member(qtbot, monkeypatch) -> None:
+def test_mouse_delete_requests_exact_picked_member_selection(qtbot, monkeypatch) -> None:
     viewport = StructuralViewport()
     qtbot.addWidget(viewport)
     viewport.set_model(_model())
     viewport.set_edit_mode(EditMode.DELETE)
     viewport.show()
-    emitted: list[object] = []
-    viewport.manual_command_requested.connect(emitted.append)
+    requested: list[bool] = []
+    viewport.delete_selection_requested.connect(lambda: requested.append(True))
     monkeypatch.setattr(
         viewport,
         "_pick_candidates_at",
@@ -116,5 +116,20 @@ def test_mouse_delete_emits_exact_picked_member(qtbot, monkeypatch) -> None:
 
     qtbot.mouseClick(viewport.plotter.interactor, Qt.MouseButton.LeftButton, pos=QPoint(10, 10))
 
-    assert isinstance(emitted[-1], DeleteMember)
-    assert emitted[-1].member_key == _key(102)
+    assert viewport.selection.selected_members == (_key(102),)
+    assert requested == [True]
+
+
+def test_delete_key_requests_current_selection(qtbot) -> None:
+    viewport = StructuralViewport()
+    qtbot.addWidget(viewport)
+    viewport.set_model(_model())
+    viewport.selection.set_members((_key(101),))
+    viewport.show()
+    requested: list[bool] = []
+    viewport.delete_selection_requested.connect(lambda: requested.append(True))
+    viewport.plotter.interactor.setFocus()
+
+    qtbot.keyClick(viewport.plotter.interactor, Qt.Key.Key_Delete)
+
+    assert requested == [True]

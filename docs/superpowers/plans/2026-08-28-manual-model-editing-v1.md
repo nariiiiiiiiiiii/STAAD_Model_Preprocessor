@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-28-manual-model-editing-design.md`
 
+**Status:** COMPLETE for T16-T20. Later post-T22 editing corrections extend this baseline and are tracked in `2026-08-30-post-t22-editing-corrections.md`; no remaining action belongs to this plan.
+
 ## Global Constraints
 
 - Canonical project root: `D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`.

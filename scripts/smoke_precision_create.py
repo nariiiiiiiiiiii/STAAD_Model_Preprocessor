@@ -40,7 +40,10 @@ def _graph_signature(
 def main() -> int:
     app = QApplication.instance() or QApplication(sys.argv)
     viewport = StructuralViewport()
-    window = MainWindow(viewport_factory=lambda: viewport)
+    window = MainWindow(
+        viewport_factory=lambda: viewport,
+        confirm_exit=lambda _dirty: True,
+    )
     model = ProjectModel(nodes={_key(1): Node(_key(1), Vec3(0.0, 0.0, 0.0))})
     before = deepcopy(model)
     window.set_canonical_model(model)

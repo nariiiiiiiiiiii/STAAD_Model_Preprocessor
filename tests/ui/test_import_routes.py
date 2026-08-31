@@ -49,7 +49,7 @@ def test_import_menu_exposes_sketchup_bridge_and_direct_dxf_independently(
     assert window.import_dxf_action.isEnabled()
     assert window.import_action.menu() is not None
     labels = [action.text() for action in window.import_action.menu().actions()]
-    assert labels == ["Import SketchUp Bridge JSON", "Import DXF"]
+    assert labels == ["Import SketchUp Bridge JSON", "Import DXF", "Open Project JSON"]
     assert "C SDK" not in window.statusBar().currentMessage()
 
 

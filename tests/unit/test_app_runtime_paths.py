@@ -52,6 +52,39 @@ def test_packaged_workflow_smoke_hook_runs_only_when_requested(
     assert calls == [window]
 
 
+def test_smoke_mode_injects_non_interactive_exit_confirmation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeApplication:
+        def exec(self) -> int:
+            return 0
+
+        def quit(self) -> None:
+            pass
+
+    class FakeWindow:
+        def __init__(self, **kwargs: object) -> None:
+            captured.update(kwargs)
+
+        def show(self) -> None:
+            pass
+
+    monkeypatch.setenv("STAADPREP_SMOKE_MS", "1")
+    monkeypatch.delenv("STAADPREP_DEMO", raising=False)
+    monkeypatch.delenv("STAADPREP_PACKAGED_WORKFLOW_SMOKE", raising=False)
+    monkeypatch.setattr(app_module, "create_application", lambda: FakeApplication())
+    monkeypatch.setattr(app_module, "resolve_runtime_paths", lambda: (None, None))
+    monkeypatch.setattr(app_module, "MainWindow", FakeWindow)
+    monkeypatch.setattr(app_module.QTimer, "singleShot", lambda *_args: None)
+
+    assert app_module.main() == 0
+    confirm_exit = captured.get("confirm_exit")
+    assert callable(confirm_exit)
+    assert confirm_exit(True) is True
+
+
 def test_resolve_runtime_paths_prepares_detected_portable_layout(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

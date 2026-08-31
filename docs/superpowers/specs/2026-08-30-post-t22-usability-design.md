@@ -1,7 +1,7 @@
 # Post-T22 Usability Patch Design
 
 **Date:** 2026-08-30
-**Status:** User feedback captured; implementation pending
+**Status:** Requirements 1-2 user accepted; requirements 3-9 rebuilt/verified and preserved as historical evidence under `DEL/standalone-archive-20260831/post-t22-ux-final/`. Their separate package acceptance is superseded by the consolidated editing-final checkpoint in `2026-08-30-post-t22-editing-corrections-design.md`.
 **Risk:** STANDARD — UI, picking-coordinate, export-name, and packaging changes only
 
 ## Goal

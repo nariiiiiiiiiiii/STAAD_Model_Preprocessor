@@ -1,4 +1,183 @@
-Status: **T21 COMPLETE and merged to `master`; T22 Portable Standalone Windows Packaging is COMPLETE on `task/22-portable-packaging`; T23 is not started.**
+Status: **T21 COMPLETE and merged to `master`; T22 Portable Standalone Windows Packaging is COMPLETE; all agreed post-T22 source behavior is USER ACCEPTED and FULL SOURCE VERIFIED on `task/22-portable-packaging`; NEW NUITKA COMPILE, PORTABLE ASSEMBLY, PACKAGE VERIFICATION, AND REAL PACKAGE ACCEPTANCE COMPLETE; T23 is not started.**
+
+## Active post-T22 editing correction checkpoint — 2026-08-31
+
+After real package testing, the user supplied ten desktop editing corrections covering STAAD-axis
+Reset View, Node/Member selection and Properties, Delete/keyboard Delete, Crop to Selection,
+Merge Members, orphan removal, selected-Member Translational Repeat, duplicate Create Node labels,
+and unusable Draw/Move/Delete modes. The user explicitly approved STRICT / Full TDD for the
+topology-changing scope on 2026-08-30.
+
+Source implementation and the isolated final package are complete. Current evidence:
+
+- **299/299 unit PASS** and **26/26 integration PASS**;
+- **77/77 lightweight UI PASS** and **34/34 isolated VTK UI PASS**;
+- Ruff passed for `src`, `tests`, and `scripts`;
+- strict mypy passed for all 7 affected source files;
+- automated Qt offscreen mode skips VTK grid/axes creation to prevent native test-only access
+  violations; the real Windows application still renders the engineering grid and axes;
+- real Windows viewport/manual-edit/precision-create smokes pass, including selection, Crop,
+  canonical Reset View, Draw, Move/Snap, Delete, Undo, and stable model revision;
+- Nuitka report records `mode="standalone" completion="yes"`;
+- final editing-correction package gates pass **4/4**, manifest verification is **811/811**, and a
+  freshly extracted ZIP launches with Python absent from `PATH`;
+- final folder: `dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable/`
+  (**812 files**, **708,288,929 bytes**);
+- final ZIP: `dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip`
+  (**225,217,293 bytes**, SHA-256
+  `5B261CCEC2DD75D88F6DB3456548F15D714190365F5348ADD77481D3CA48E52B`);
+- packaged executable is **160,055,296 bytes**, SHA-256
+  `8AE21D68F21FFDDCC7A6DEE91D41E7303ECEC090D511760D9973A082928D1D9E`;
+- detailed design/plan: `docs/superpowers/specs/2026-08-30-post-t22-editing-corrections-design.md`
+  and `docs/superpowers/plans/2026-08-30-post-t22-editing-corrections.md`.
+
+Active remaining work: real user acceptance of the editing-correction package, then commit this
+checkpoint if accepted. Do not start T23.
+
+Active incremental follow-up from user testing on 2026-08-31:
+
+- Apply-before-OK dialogs for Delete/Merge/Quick Fix/Auto Fix with automatic final refresh;
+- Node/Member engineering Properties without visible UUID/source identity;
+- canonical Project JSON Save/Open with atomic project-local writes;
+- application exit confirmation.
+
+Design: `docs/superpowers/specs/2026-08-31-post-t22-refresh-properties-save-design.md`.
+Plan: `docs/superpowers/plans/2026-08-31-post-t22-refresh-properties-save.md`.
+The user explicitly approved STRICT / Full TDD and started item 1 on 2026-08-31. Apply-before-OK
+orchestration for Delete, Merge, supported Quick Fix, Auto Fix All, and Auto Fix Selected is now
+implemented and source-verified. Apply executes one history command, refreshes immediately, disables
+Apply/Cancel, and enables OK; OK performs a final idempotent refresh without re-executing. Cancel
+before Apply and rejected commands preserve the exact graph/revision/audit/history. Auto Fix All is
+one atomic composite history entry and one Undo restores the complete prior incidence state.
+
+Fresh item-1 evidence: dialog/edge suite **10/10 PASS**; focused UI suite **34/34 PASS**; affected
+lightweight/unit regression **61/61 PASS**; new real-VTK refresh **1/1 PASS**; isolated existing
+manual-mouse VTK **4/4 PASS**; issue-repair and orientation real smokes **1/1 PASS each**; Ruff and
+strict mypy on the two affected source files pass. One deliberately combined VTK process reproduced
+the known native access violation after 38 tests; all native files passed when rerun in the required
+per-process isolation.
+
+Current stop: **ALL AGREED SOURCE FEATURES USER ACCEPTED / FULL SOURCE VERIFIED**, including
+Apply/OK refresh, multi-Orphan repeatability, engineering Properties, Project Explorer selection,
+Member Repeat, Member Local Axes, Save/Open Project JSON, and the corrected `X -> Yes` exit path.
+Task 7 source verification is complete: **332/332 source unit+integration**, **102/102 lightweight
+UI**, **38/38 isolated VTK UI**, six real Windows source smokes, focused Save/Open **5/5**, Ruff,
+strict mypy, and diff checks pass. The user authorized compile step 1 and Nuitka produced a fresh
+standalone build with `mode="standalone" completion="yes"`. Portable assembly and ZIP creation
+are complete under `dist/post-t22-refresh-save-final/`; the fresh package-only verification suite
+is **7/7 PASS**.
+
+Current assembled artifacts (step 2):
+
+- folder: `dist/post-t22-refresh-save-final/STAAD_Model_Preprocessor_0.1.0_win64_portable/`
+  (**812 files**, **708,473,249 bytes**);
+- ZIP: `dist/post-t22-refresh-save-final/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip`
+  (**225,277,697 bytes**, SHA-256
+  `0EF7933499179284B7FC01B011876BF196F7471D4F8CA5B7B12F46E36059E314`);
+- executable: `STAAD Model Preprocessor.exe` (**160,239,616 bytes**, SHA-256
+  `1C7BB68D12BEFA8A1DBDC5A8A18B031A1E19AEFCFB91C7567441E79DB88F4470`);
+- package manifest: `Update/package-manifest.json`; bundled bridge:
+  `SketchUp_Extension/STAAD_Prep_Bridge_0.1.0.rbz`.
+
+Package-only verification against this new package is **7/7 PASS**, including executable launch,
+relocation/CWD, no-Python, manifest/hash, packaged workflow, and freshly extracted-ZIP coverage.
+The user completed real package testing and reported **PASS** on 2026-08-31.
+
+Item 2 now renders only the requested engineering fields. A single Node shows Node No. and separate
+X/Y/Z coordinates in metres. A single Member shows Member No., Start/End Node No. with separate
+endpoint X/Y/Z coordinates, Length, and Group / Layer. UUIDs and source references remain internal
+and are no longer rendered for selected entities; mixed selection still shows counts only. The
+exact-text RED/GREEN contract passes, affected regression is **15/15 PASS**, Ruff passes, and strict
+mypy reports **0 issues** for `panels.py`. The user accepted this source checkpoint.
+
+Real development feedback: the user accepted the Apply→OK interaction, then found a repeatability
+bug with two or more Orphan Node issues. After the first Quick Fix, the remaining row stayed
+visually selected while MainWindow correctly cleared its selected issue, so selecting that same row
+did not emit a new signal and Apply stayed disabled. `IssueConsole.set_issues()` now atomically
+clears both row selection and current cell before rebuilding. A STRICT regression proves two Orphan
+Nodes can be deleted through two separate Apply→OK cycles and restored through two exact Undo
+operations. Focused follow-up regression **17/17 PASS**; Ruff and strict mypy for the three affected
+source files pass. The user accepted the repeated multi-Orphan sequence on 2026-08-31.
+
+Member Translational Repeat follow-up from real user testing on 2026-08-31:
+
+- Symptom: selecting Member(s) and invoking Translational Repeat showed no 3D ghost preview and was
+  reported unusable.
+- Root cause: `MemberTranslationalRepeatDialog` calculated numeric preview data but had no
+  `preview_requested` signal/viewport forwarding path, unlike Node Translational Repeat.
+- Fix: added a member-preview request contract, dialog signal, MainWindow forwarding/preview cleanup,
+  and read-only translated Member ghost rendering in `StructuralViewport`.
+- STRICT evidence: behavioral RED reproduced missing signal/forwarder; focused core **20/20 PASS**;
+  isolated real VTK `test_precision_viewport.py` **7/7 PASS**; member apply remains one atomic history
+  operation with exact Undo; Ruff PASS; strict mypy 0 issues in 3 affected source files; `git diff --check`
+  PASS. One grouped renderer command hit the known MCP 502 transport issue and was replaced by the
+  project-isolated renderer shard, which passed.
+- Status: **SOURCE FIX VERIFIED / USER ACCEPTED — 2026-08-31**. No standalone rebuild is authorized yet.
+- Follow-up Local Axes request is now implemented at source level and verified; details follow.
+
+Selected-Member Local Axes follow-up from real user testing on 2026-08-31:
+
+- Purpose: show each selected Member's own local coordinate triad so Start→End direction is visually obvious.
+- UI: the previous `Local-X` action is now labeled `Local Axes`.
+- Rendering: selected Members show midpoint XYZ triads with `X` red, `Y` green, `Z` blue and matching `X/Y/Z` labels at arrow heads.
+- Engineering basis: canonical Y-up, STAAD beta=0 convention. Local X follows Start→End; non-vertical Local Y is the +global-Y projection normal to X and Local Z completes the right-handed basis; vertical members keep Local Z parallel to +global Z. Zero-length members render no triad.
+- Safety: visualization only; no geometry/topology/numbering/revision mutation and no `.STD` semantic change.
+- STRICT basis evidence: 5/5 unit PASS for Beam-X, vertical member, brace orthonormal/right-handed basis, member reversal, and zero-length behavior.
+- UI/renderer evidence: focused affected suite 15/15 PASS; isolated real-VTK `test_precision_viewport.py` 8/8 PASS; Ruff PASS; strict mypy 0 issues across 3 affected source files; `git diff --check` PASS.
+- Toolbar visibility follow-up: user could not find `Local Axes` because the second-row Edit/View toolbar overflowed horizontally. The toolbar is now split into row 2 `Edit & Selection` and row 3 `View`, with row 3 containing `Nodes`, `Members`, `Node No.`, `Member No.`, `Local Axes`, `Coordinates`, `Fit Model`, `Reset View`, and `Crop to Selection`.
+- Toolbar TDD evidence: behavioral RED proved `view_toolbar` did not exist; GREEN passed after the split. Fresh focused verification: **12/12 PASS**, Ruff PASS, `git diff --check` PASS.
+- Status: **USER ACCEPTED — 2026-08-31**. The development-app retest confirmed Member Local Axes render correctly.
+- Save/Open UX follow-up (source filename-derived default save name, explicit `SAVED/NOT SAVED` title, Ctrl+S confirmation, bright Node/Member/Coordinate labels) is **USER ACCEPTED — 2026-08-31**. Real user retest also confirmed project JSON reopen restores the model.
+- Global orientation indicator XYZ labels and application Exit confirmation are **USER ACCEPTED — 2026-08-31**. Exit confirmation prompts once on close, defaults to No, and warns explicitly when unsaved changes exist.
+- Source feature scope for this plan is acceptance-complete and Task 7 full verification has passed.
+  The mandatory pre-compile approval gate is the current checkpoint; no standalone rebuild is
+  authorized yet.
+
+Canonical Project JSON Save/Open checkpoint on 2026-08-31:
+
+- Added centralized `ProjectPaths.projects`: development uses `artifacts/projects`; portable runtime uses `Data/Projects`; `ensure_layout()` creates it.
+- Added deterministic atomic project save using project-local temp files, `flush` + `fsync`, and `os.replace`; failed replace leaves an existing destination byte-identical and cleans the temporary file.
+- Added `Open Project JSON` under Import Model and `Save Project JSON` on the workflow toolbar with `Ctrl+S`.
+- First Save opens in the canonical Projects directory and enforces `.staadprep.json`; Save/Open paths outside Projects are blocked.
+- Dirty state tracks canonical project path + exact model revision; imported canonical models start dirty, successful Save clears `*`, later mutation restores `*`, and exact Undo to the saved revision clears it again.
+- Opened project JSON preserves canonical nodes, members, numbering, metadata, UUID identity, and revision; Neutral JSON remains input-only and is never overwritten.
+- TDD RED reproduced missing `ProjectPaths.projects`, `save_project_atomic`, Save/Open actions, and dirty-state APIs.
+- Fresh focused verification: **33/33 PASS** across Save/Open UI, import routes, toolbar, path layout, portable paths, and serialization; Ruff PASS; strict mypy 0 issues across 3 affected source files; `git diff --check` PASS.
+- Status: **SOURCE VERIFIED / USER ACCEPTED — 2026-08-31**. Real user retest confirmed project JSON reopen restores the model.
+
+The next user-requested source-only increment adds canonical entity inventories to Project Explorer.
+`Nodes (N)` and `Members (N)` now expand into STAAD-number-sorted child rows; a child click selects
+exactly one entity, while a group click expands and highlights every entity of that type. Explorer
+requests activate Select mode and the matching Node/Member filter, then reuse the viewport's
+existing selection signal so Properties and action state stay synchronized. The implementation does
+not mutate coordinates or topology and is classified STANDARD. Focused affected regression is
+**16/16 PASS**, a fresh acceptance check is **3/3 PASS**, and Ruff is clean. The user accepted this
+source increment on 2026-08-31; there is still no compile authorization and no claim that a new
+standalone `.exe` contains it yet. Design/plan:
+`docs/superpowers/specs/2026-08-31-project-explorer-entity-selection-design.md` and
+`docs/superpowers/plans/2026-08-31-project-explorer-entity-selection.md`.
+
+Execution protocol explicitly confirmed by the user on 2026-08-31:
+
+- implement and verify corrections against source/the project virtual environment first;
+- present one user-testable correction at a time, wait for the user's result, and proceed only when
+  the user instructs the next step;
+- do not run Nuitka, replace a standalone folder, or assemble a new ZIP during source iteration;
+- after all agreed source corrections and regression checks pass, **STOP at the pre-compile gate**;
+- compile/package only after a new explicit user instruction to compile;
+- after compilation, run the standalone-only path, dependency, relocation, no-Python, manifest, and
+  extracted-ZIP checks, then stop again for package acceptance.
+
+This source-first protocol is now canonical in `docs/WORKFLOW.md` under
+`Development iteration and pre-compile approval gate`. It applies to the active follow-up and later
+desktop corrections unless the user explicitly changes it. The separate mandatory high-risk
+approval gate remains in force.
+
+On 2026-08-31 the user explicitly requested a recoverable archive of older standalone releases.
+The original T22 baseline folder+ZIP and the complete `post-t22-ux-final` checkpoint were moved to
+`DEL/standalone-archive-20260831/`; see `DEL/UNUSED_FILES_MANIFEST.md`. The current
+`dist/post-t22-editing-final/` release and `build/windows/final/app.dist/` were preserved. This
+targeted move does not start the full T24 cleanup and nothing was deleted.
 
 Post-package user testing on 2026-08-30 identified nine usability corrections. Requirements and execution are captured in:
 
@@ -6,10 +185,33 @@ Post-package user testing on 2026-08-30 identified nine usability corrections. R
 - `docs/superpowers/plans/2026-08-30-sketchup-bridge-usability.md` (requirements 1-2, execute first);
 - `docs/superpowers/plans/2026-08-30-desktop-interaction-usability.md` (requirements 3-9, execute after RBZ acceptance).
 
-Inline execution of the first checkpoint is accepted in real SketchUp. The RBZ bridge window opened and was usable; source/package contract tests passed 3/3, Ruff and `git diff --check` passed, and the accepted artifact is `build/sketchup/STAAD_Prep_Bridge_0.1.0.rbz`. Record the checkpoint commits below, then stop. Do not change or rebuild the desktop executable until the user explicitly starts the desktop checkpoint.
+Inline execution of the SketchUp checkpoint is accepted in real SketchUp. The earlier desktop
+requirements 3-9 rebuild is archived under `DEL/standalone-archive-20260831/post-t22-ux-final/`;
+it is superseded for current testing by the active ten-item editing-correction rebuild described
+above.
+
+Desktop checkpoint evidence:
+- Qt logical coordinates are scaled/flipped once at the VTK picking boundary; real Node and Member clicks select and render highlights;
+- right-click provides Node/Member/both selection modes, Focus/Clear where applicable, Fit Model, and Reset View;
+- workflow and Edit/View tools are separated into two toolbar rows and checked modes have an explicit active style;
+- `scripts/smoke_viewport.py` reports `selection=pass reset_view=pass`;
+- final unit + integration regression: **311/311 PASS**;
+- UI regression: **100/100 PASS** (**67 lightweight + 33 isolated Windows VTK**);
+- the UI runner now gives each invocation a unique project-local basetemp/cache path, avoiding stale Windows pytest locks;
+- Ruff and targeted strict mypy passed for the affected source;
+- rebuilt Nuitka report: `mode="standalone"`, `completion="yes"`; standalone SHA-256 `96EC7F7B0A74A0C025005E489D1213877C0FA6771C0F3F74D2FAA088E0301ABE`;
+- this historical release is now archived under `DEL/standalone-archive-20260831/post-t22-ux-final/`;
+- archived rebuilt folder: `DEL/standalone-archive-20260831/post-t22-ux-final/STAAD_Model_Preprocessor_0.1.0_win64_portable/` (**812 files**, **708,051,873 bytes**);
+- archived rebuilt ZIP: `DEL/standalone-archive-20260831/post-t22-ux-final/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip` (**225,143,099 bytes**, SHA-256 `E1633876C102E5B77E6FD87D9B384235D25844EA6D324F01E9119963E9201AD2`);
+- exact rebuilt package passed no-Python/different-CWD, relocation/reopen, and packaged READY/STD/report gates **3/3**;
+- exact manifest verified **811/811** with zero size/hash errors; freshly extracted ZIP launched from a different Thai-path CWD with exit code 0.
 
 Post-T22 usability commit:
 - `e7ce6ad` — `feat: add SketchUp bridge interface`
+- desktop interaction checkpoint: **superseded as a separate acceptance checkpoint**; its
+  uncommitted changes are included in the consolidated editing-final/source-follow-up worktree.
+  Current source behavior is user accepted and fully verified; the checkpoint remains uncommitted
+  while compilation authorization is pending.
 
 ## Canonical project root
 
@@ -331,22 +533,44 @@ Final build and release evidence:
 - executable SHA-256: `2401E9C0689CE6ACFDA0E7E7BBE6859F6848780CD79792322CCCADAC2ADB1A57`;
 - `scripts/build_windows.ps1` now establishes the project-local Nuitka cache before preflight and uses non-interactive download acceptance;
 - Dependency Walker is cached under project-local `.cache/nuitka/downloads/depends/x86_64/`;
-- final folder: `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/` (**812 files**, **708,028,512 bytes**);
-- final ZIP: `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip` (**225,136,191 bytes**, SHA-256 `D31A70005D7F0B2C09B467D6A5591892868E9E56AC35874434BA38CFC4687115`);
+- archived original folder: `DEL/standalone-archive-20260831/dist-root/STAAD_Model_Preprocessor_0.1.0_win64_portable/` (historical release evidence);
+- archived original ZIP: `DEL/standalone-archive-20260831/dist-root/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip` (**225,136,191 bytes**, SHA-256 `D31A70005D7F0B2C09B467D6A5591892868E9E56AC35874434BA38CFC4687115`);
 - manifest independently verified **811/811 managed files** with no size/hash errors;
 - final `.exe` and freshly extracted ZIP both launched with Python absent from `PATH`, exit code 0;
 - different CWD, spaces/Unicode relocation, reopen with existing `Data/`, and packaged T21 READY/STD/report workflow passed;
 - package README recommends a reasonably short extraction path because deeply nested paths can exceed the legacy Windows DLL path limit used by bundled VTK modules;
 - no Setup/MSI/NSIS/automatic-updater/one-file production artifacts were produced.
 
-Next action: review/use the final folder or ZIP. Start T23 real-project and target STAAD.Pro acceptance only after an explicit user instruction.
+Historical note: `dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable/` and
+its sibling ZIP preserve the earlier ten-item package evidence but do not contain every later
+accepted source follow-up. Current next action is explicit user authorization for a new
+compile/package run. T23 remains separate and must not start automatically.
 
 ### USER ACTION REQUIRED
 
-**None currently.** Do not install/download Python, Nuitka, Visual Studio/MSVC, PySide6, VTK, or other packaging tools unless a later build error proves a specific missing component. If a future step genuinely requires a manual download/install that is easier or safer for the user to perform, record the exact item/version/link/reason here before proceeding.
+**T22 package acceptance is complete.** Nuitka compile step 1, isolated portable-folder/ZIP
+assembly, package-only verification, and real user acceptance are complete under
+`dist/post-t22-refresh-save-final/`. The existing `dist/post-t22-editing-final/` package is
+historical and does not contain every accepted source follow-up. T23 remains not started and must
+wait for an explicit instruction.
 
 T23 remains **not started**. Its T22 prerequisite is satisfied, but its STRICT acceptance work must not start automatically.
 
 ## T24 cleanup boundary
 
 T24 runs only after T23 acceptance. It moves only verified-unused/superseded files into project-local `DEL/`, writes `DEL/UNUSED_FILES_MANIFEST.md`, and never deletes files. Final deletion remains user-controlled.
+
+
+## 2026-08-31 source handoff checkpoint
+
+- User-accepted source behavior before handoff: Member Translational Repeat preview, engineering Properties, Project Explorer entity selection, Member Local Axes XYZ, three-row toolbar with visible View controls, Save/Open Project JSON, import-derived save filename, `SAVED` / `NOT SAVED` title state, Ctrl+S save confirmation, readable Node/Member/Coordinate labels, Global Axis X/Y/Z labels, and Exit confirmation UI.
+- Latest real-user defect was clicking window `X` and choosing `Yes` without closing the application.
+- Latest source fix: exit dialog now compares the native Qt button result with equality (`==`) and the accepted close path delegates to `QMainWindow.closeEvent()`.
+- Exit regression evidence after fix: `tests/ui/test_exit_confirmation.py` **4/4 PASS**; Ruff PASS; strict mypy 0 issues for `main_window.py`; `git diff --check` PASS.
+- Status of latest close fix: **SOURCE VERIFIED / USER ACCEPTED — 2026-08-31**. Real retest confirmed `X -> No` stays open and `X -> Yes` closes.
+- Full source verification is **COMPLETE**: **332/332 source unit+integration PASS**, **140/140 UI
+  PASS**, six real Windows source smokes exit 0, focused Save/Open **5/5 PASS**, Ruff PASS, strict
+  mypy **0 issues in 6 source files**, and `git diff --check` PASS.
+- The package-only verification suite was run against the new package after explicit user
+  authorization: **7/7 PASS**. Nuitka compilation, portable assembly, ZIP creation, and real user
+  package acceptance completed under `dist/post-t22-refresh-save-final/` on 2026-08-31.

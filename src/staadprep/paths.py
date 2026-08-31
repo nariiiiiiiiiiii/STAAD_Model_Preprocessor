@@ -18,6 +18,7 @@ class ProjectPaths:
     cache: Path
     logs: Path
     artifacts: Path
+    projects: Path
     build: Path
     dist: Path
     vendor: Path
@@ -33,6 +34,7 @@ class ProjectPaths:
             cache=resolved_root / ".cache",
             logs=resolved_root / ".logs",
             artifacts=resolved_root / "artifacts",
+            projects=resolved_root / "artifacts" / "projects",
             build=resolved_root / "build",
             dist=resolved_root / "dist",
             vendor=resolved_root / "vendor",
@@ -48,6 +50,7 @@ class ProjectPaths:
             cache=resolved_root / "Cache",
             logs=resolved_root / "Logs",
             artifacts=resolved_root,
+            projects=resolved_root / "Projects",
             build=resolved_root / "build",
             dist=resolved_root / "dist",
             vendor=resolved_root / "vendor",
@@ -62,6 +65,7 @@ class ProjectPaths:
             self.cache,
             self.logs,
             self.artifacts,
+            self.projects,
         )
         if not self.development_layout:
             return runtime_dirs

@@ -3,8 +3,10 @@ from __future__ import annotations
 from uuid import UUID
 
 from staadprep.editing.create_node import (
+    MemberTranslationalRepeatSpec,
     RepeatConnectionMode,
     TranslationalRepeatSpec,
+    analyze_member_translational_repeat,
     analyze_translational_repeat,
 )
 from staadprep.editing.inference import InferenceHit, SnapKind
@@ -13,6 +15,7 @@ from staadprep.model.geometry import Vec3
 from staadprep.model.project import ProjectModel
 from staadprep.repair.commands import CreateNode, SplitMember
 from staadprep.repair.composite import CompositeRepair
+from staadprep.viewer.interaction import LabelVisibility
 from staadprep.viewer.widget import StructuralViewport
 
 
@@ -87,6 +90,66 @@ def test_repeat_preview_renders_all_ghost_nodes_and_consecutive_members_without_
     assert model.revision == revision
     assert len(model.nodes) == 1
     assert not model.members
+
+
+def test_member_repeat_preview_renders_translated_member_geometry_without_mutation(qtbot) -> None:
+    viewport = StructuralViewport()
+    qtbot.addWidget(viewport)
+    model = _single_member_model()
+    viewport.set_model(model)
+    revision = model.revision
+    spec = MemberTranslationalRepeatSpec((_key(101),), 0.0, 3.0, 0.0, 2)
+    preview = analyze_member_translational_repeat(model, spec, tolerance_m=1e-6)
+
+    viewport.show_member_translational_repeat_preview(preview, spec, resolutions={})
+
+    assert viewport._precision_ghost_node_count == 4
+    assert viewport._precision_ghost_member_count == 2
+    assert model.revision == revision
+    assert len(model.nodes) == 2
+    assert len(model.members) == 1
+
+
+def test_selected_member_local_axes_render_xyz_triads_with_labels_without_mutation(qtbot) -> None:
+    viewport = StructuralViewport()
+    qtbot.addWidget(viewport)
+    model = _single_member_model()
+    viewport.set_model(model)
+    revision = model.revision
+
+    viewport.highlight_members((_key(101),))
+    viewport.show_local_x_arrows(True)
+
+    assert len(viewport._local_axis_actors) == 3
+    assert len(viewport._local_axis_label_actors) == 3
+    assert model.revision == revision
+
+    viewport.show_local_x_arrows(False)
+    assert not viewport._local_axis_actors
+    assert not viewport._local_axis_label_actors
+
+
+def test_node_member_and_coordinate_labels_use_light_text_on_dark_viewport(
+    qtbot, monkeypatch
+) -> None:
+    viewport = StructuralViewport()
+    qtbot.addWidget(viewport)
+    model = _single_member_model()
+    viewport.set_model(model)
+    calls: list[dict[str, object]] = []
+
+    def record_labels(*_args, **kwargs):
+        calls.append(dict(kwargs))
+        return object()
+
+    monkeypatch.setattr(viewport.plotter, "add_point_labels", record_labels)
+
+    viewport.set_label_visibility(
+        LabelVisibility(node_numbers=True, member_numbers=True, coordinates=True)
+    )
+
+    assert len(calls) == 2
+    assert all(call.get("text_color") == "#f2f2f2" for call in calls)
 
 
 def test_create_node_hit_reuses_existing_node_without_emitting_mutation(qtbot) -> None:

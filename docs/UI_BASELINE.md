@@ -1,4 +1,7 @@
-Status: LOCKED for V1 unless the user explicitly requests a redesign.
+Status: LOCKED for V1 unless the user explicitly requests a redesign. Current post-T22 source
+implementation conforms to this baseline with the user-requested Reset/Crop, selection Properties,
+context actions, and active-mode additions; source behavior is user accepted and full source
+verification is complete. Replacement packaging awaits explicit compile approval.
 
 The approved baseline remains the dark engineering desktop application, extended on 2026-08-28 with focused manual analytical editing and SketchUp-style viewport controls.
 
@@ -226,3 +229,18 @@ Existing implementation references remain:
 - `ui/issue_repair.svg`
 
 Manual-editing screens may extend the toolbar/right panels/dialogs while preserving the main composition and dark engineering hierarchy.
+
+
+## 2026-08-31 source handoff checkpoint
+
+- User-accepted source behavior before handoff: Member Translational Repeat preview, engineering Properties, Project Explorer entity selection, Member Local Axes XYZ, three-row toolbar with visible View controls, Save/Open Project JSON, import-derived save filename, `SAVED` / `NOT SAVED` title state, Ctrl+S save confirmation, readable Node/Member/Coordinate labels, Global Axis X/Y/Z labels, and Exit confirmation UI.
+- Latest real-user defect: clicking window `X` and choosing `Yes` did not close the application.
+- Latest source fix: exit dialog now compares the native Qt button result with equality (`==`) and the accepted close path delegates to `QMainWindow.closeEvent()`.
+- Exit regression evidence after fix: `tests/ui/test_exit_confirmation.py` **4/4 PASS**; Ruff PASS; strict mypy 0 issues for `main_window.py`; `git diff --check` PASS.
+- Status of latest close fix: **SOURCE VERIFIED / USER ACCEPTED — 2026-08-31**.
+- Full source verification is **COMPLETE**: **332/332 source unit+integration PASS**, **102/102
+  lightweight UI PASS**, **38/38 isolated VTK UI PASS**, six real Windows source smokes exit 0,
+  focused Save/Open **5/5 PASS**, Ruff PASS, strict mypy 0 issues, and diff check PASS.
+- The package-only verification suite was run after the user authorized step 3: **7/7 PASS**.
+  Nuitka compilation, portable assembly, and ZIP creation completed under
+  `dist/post-t22-refresh-save-final/`; real package acceptance is **PASS** (2026-08-31).

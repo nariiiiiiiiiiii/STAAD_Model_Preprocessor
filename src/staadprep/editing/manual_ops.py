@@ -12,6 +12,7 @@ from staadprep.repair.commands import (
     CreateNode,
     DeleteMember,
     DeleteNode,
+    MergeMembers,
     MergeNodes,
     MoveNode,
     RepairCommand,
@@ -63,8 +64,64 @@ def build_delete_node(node_key: UUID) -> RepairCommand:
     return DeleteNode(node_key)
 
 
+def build_delete_selection(
+    model: ProjectModel,
+    *,
+    node_keys: tuple[UUID, ...],
+    member_keys: tuple[UUID, ...],
+) -> RepairCommand:
+    selected_nodes = tuple(sorted(set(node_keys), key=lambda key: key.int))
+    selected_members = tuple(sorted(set(member_keys), key=lambda key: key.int))
+    if not selected_nodes and not selected_members:
+        raise ValueError("Delete selection requires selected Node(s) or Member(s)")
+    for key in selected_members:
+        if key not in model.members:
+            raise ValueError(f"Member {key} does not exist")
+    for key in selected_nodes:
+        if key not in model.nodes:
+            raise ValueError(f"Node {key} does not exist")
+    selected_member_set = set(selected_members)
+    remaining_incidence = {
+        endpoint
+        for key, member in model.members.items()
+        if key not in selected_member_set
+        for endpoint in (member.start, member.end)
+    }
+    blocked = [key for key in selected_nodes if key in remaining_incidence]
+    if blocked:
+        raise ValueError(
+            f"Cannot delete Node {blocked[0]}; it has an unselected incident Member"
+        )
+
+    commands: tuple[RepairCommand, ...] = (
+        *(DeleteMember(key) for key in selected_members),
+        *(DeleteNode(key) for key in selected_nodes),
+    )
+    if len(commands) == 1:
+        return commands[0]
+    return CompositeRepair(commands, label="delete selected entities")
+
+
 def build_split_member(member_key: UUID, position: Vec3) -> RepairCommand:
     return SplitMember(member_key, position)
+
+
+def build_merge_selected_members(
+    model: ProjectModel,
+    first_member: UUID,
+    second_member: UUID,
+) -> MergeMembers:
+    command = MergeMembers(first_member, second_member)
+    # Validate against an isolated snapshot so the UI can fail before confirmation.
+    preview = ProjectModel(
+        nodes=dict(model.nodes),
+        members=dict(model.members),
+        metadata=model.metadata,
+        revision=model.revision,
+    )
+    command.apply(preview)
+    command.revert(preview)
+    return MergeMembers(first_member, second_member)
 
 
 def _member_endpoints(model: ProjectModel, member_key: UUID) -> tuple[Vec3, Vec3]:

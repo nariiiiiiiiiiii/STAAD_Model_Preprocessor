@@ -16,14 +16,14 @@ from vtkmodules.vtkRenderingCore import vtkCellPicker
 
 from staadprep.editing.create_node import (
     ExistingNodeResolution,
+    MemberTranslationalRepeatPreview,
+    MemberTranslationalRepeatSpec,
     RepeatConnectionMode,
     TranslationalRepeatPreview,
     TranslationalRepeatSpec,
 )
 from staadprep.editing.inference import AxisLock, InferenceEngine, InferenceHit, SnapKind
 from staadprep.editing.manual_ops import (
-    build_delete_member,
-    build_delete_node,
     build_draw_member_existing,
     build_draw_member_new,
     build_move_or_snap_node,
@@ -32,6 +32,7 @@ from staadprep.editing.manual_ops import (
 )
 from staadprep.model.geometry import Vec3
 from staadprep.model.project import ProjectModel
+from staadprep.orientation.local_axes import member_local_axes
 from staadprep.repair.commands import CreateNode
 from staadprep.viewer.interaction import (
     EditMode,
@@ -39,6 +40,7 @@ from staadprep.viewer.interaction import (
     LabelVisibility,
     SelectionFilter,
 )
+from staadprep.viewer.palette import VIEWPORT_LABEL_TEXT_COLOR
 from staadprep.viewer.scene import SceneData
 from staadprep.viewer.selection import (
     SelectionCandidate,
@@ -57,6 +59,9 @@ class StructuralViewport(QWidget):
     axis_lock_changed = Signal(object, str)
     manual_command_requested = Signal(object)
     direction_endpoint_selected = Signal(object)
+    selection_filter_requested = Signal(object)
+    selection_changed = Signal(object, object)
+    delete_selection_requested = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -73,6 +78,8 @@ class StructuralViewport(QWidget):
         self._member_highlight_actor: Any | None = None
         self._node_highlight_actor: Any | None = None
         self._local_x_actor: Any | None = None
+        self._local_axis_actors: list[Any] = []
+        self._local_axis_label_actors: list[Any] = []
         self._label_actors: list[Any] = []
         self._navigation_mode: str | None = None
         self._last_mouse_pos: tuple[float, float] | None = None
@@ -102,7 +109,19 @@ class StructuralViewport(QWidget):
 
     def _configure_scene(self) -> None:
         self.plotter.set_background("#0d1319")
-        self.plotter.add_axes(line_width=2)
+        # Native VTK grid/axes rendering is unstable on the Qt offscreen test
+        # platform. Automated tests validate geometry actors directly; the real
+        # Windows application keeps the full engineering grid and axes.
+        if self._off_screen:
+            return
+        self.plotter.add_axes(
+            line_width=2,
+            color="#f2f2f2",
+            xlabel="X",
+            ylabel="Y",
+            zlabel="Z",
+            labels_off=False,
+        )
         self.plotter.show_grid(
             color="#2b3641",
             xtitle="X",
@@ -137,10 +156,13 @@ class StructuralViewport(QWidget):
         self._member_highlight_actor = None
         self._node_highlight_actor = None
         self._local_x_actor = None
+        self._local_axis_actors = []
+        self._local_axis_label_actors = []
         self._clear_label_actors()
 
         if self.scene.points.size == 0:
             self.plotter.render()
+            self._emit_selection_changed()
             return
 
         point_cloud = pv.PolyData(self.scene.points)
@@ -177,6 +199,7 @@ class StructuralViewport(QWidget):
         self._render_labels()
         self.plotter.reset_camera()
         self.plotter.render()
+        self._emit_selection_changed()
 
     def set_edit_mode(self, mode: EditMode) -> None:
         resolved = EditMode(mode)
@@ -243,6 +266,9 @@ class StructuralViewport(QWidget):
         self._draw_start_node = start_node
         self._edit_preview_position = self._model.nodes[start_node].position
 
+    def focus_interactor(self) -> None:
+        self.plotter.interactor.setFocus(Qt.FocusReason.OtherFocusReason)
+
     def update_draw_preview(self, position: Vec3) -> None:
         if self._model is None or self._draw_start_node is None:
             raise RuntimeError("Draw Member preview has not started")
@@ -296,13 +322,8 @@ class StructuralViewport(QWidget):
         self.cancel_edit_preview()
 
     def request_delete_selection(self) -> None:
-        if len(self.selection.selected_members) == 1 and not self.selection.selected_nodes:
-            self.manual_command_requested.emit(
-                build_delete_member(self.selection.selected_members[0])
-            )
-            return
-        if len(self.selection.selected_nodes) == 1 and not self.selection.selected_members:
-            self.manual_command_requested.emit(build_delete_node(self.selection.selected_nodes[0]))
+        if self.selection.selected_members or self.selection.selected_nodes:
+            self.delete_selection_requested.emit()
 
     def cancel_edit_preview(self) -> None:
         self._remove_actor(self._ghost_actor)
@@ -483,6 +504,51 @@ class StructuralViewport(QWidget):
 
         self._render_precision_geometry(points, segments)
 
+
+    def show_member_translational_repeat_preview(
+        self,
+        preview: MemberTranslationalRepeatPreview,
+        spec: MemberTranslationalRepeatSpec,
+        resolutions: dict[tuple[int, UUID], ExistingNodeResolution],
+    ) -> None:
+        del preview, resolutions
+        if self._model is None:
+            raise ValueError("Member Translational Repeat preview requires a model")
+        missing = [key for key in spec.member_keys if key not in self._model.members]
+        if missing:
+            raise ValueError("Member Translational Repeat preview requires valid selected members")
+
+        source_node_keys = sorted(
+            {
+                node_key
+                for member_key in spec.member_keys
+                for node_key in (
+                    self._model.members[member_key].start,
+                    self._model.members[member_key].end,
+                )
+            },
+            key=lambda key: key.int,
+        )
+        points: list[Vec3] = []
+        segments: list[tuple[Vec3, Vec3]] = []
+
+        for step in range(1, spec.repeats + 1):
+            delta = Vec3(spec.dx * step, spec.dy * step, spec.dz * step)
+            translated = {
+                key: Vec3(
+                    self._model.nodes[key].position.x + delta.x,
+                    self._model.nodes[key].position.y + delta.y,
+                    self._model.nodes[key].position.z + delta.z,
+                )
+                for key in source_node_keys
+            }
+            points.extend(translated.values())
+            for member_key in spec.member_keys:
+                member = self._model.members[member_key]
+                segments.append((translated[member.start], translated[member.end]))
+
+        self._render_precision_geometry(points, segments)
+
     def request_create_node_hit(self, hit: InferenceHit) -> None:
         if self._model is None:
             return
@@ -526,14 +592,14 @@ class StructuralViewport(QWidget):
             selection_filter=selection_filter,
         )
         if not selection_filter.nodes:
-            self.highlight_nodes(())
+            self.highlight_nodes((), _notify=False)
         if not selection_filter.members:
-            self.highlight_members(())
+            self.highlight_members((), _notify=False)
+        self._emit_selection_changed()
 
     def set_label_visibility(self, visibility: LabelVisibility) -> None:
         self.interaction_state = replace(self.interaction_state, labels=visibility)
-        self._remove_actor(self._local_x_actor)
-        self._local_x_actor = None
+        self._clear_local_axis_actors()
         self._clear_label_actors()
         if visibility.local_x:
             self._render_local_x_arrows()
@@ -569,6 +635,7 @@ class StructuralViewport(QWidget):
                 labels,
                 point_size=0,
                 font_size=11,
+                text_color=VIEWPORT_LABEL_TEXT_COLOR,
                 shape=None,
                 always_visible=True,
                 show_points=False,
@@ -585,27 +652,89 @@ class StructuralViewport(QWidget):
                 labels,
                 point_size=0,
                 font_size=11,
+                text_color=VIEWPORT_LABEL_TEXT_COLOR,
                 shape=None,
                 always_visible=True,
                 show_points=False,
             )
             self._label_actors.append(actor)
 
+    def _clear_local_axis_actors(self) -> None:
+        for actor in self._local_axis_actors:
+            self._remove_actor(actor)
+        for actor in self._local_axis_label_actors:
+            self._remove_actor(actor)
+        self._local_axis_actors = []
+        self._local_axis_label_actors = []
+        self._local_x_actor = None
+
     def _render_local_x_arrows(self) -> None:
-        if self.scene is None or not len(self.scene.member_keys):
+        """Render selected Member local XYZ triads using the STAAD beta=0 basis."""
+        if self.scene is None or self._model is None:
             return
-        lengths = np.linalg.norm(self.scene.local_x_vectors, axis=1)
-        mask = lengths > 0.0
-        if not bool(np.any(mask)):
+        selected = tuple(
+            key for key in self.selection.selected_members if key in self._model.members
+        )
+        if not selected:
             return
+
         span = np.ptp(self.scene.points, axis=0) if len(self.scene.points) else np.zeros(3)
         reference = max(float(np.max(span)), 1.0)
-        self._local_x_actor = self.plotter.add_arrows(
-            self.scene.member_midpoints[mask],
-            self.scene.local_x_vectors[mask],
-            mag=reference * 0.04,
-            color="#ffb347",
+        magnitude = reference * 0.04
+        origins: list[tuple[float, float, float]] = []
+        x_vectors: list[tuple[float, float, float]] = []
+        y_vectors: list[tuple[float, float, float]] = []
+        z_vectors: list[tuple[float, float, float]] = []
+
+        for key in selected:
+            member = self._model.members[key]
+            axes = member_local_axes(self._model, member)
+            if axes is None:
+                continue
+            start = self._model.nodes[member.start].position
+            end = self._model.nodes[member.end].position
+            midpoint = (
+                (start.x + end.x) * 0.5,
+                (start.y + end.y) * 0.5,
+                (start.z + end.z) * 0.5,
+            )
+            origins.append(midpoint)
+            x_vectors.append((axes.x.x, axes.x.y, axes.x.z))
+            y_vectors.append((axes.y.x, axes.y.y, axes.y.z))
+            z_vectors.append((axes.z.x, axes.z.y, axes.z.z))
+
+        if not origins:
+            return
+
+        origin_array = np.asarray(origins, dtype=float)
+        axis_specs = (
+            ("X", np.asarray(x_vectors, dtype=float), "#ff4d4d"),
+            ("Y", np.asarray(y_vectors, dtype=float), "#39d98a"),
+            ("Z", np.asarray(z_vectors, dtype=float), "#3b82f6"),
         )
+        for label, vectors, color in axis_specs:
+            actor = self.plotter.add_arrows(
+                origin_array,
+                vectors,
+                mag=magnitude,
+                color=color,
+            )
+            self._local_axis_actors.append(actor)
+            if label == "X":
+                self._local_x_actor = actor
+
+            label_points = origin_array + vectors * (magnitude * 1.15)
+            label_actor = self.plotter.add_point_labels(
+                label_points,
+                [label] * len(label_points),
+                point_size=0,
+                font_size=11,
+                text_color=color,
+                shape=None,
+                always_visible=True,
+                show_points=False,
+            )
+            self._local_axis_label_actors.append(label_actor)
 
     def _on_cells_picked(self, picked: Any) -> None:
         blocks = picked if isinstance(picked, pv.MultiBlock) else (picked,)
@@ -627,6 +756,7 @@ class StructuralViewport(QWidget):
         self.selection.select_member(member_key, additive=additive)
         self._render_selection_highlights()
         self.member_selected.emit(member_key)
+        self._emit_selection_changed()
         return member_key
 
     def select_node_by_index(self, point_index: int, *, additive: bool = False) -> UUID | None:
@@ -638,6 +768,7 @@ class StructuralViewport(QWidget):
         self.selection.select_node(node_key, additive=additive)
         self._render_selection_highlights()
         self.node_selected.emit(node_key)
+        self._emit_selection_changed()
         return node_key
 
     def select_overlap_candidates(
@@ -662,6 +793,7 @@ class StructuralViewport(QWidget):
             self.selection.select_member(choice.key, additive=additive)
             self.member_selected.emit(choice.key)
         self._render_selection_highlights()
+        self._emit_selection_changed()
         return choice
 
     def clear_selection(self) -> None:
@@ -669,21 +801,33 @@ class StructuralViewport(QWidget):
         self._last_overlap_candidates = ()
         self._last_overlap_choice = None
         self._render_selection_highlights()
+        self._emit_selection_changed()
+
+    def _emit_selection_changed(self) -> None:
+        self.selection_changed.emit(
+            self.selection.selected_nodes,
+            self.selection.selected_members,
+        )
 
     def _render_selection_highlights(self) -> None:
         node_keys = self.selection.selected_nodes
         member_keys = self.selection.selected_members
-        self.highlight_nodes(node_keys)
-        self.highlight_members(member_keys)
+        self.highlight_nodes(node_keys, _notify=False)
+        self.highlight_members(member_keys, _notify=False)
 
-    def highlight_members(self, keys: Iterable[UUID]) -> None:
+    def highlight_members(self, keys: Iterable[UUID], *, _notify: bool = True) -> None:
         selected = tuple(keys)
         self.selection.set_members(selected)
+        if self.interaction_state.labels.local_x:
+            self._clear_local_axis_actors()
+            self._render_local_x_arrows()
         self._remove_actor(self._member_highlight_actor)
         self._member_highlight_actor = None
 
         if self.scene is None or not selected:
             self.plotter.render()
+            if _notify:
+                self._emit_selection_changed()
             return
 
         selected_set = set(selected)
@@ -694,6 +838,8 @@ class StructuralViewport(QWidget):
         ]
         if not rows:
             self.plotter.render()
+            if _notify:
+                self._emit_selection_changed()
             return
 
         mesh = pv.PolyData(
@@ -707,8 +853,10 @@ class StructuralViewport(QWidget):
             pickable=False,
         )
         self.plotter.render()
+        if _notify:
+            self._emit_selection_changed()
 
-    def highlight_nodes(self, keys: Iterable[UUID]) -> None:
+    def highlight_nodes(self, keys: Iterable[UUID], *, _notify: bool = True) -> None:
         selected = tuple(keys)
         self.selection.set_nodes(selected)
         self._remove_actor(self._node_highlight_actor)
@@ -716,6 +864,8 @@ class StructuralViewport(QWidget):
 
         if self.scene is None or not selected:
             self.plotter.render()
+            if _notify:
+                self._emit_selection_changed()
             return
 
         point_indices = [
@@ -725,6 +875,8 @@ class StructuralViewport(QWidget):
         ]
         if not point_indices:
             self.plotter.render()
+            if _notify:
+                self._emit_selection_changed()
             return
 
         mesh = pv.PolyData(self.scene.points[point_indices])
@@ -737,6 +889,8 @@ class StructuralViewport(QWidget):
             pickable=False,
         )
         self.plotter.render()
+        if _notify:
+            self._emit_selection_changed()
 
     def begin_navigation(self, *, shift: bool) -> str:
         self._navigation_mode = "pan" if shift else "orbit"
@@ -805,6 +959,88 @@ class StructuralViewport(QWidget):
         if self.scene is None or not len(self.scene.point_keys):
             return
         self.plotter.reset_camera()
+        self.plotter.render()
+
+    @staticmethod
+    def _staad_isometric_camera(
+        bounds: tuple[float, float, float, float, float, float],
+    ) -> tuple[
+        tuple[float, float, float],
+        tuple[float, float, float],
+        tuple[float, float, float],
+    ]:
+        xmin, xmax, ymin, ymax, zmin, zmax = bounds
+        focal = (
+            (xmin + xmax) / 2.0,
+            (ymin + ymax) / 2.0,
+            (zmin + zmax) / 2.0,
+        )
+        span = max(xmax - xmin, ymax - ymin, zmax - zmin, 1.0)
+        position = (
+            focal[0] + span,
+            focal[1] + span,
+            focal[2] + span,
+        )
+        return position, focal, (0.0, 1.0, 0.0)
+
+    def _scene_bounds(self) -> tuple[float, float, float, float, float, float] | None:
+        if self.scene is None or not len(self.scene.point_keys):
+            return None
+        minimum = np.min(self.scene.points, axis=0)
+        maximum = np.max(self.scene.points, axis=0)
+        return (
+            float(minimum[0]),
+            float(maximum[0]),
+            float(minimum[1]),
+            float(maximum[1]),
+            float(minimum[2]),
+            float(maximum[2]),
+        )
+
+    def reset_view(self) -> None:
+        bounds = self._scene_bounds()
+        if bounds is None:
+            return
+        position, focal, view_up = self._staad_isometric_camera(bounds)
+        camera = self.plotter.camera
+        camera.SetFocalPoint(*focal)
+        camera.SetPosition(*position)
+        camera.SetViewUp(*view_up)
+        self.plotter.reset_camera()
+        self.plotter.renderer.ResetCameraClippingRange()
+        self.plotter.render()
+
+    def crop_to_selection(self) -> None:
+        if self.scene is None:
+            return
+        points: list[np.ndarray] = []
+        for key in self.selection.selected_nodes:
+            index = self.scene.point_index_by_key.get(key)
+            if index is not None:
+                points.append(self.scene.points[index])
+        selected_members = set(self.selection.selected_members)
+        for index, key in enumerate(self.scene.member_keys):
+            if key in selected_members:
+                row = self.scene.lines[index]
+                points.extend(
+                    (self.scene.points[int(row[1])], self.scene.points[int(row[2])])
+                )
+        if not points:
+            return
+        coordinates = np.asarray(points, dtype=float)
+        minimum = np.min(coordinates, axis=0)
+        maximum = np.max(coordinates, axis=0)
+        pad = max(float(np.max(maximum - minimum)) * 0.08, 1e-6)
+        bounds = (
+            float(minimum[0] - pad),
+            float(maximum[0] + pad),
+            float(minimum[1] - pad),
+            float(maximum[1] + pad),
+            float(minimum[2] - pad),
+            float(maximum[2] + pad),
+        )
+        self.plotter.reset_camera(bounds=bounds)
+        self.plotter.renderer.ResetCameraClippingRange()
         self.plotter.render()
 
     def focus_selection(self) -> None:
@@ -890,14 +1126,16 @@ class StructuralViewport(QWidget):
         self.highlight_members(member_keys)
         self._set_actor_visibility(self._node_actor, False)
         self._set_actor_visibility(self._member_actor, False)
-        self._set_actor_visibility(self._local_x_actor, False)
+        for actor in (*self._local_axis_actors, *self._local_axis_label_actors):
+            self._set_actor_visibility(actor, False)
         self.focus_entities(node_keys, member_keys)
         self.plotter.render()
 
     def clear_isolation(self) -> None:
         self._set_actor_visibility(self._node_actor, True)
         self._set_actor_visibility(self._member_actor, True)
-        self._set_actor_visibility(self._local_x_actor, self.interaction_state.labels.local_x)
+        for actor in (*self._local_axis_actors, *self._local_axis_label_actors):
+            self._set_actor_visibility(actor, self.interaction_state.labels.local_x)
         self.highlight_nodes(())
         self.highlight_members(())
         if self.scene is not None and self.scene.points.size:
@@ -917,8 +1155,11 @@ class StructuralViewport(QWidget):
         picker.SetTolerance(0.01)
         picker.PickFromListOn()
         picker.AddPickList(actor)
-        display_y = float(self.plotter.interactor.height()) - float(y)
-        if not picker.Pick(float(x), display_y, 0.0, self.plotter.renderer):
+        display = self._vtk_display_coordinates(x, y)
+        if display is None:
+            return None
+        display_x, display_y = display
+        if not picker.Pick(display_x, display_y, 0.0, self.plotter.renderer):
             return None
         cell_id = int(picker.GetCellId())
         if cell_id < 0:
@@ -944,14 +1185,75 @@ class StructuralViewport(QWidget):
     def _pick_world_at(self, x: float, y: float) -> tuple[float, float, float] | None:
         picker = vtkCellPicker()
         picker.SetTolerance(0.01)
-        display_y = float(self.plotter.interactor.height()) - float(y)
-        if not picker.Pick(float(x), display_y, 0.0, self.plotter.renderer):
+        display = self._vtk_display_coordinates(x, y)
+        if display is None:
+            return None
+        display_x, display_y = display
+        if not picker.Pick(display_x, display_y, 0.0, self.plotter.renderer):
             return None
         position = picker.GetPickPosition()
         return (float(position[0]), float(position[1]), float(position[2]))
 
-    def _show_context_menu(self, global_position: Any) -> None:
+    @staticmethod
+    def _scaled_vtk_display_coordinates(
+        x: float,
+        y: float,
+        *,
+        widget_size: tuple[int, int],
+        render_size: tuple[int, int],
+    ) -> tuple[float, float] | None:
+        widget_width, widget_height = widget_size
+        render_width, render_height = render_size
+        if min(widget_width, widget_height, render_width, render_height) <= 0:
+            return None
+        return (
+            float(x) * float(render_width) / float(widget_width),
+            (float(widget_height) - float(y))
+            * float(render_height)
+            / float(widget_height),
+        )
+
+    def _vtk_display_coordinates(self, x: float, y: float) -> tuple[float, float] | None:
+        render_width, render_height = self.plotter.render_window.GetSize()
+        return self._scaled_vtk_display_coordinates(
+            x,
+            y,
+            widget_size=(
+                int(self.plotter.interactor.width()),
+                int(self.plotter.interactor.height()),
+            ),
+            render_size=(int(render_width), int(render_height)),
+        )
+
+    def _request_selection_filter(self, selection_filter: SelectionFilter) -> None:
+        self.set_edit_mode(EditMode.SELECT)
+        self.set_selection_filter(selection_filter)
+        self.selection_filter_requested.emit(selection_filter)
+
+    def _build_context_menu(self) -> QMenu:
         menu = QMenu(self)
+        current_filter = self.interaction_state.selection_filter
+        node_filter = SelectionFilter(nodes=True, members=False)
+        member_filter = SelectionFilter(nodes=False, members=True)
+        all_filter = SelectionFilter()
+
+        node_mode_action = menu.addAction("Select Nodes")
+        member_mode_action = menu.addAction("Select Members")
+        all_mode_action = menu.addAction("Select Nodes + Members")
+        for action, selection_filter in (
+            (node_mode_action, node_filter),
+            (member_mode_action, member_filter),
+            (all_mode_action, all_filter),
+        ):
+            action.setCheckable(True)
+            action.setChecked(current_filter == selection_filter)
+            action.triggered.connect(
+                lambda _checked=False, selected=selection_filter: self._request_selection_filter(
+                    selected
+                )
+            )
+
+        menu.addSeparator()
         has_nodes = bool(self.selection.selected_nodes)
         has_members = bool(self.selection.selected_members)
         if has_nodes and has_members:
@@ -963,19 +1265,34 @@ class StructuralViewport(QWidget):
         else:
             focus_text = "Focus Selected"
         focus_action = menu.addAction(focus_text)
-        fit_action = menu.addAction("Fit Model")
+        crop_action = menu.addAction("Crop to Selection")
         clear_action = menu.addAction("Clear Selection")
-        if focus_action is None or fit_action is None or clear_action is None:
-            return
+        delete_action = menu.addAction("Delete Selected")
         focus_action.setEnabled(has_nodes or has_members)
+        crop_action.setEnabled(has_nodes or has_members)
         clear_action.setEnabled(has_nodes or has_members)
-        chosen = menu.exec(global_position)
-        if chosen is focus_action:
-            self.focus_selection()
-        elif chosen is fit_action:
-            self.fit_model()
-        elif chosen is clear_action:
-            self.clear_selection()
+        delete_action.setEnabled(has_nodes or has_members)
+        focus_action.triggered.connect(self.focus_selection)
+        crop_action.triggered.connect(self.crop_to_selection)
+        clear_action.triggered.connect(self.clear_selection)
+        delete_action.triggered.connect(self.delete_selection_requested.emit)
+
+        menu.addSeparator()
+        fit_action = menu.addAction("Fit Model")
+        reset_action = menu.addAction("Reset View")
+        fit_action.triggered.connect(self.fit_model)
+        reset_action.triggered.connect(self.reset_view)
+        return menu
+
+    def _show_context_menu(
+        self,
+        local_position: tuple[float, float],
+        global_position: Any,
+    ) -> None:
+        candidates = self._pick_candidates_at(*local_position)
+        if candidates:
+            self.select_overlap_candidates(candidates)
+        self._build_context_menu().exec(global_position)
 
     def eventFilter(self, watched: QObject, event: Any) -> bool:  # noqa: N802
         if watched is not self.plotter.interactor:
@@ -1004,7 +1321,7 @@ class StructuralViewport(QWidget):
                 }:
                     return True
             if event.button() == Qt.MouseButton.RightButton:
-                self._show_context_menu(event.globalPosition().toPoint())
+                self._show_context_menu(point, event.globalPosition().toPoint())
                 return True
 
         if event_type == QEvent.Type.MouseMove and self._navigation_mode is not None:
@@ -1173,6 +1490,9 @@ class StructuralViewport(QWidget):
             return True
 
         if event_type == QEvent.Type.KeyPress:
+            if event.key() == Qt.Key.Key_Delete:
+                self.request_delete_selection()
+                return True
             if (
                 event.key() == Qt.Key.Key_Z
                 and event.modifiers() & Qt.KeyboardModifier.ShiftModifier

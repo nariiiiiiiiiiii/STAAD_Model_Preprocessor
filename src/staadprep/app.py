@@ -59,9 +59,11 @@ def main() -> int:
         QMessageBox.critical(None, "Portable folder is not writable", str(exc))
         return 2
 
+    smoke_ms = os.environ.get("STAADPREP_SMOKE_MS")
     window = MainWindow(
         project_paths=project_paths,
         sketchup_inbox=sketchup_inbox,
+        confirm_exit=(lambda _dirty: True) if smoke_ms else None,
     )
 
     if os.environ.get("STAADPREP_DEMO") == "1":
@@ -71,7 +73,6 @@ def main() -> int:
     window.show()
     run_optional_packaged_workflow_smoke(window)
 
-    smoke_ms = os.environ.get("STAADPREP_SMOKE_MS")
     if smoke_ms:
         QTimer.singleShot(max(0, int(smoke_ms)), app.quit)
 

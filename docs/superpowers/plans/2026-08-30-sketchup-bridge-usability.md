@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-30-post-t22-usability-design.md`
 
+**Status:** COMPLETE, USER ACCEPTED, and committed as `e7ce6ad`. The accepted RBZ is included in the current editing-final portable package.
+
 ## Global Constraints
 
 - Do not change geometry traversal, coordinates, source unit `in`, source axis `Z-UP`, protocol version `1`, or Neutral JSON fields.
@@ -38,7 +40,7 @@
 - Consumes: `extensions/sketchup_staadprep/staadprep/exporter.rb`
 - Produces: executable assertions for dialog callbacks and compact filenames
 
-- [ ] **Step 1: Add source-contract assertions**
+- [x] **Step 1: Add source-contract assertions**
 
 ```python
 assert "UI::HtmlDialog.new" in exporter
@@ -50,7 +52,7 @@ assert "SecureRandom" not in exporter
 assert "File.exist?(candidate)" in exporter
 ```
 
-- [ ] **Step 2: Assert the generated RBZ contains the same source**
+- [x] **Step 2: Assert the generated RBZ contains the same source**
 
 ```python
 with ZipFile(rbz_path) as archive:
@@ -60,7 +62,7 @@ assert "Export Geometry" in bundled
 assert "SP_#{now.strftime('%Y%m%d_%H%M%S')}" in bundled
 ```
 
-- [ ] **Step 3: Run focused tests and confirm RED**
+- [x] **Step 3: Run focused tests and confirm RED**
 
 ```powershell
 ..\..\.venv\Scripts\python.exe -m pytest tests/unit/test_sketchup_ruby_contract.py tests/integration/test_rbz_package.py -q
@@ -77,7 +79,7 @@ Expected: failures because the current exporter has no HtmlDialog and still uses
 - Consumes: `configured_inbox`, `build_payload`, `write_atomic`
 - Produces: `show_bridge_dialog`, `bridge_dialog`, `bridge_html`, `choose_inbox`, `update_dialog_status(message)`
 
-- [ ] **Step 1: Remove the random-token dependency and separate inbox choice**
+- [x] **Step 1: Remove the random-token dependency and separate inbox choice**
 
 Remove `require 'securerandom'`. Add:
 
@@ -95,7 +97,7 @@ def choose_inbox
 end
 ```
 
-- [ ] **Step 2: Add one cached HtmlDialog**
+- [x] **Step 2: Add one cached HtmlDialog**
 
 ```ruby
 def bridge_dialog
@@ -113,7 +115,7 @@ end
 
 The HTML must explain the geometry handoff, display current inbox and last result, and include buttons **Export Geometry**, **Choose Inbox…**, and **Close**.
 
-- [ ] **Step 3: Bind exact callbacks**
+- [x] **Step 3: Bind exact callbacks**
 
 ```ruby
 dialog.add_action_callback('export_geometry') do |_context|
@@ -129,7 +131,7 @@ dialog.add_action_callback('close_dialog') { |_context| dialog.close }
 
 Make `send_to_staad_prep` return the final path on success and `nil` on cancellation/failure while retaining concise SketchUp success/error messages.
 
-- [ ] **Step 4: Route menu and toolbar to the dialog**
+- [x] **Step 4: Route menu and toolbar to the dialog**
 
 ```ruby
 command = UI::Command.new('STAAD Prep Bridge') { show_bridge_dialog }
@@ -145,7 +147,7 @@ command.tooltip = 'Export structural edge geometry to STAAD Model Preprocessor'
 **Interfaces:**
 - Produces: `next_output_path(inbox, now = Time.now) -> String`
 
-- [ ] **Step 1: Add the compact path generator**
+- [x] **Step 1: Add the compact path generator**
 
 ```ruby
 def next_output_path(inbox, now = Time.now)
@@ -160,7 +162,7 @@ def next_output_path(inbox, now = Time.now)
 end
 ```
 
-- [ ] **Step 2: Use it in the atomic writer**
+- [x] **Step 2: Use it in the atomic writer**
 
 ```ruby
 final_path = next_output_path(inbox)
@@ -169,7 +171,7 @@ temp_path = "#{final_path}.tmp"
 
 Do not change JSON generation, flush, fsync, rename, or ensure cleanup.
 
-- [ ] **Step 3: Confirm focused GREEN**
+- [x] **Step 3: Confirm focused GREEN**
 
 ```powershell
 ..\..\.venv\Scripts\python.exe -m pytest tests/unit/test_sketchup_ruby_contract.py tests/integration/test_rbz_package.py tests/integration/test_sketchup_ruby_pipeline.py -q
@@ -185,13 +187,13 @@ Do not change JSON generation, flush, fsync, rename, or ensure cleanup.
 - Consumes: updated Ruby source
 - Produces: reinstallable version-matched RBZ
 
-- [ ] **Step 1: Build the RBZ**
+- [x] **Step 1: Build the RBZ**
 
 ```powershell
 ..\..\.venv\Scripts\python.exe scripts/build_sketchup_rbz.py
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 ```powershell
 ..\..\.venv\Scripts\python.exe -m pytest tests/unit/test_sketchup_ruby_contract.py tests/integration/test_rbz_package.py tests/integration/test_sketchup_ruby_pipeline.py -q
@@ -199,11 +201,11 @@ Do not change JSON generation, flush, fsync, rename, or ensure cleanup.
 git diff --check
 ```
 
-- [ ] **Step 3: Stop for user acceptance**
+- [x] **Step 3: Stop for user acceptance**
 
 Deliver the rebuilt RBZ. Acceptance: dialog opens; the three buttons are understandable and usable; export succeeds; output resembles `SP_20260830_140328.json`.
 
-- [ ] **Step 4: Commit after acceptance**
+- [x] **Step 4: Commit after acceptance**
 
 ```powershell
 git add extensions/sketchup_staadprep tests/unit/test_sketchup_ruby_contract.py tests/integration/test_rbz_package.py packaging/INSTALL_RBZ.md docs/superpowers/specs/2026-08-30-post-t22-usability-design.md docs/superpowers/plans/2026-08-30-sketchup-bridge-usability.md

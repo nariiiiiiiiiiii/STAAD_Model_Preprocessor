@@ -2,6 +2,18 @@
 
 Verification policy: risk-based.
 
+Current gate state (2026-08-31): the explicitly approved post-T22 HR-2 correction scope completed
+STRICT source verification and its source behavior is user accepted. Full source verification is
+complete; the user authorized compile step 1 and Nuitka compilation completed successfully.
+Portable assembly and ZIP creation are complete under `dist/post-t22-refresh-save-final/`;
+package-only verification is **7/7 PASS**; real package acceptance and T23 target-STAAD.Pro
+acceptance work have not started.
+
+The Project Explorer entity inventory/select-one/select-all increment is STANDARD because it only
+changes UI selection/highlighting and does not execute a repair or mutate the analytical model.
+The UUID-free engineering Properties increment is also STANDARD because it formats existing model
+values for display and does not calculate or mutate engineering data.
+
 ## FAST
 Use for:
 - wording,
@@ -124,6 +136,26 @@ Approval received from the user on **2026-08-28** for:
 - the current `PROJECT_SPEC`, and
 - STRICT / Full TDD implementation of HR-1 through HR-4 defined in this document.
 
+Additional explicit approval was received on **2026-08-30** for the post-T22 HR-2 correction
+scope: multi-selection delete, orphan removal, Merge Members, and selected-Member Translational
+Repeat. Those changes require graph invariants, duplicate-incidence rejection, exact Undo
+round-trips, focused integration tests, and relevant regression before packaging.
+
 This approval applies to the scoped V1 behaviors above. If implementation discovers a new high-risk behavior outside HR-1 through HR-4, stop and request a new explicit approval before implementing that new risk area.
 
 Execution remains task-gated: complete one Task, verify, commit, update HANDOFF, then stop for user review before starting the next Task.
+
+
+## 2026-08-31 source handoff checkpoint
+
+- User-accepted source behavior before handoff: Member Translational Repeat preview, engineering Properties, Project Explorer entity selection, Member Local Axes XYZ, three-row toolbar with visible View controls, Save/Open Project JSON, import-derived save filename, `SAVED` / `NOT SAVED` title state, Ctrl+S save confirmation, readable Node/Member/Coordinate labels, Global Axis X/Y/Z labels, and Exit confirmation UI.
+- Latest real-user defect: clicking window `X` and choosing `Yes` did not close the application.
+- Latest source fix: exit dialog now compares the native Qt button result with equality (`==`) and the accepted close path delegates to `QMainWindow.closeEvent()`.
+- Exit regression evidence after fix: `tests/ui/test_exit_confirmation.py` **4/4 PASS**; Ruff PASS; strict mypy 0 issues for `main_window.py`; `git diff --check` PASS.
+- Status of latest close fix: **SOURCE VERIFIED / USER ACCEPTED — 2026-08-31**.
+- Full source verification is **COMPLETE**: **332/332 source unit+integration PASS**, **102/102
+  lightweight UI PASS**, **38/38 isolated VTK UI PASS**, six real Windows source smokes exit 0,
+  focused Save/Open **5/5 PASS**, Ruff PASS, strict mypy 0 issues, and diff check PASS.
+- The package-only verification suite was run after the user authorized step 3: **7/7 PASS**.
+  Nuitka compilation, portable assembly, and ZIP creation completed under
+  `dist/post-t22-refresh-save-final/`; real package acceptance is **PASS** (2026-08-31).

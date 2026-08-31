@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
 from uuid import UUID
 
 from PySide6.QtCore import Signal
@@ -7,12 +8,14 @@ from PySide6.QtWidgets import QWidget
 
 from staadprep.editing.create_node import (
     ExactNodeSpec,
+    MemberTranslationalRepeatSpec,
     RelativeNodeSpec,
     RepeatConnectionMode,
     TranslationalRepeatSpec,
+    analyze_member_translational_repeat,
     analyze_translational_repeat,
 )
-from staadprep.model.entities import Node
+from staadprep.model.entities import Member, Node
 from staadprep.model.geometry import Vec3
 from staadprep.model.project import ProjectModel
 from staadprep.ui.create_node_dialog import (
@@ -39,6 +42,7 @@ class PrecisionViewport(QWidget):
         self.highlighted_nodes: tuple[UUID, ...] = ()
         self.precision_previews: list[object] = []
         self.repeat_previews: list[object] = []
+        self.member_repeat_previews: list[object] = []
         self.clear_preview_calls = 0
 
     def set_model(self, model: ProjectModel) -> None:
@@ -72,6 +76,14 @@ class PrecisionViewport(QWidget):
         resolutions: object,
     ) -> None:
         self.repeat_previews.append((preview, spec, resolutions))
+
+    def show_member_translational_repeat_preview(
+        self,
+        preview: object,
+        spec: object,
+        resolutions: object,
+    ) -> None:
+        self.member_repeat_previews.append((preview, spec, resolutions))
 
     def clear_precision_preview(self) -> None:
         self.clear_preview_calls += 1
@@ -195,6 +207,31 @@ def test_repeat_apply_is_one_atomic_history_item(qtbot) -> None:
     assert not model.members
 
 
+def test_selected_member_repeat_apply_is_one_atomic_history_item(qtbot) -> None:
+    viewport = PrecisionViewport()
+    window = MainWindow(viewport_factory=lambda: viewport)
+    qtbot.addWidget(window)
+    model = ProjectModel(
+        nodes={
+            _key(1): Node(_key(1), Vec3(0.0, 0.0, 0.0)),
+            _key(2): Node(_key(2), Vec3(4.0, 0.0, 0.0)),
+        },
+        members={_key(101): Member(_key(101), _key(1), _key(2), group="Roof")},
+    )
+    window.set_canonical_model(model)
+    spec = MemberTranslationalRepeatSpec((_key(101),), 0.0, 3.0, 0.0, 2)
+
+    window._apply_member_translational_repeat(spec, resolutions={}, tolerance_m=1e-6)
+
+    assert len(model.nodes) == 6
+    assert len(model.members) == 3
+    assert window.repair_history is not None
+    assert len(window.repair_history.undo_stack) == 1
+    window.undo_repair()
+    assert len(model.nodes) == 2
+    assert len(model.members) == 1
+
+
 def test_precision_preview_request_is_forwarded_to_viewport(qtbot) -> None:
     viewport = PrecisionViewport()
     window = MainWindow(viewport_factory=lambda: viewport)
@@ -223,3 +260,24 @@ def test_repeat_preview_request_is_forwarded_to_viewport(qtbot) -> None:
     window._show_repeat_preview_request(request)
 
     assert viewport.repeat_previews == [(preview, spec, {})]
+
+
+def test_member_repeat_preview_request_is_forwarded_to_viewport(qtbot) -> None:
+    viewport = PrecisionViewport()
+    window = MainWindow(viewport_factory=lambda: viewport)
+    qtbot.addWidget(window)
+    model = ProjectModel(
+        nodes={
+            _key(1): Node(_key(1), Vec3(0.0, 0.0, 0.0)),
+            _key(2): Node(_key(2), Vec3(4.0, 0.0, 0.0)),
+        },
+        members={_key(101): Member(_key(101), _key(1), _key(2))},
+    )
+    window.set_canonical_model(model)
+    spec = MemberTranslationalRepeatSpec((_key(101),), 0.0, 3.0, 0.0, 1)
+    preview = analyze_member_translational_repeat(model, spec, tolerance_m=1e-6)
+    request = SimpleNamespace(preview=preview, spec=spec, resolutions={})
+
+    window._show_member_repeat_preview_request(request)
+
+    assert viewport.member_repeat_previews == [(preview, spec, {})]

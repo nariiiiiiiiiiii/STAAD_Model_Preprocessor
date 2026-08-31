@@ -1,6 +1,10 @@
 Status: APPROVED FOR IMPLEMENTATION — task-gated execution; STRICT approved for HR-1 through HR-4; Manual Editing V1 expansion approved 2026-08-28; SketchUp Ruby Bridge + Direct DXF V1 import architecture approved 2026-08-28.
 Date: 2026-08-28
 
+Current delivery checkpoint (2026-08-31): T22 is complete; the consolidated post-T22
+refresh/properties/save standalone/ZIP is package-verified and real-user accepted. T23
+target-STAAD.Pro acceptance is not started.
+
 ## 1. Problem statement
 
 Current workflow:
@@ -139,7 +143,18 @@ Manual operations include:
 - drag/snap a node onto an existing node using merge/snap semantics,
 - select one of overlapping duplicate members and delete only the selected member,
 - split a member at midpoint, percentage, distance-from-start, or intersection,
+- merge exactly two collinear members across one degree-2 shared node,
+- delete one or more selected members and any explicitly selected orphan nodes as one confirmed,
+  undoable operation,
 - create nodes directly in-app.
+
+Selection is visible in the viewport and populates the Properties panel with the selected Node
+or Member engineering number, coordinates/incidence, length, and group/layer. UUID and source
+references remain internal and are not rendered for selected entities. `Delete` on the
+keyboard, the toolbar, and the right-click menu all route through the same confirmed command path.
+Project Explorer exposes expandable Node and Member inventories ordered by STAAD number. Clicking
+one entity row selects exactly that entity; clicking the aggregate group selects and highlights all
+entities of that type without moving the camera or mutating the model.
 
 ### Create Node
 
@@ -147,7 +162,7 @@ Creation methods:
 1. Click / Snap on a valid inference/working plane.
 2. Exact canonical XYZ coordinate entry.
 3. Relative to selected reference Node using signed `ΔX / ΔY / ΔZ`.
-4. Translational Repeat from a reference Node.
+4. Translational Repeat from a reference Node or a selected Member subgraph.
 
 Relative Create Node UI must show:
 - reference Node ID and coordinates,
@@ -172,6 +187,10 @@ A focused STAAD-like Translational Repeat is included for analytical node/member
 - ghost preview of all proposed nodes/members,
 - existing-node collision handling before commit,
 - entire repeat commits/undoes as one atomic history operation.
+
+When Members are selected, repeat copies their analytical subgraph, preserves shared-node
+incidence and Member source/group metadata, reuses coincident repeated targets, rejects duplicate
+incidence, and requires explicit resolution before reusing a pre-existing Node.
 
 This feature is not a general CAD copy-array system.
 
@@ -298,10 +317,12 @@ Toolbar groups:
 
 `EDIT`
 - Select
-- Create Node
+- Create Node (Click)
+- Create Node (XYZ)
 - Draw Member
 - Move / Snap Node
 - Delete
+- Split / Merge Members
 
 `MODEL`
 - Auto Node No.
@@ -317,6 +338,8 @@ Toolbar groups:
 - Local-X
 - Coordinates
 - Fit Model
+- Reset View (canonical STAAD Y-up isometric)
+- Crop to Selection
 
 `TOOLS`
 - Measure
@@ -447,3 +470,18 @@ Rules:
 - the user decides whether and when to delete files inside `DEL/`.
 
 T24 is housekeeping after V1 acceptance and must not weaken T23 acceptance criteria or alter structural behavior.
+
+
+## 2026-08-31 source handoff checkpoint
+
+- User-accepted source behavior before handoff: Member Translational Repeat preview, engineering Properties, Project Explorer entity selection, Member Local Axes XYZ, three-row toolbar with visible View controls, Save/Open Project JSON, import-derived save filename, `SAVED` / `NOT SAVED` title state, Ctrl+S save confirmation, readable Node/Member/Coordinate labels, Global Axis X/Y/Z labels, and Exit confirmation UI.
+- Latest real-user defect: clicking window `X` and choosing `Yes` did not close the application.
+- Latest source fix: exit dialog now compares the native Qt button result with equality (`==`) and the accepted close path delegates to `QMainWindow.closeEvent()`.
+- Exit regression evidence after fix: `tests/ui/test_exit_confirmation.py` **4/4 PASS**; Ruff PASS; strict mypy 0 issues for `main_window.py`; `git diff --check` PASS.
+- Status of latest close fix: **SOURCE VERIFIED / USER ACCEPTED — 2026-08-31**.
+- Full source verification is **COMPLETE**: **332/332 source unit+integration PASS**, **102/102
+  lightweight UI PASS**, **38/38 isolated VTK UI PASS**, six real Windows source smokes exit 0,
+  focused Save/Open **5/5 PASS**, Ruff PASS, strict mypy 0 issues, and diff check PASS.
+- The package-only verification suite was run after the user authorized step 3: **7/7 PASS**.
+  Nuitka compilation, portable assembly, and ZIP creation completed under
+  `dist/post-t22-refresh-save-final/`; real package acceptance is **PASS** (2026-08-31).

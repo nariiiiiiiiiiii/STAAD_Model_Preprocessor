@@ -25,6 +25,16 @@ QToolButton:hover:enabled {
     background: #202a35;
     border-color: #334354;
 }
+QToolButton:checked {
+    background: #214d70;
+    border-color: #4da3ff;
+    color: #ffffff;
+    font-weight: 700;
+}
+QToolButton:checked:hover {
+    background: #285d86;
+    border-color: #6db5ff;
+}
 QToolButton:disabled {
     color: #697584;
 }

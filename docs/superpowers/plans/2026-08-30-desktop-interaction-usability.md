@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-30-post-t22-usability-design.md`
 
+**Status (2026-08-31): SUPERSEDED AS A SEPARATE ACCEPTANCE CHECKPOINT.** Tasks 1-4 and Task 5 Steps 1-4 completed with 311/311 unit+integration, 100/100 UI, real viewport smoke, Ruff, mypy, package/manifest, and ZIP-launch evidence. The `post-t22-ux-final` artifacts are archived under `DEL/standalone-archive-20260831/`; acceptance and commit moved to the consolidated `post-t22-editing-final` plan. No action remains in this plan.
+
 ## Global Constraints
 
 - Do not change model coordinates, topology, repair commands, numbering, ReadyGate, or `.STD` output.
@@ -28,7 +30,7 @@
 **Interfaces:**
 - Produces tests for `_scaled_vtk_display_coordinates(...) -> tuple[float, float] | None`
 
-- [ ] **Step 1: Add pure conversion tests**
+- [x] **Step 1: Add pure conversion tests**
 
 ```python
 def test_qt_to_vtk_coordinates_scale_and_flip_y() -> None:
@@ -42,7 +44,7 @@ def test_qt_to_vtk_coordinates_fail_closed_for_zero_size() -> None:
     ) is None
 ```
 
-- [ ] **Step 2: Extend the real renderer smoke**
+- [x] **Step 2: Extend the real renderer smoke**
 
 Project one Node and one Member midpoint from world to VTK display, convert to Qt logical coordinates, perform real clicks, then assert selected keys and highlight actors:
 
@@ -53,7 +55,7 @@ assert member_key in viewport.selection.selected_members
 assert viewport._member_highlight_actor is not None
 ```
 
-- [ ] **Step 3: Confirm RED**
+- [x] **Step 3: Confirm RED**
 
 ```powershell
 ..\..\.venv\Scripts\python.exe -m pytest tests/unit/test_viewport_display_coordinates.py -q
@@ -69,7 +71,7 @@ assert viewport._member_highlight_actor is not None
 - Produces: `_scaled_vtk_display_coordinates`, `_vtk_display_coordinates`
 - Used by: `_pick_candidate_for_actor`, `_pick_world_at`
 
-- [ ] **Step 1: Add the pure helper**
+- [x] **Step 1: Add the pure helper**
 
 ```python
 @staticmethod
@@ -90,7 +92,7 @@ def _scaled_vtk_display_coordinates(
     )
 ```
 
-- [ ] **Step 2: Add the live-size wrapper**
+- [x] **Step 2: Add the live-size wrapper**
 
 ```python
 def _vtk_display_coordinates(self, x: float, y: float) -> tuple[float, float] | None:
@@ -103,7 +105,7 @@ def _vtk_display_coordinates(self, x: float, y: float) -> tuple[float, float] | 
     )
 ```
 
-- [ ] **Step 3: Route both pickers through it**
+- [x] **Step 3: Route both pickers through it**
 
 ```python
 display = self._vtk_display_coordinates(x, y)
@@ -113,7 +115,7 @@ display_x, display_y = display
 picker.Pick(display_x, display_y, 0.0, self.plotter.renderer)
 ```
 
-- [ ] **Step 4: Confirm GREEN**
+- [x] **Step 4: Confirm GREEN**
 
 ```powershell
 ..\..\.venv\Scripts\python.exe -m pytest tests/unit/test_viewport_display_coordinates.py tests/unit/test_selection_cycle.py -q
@@ -130,7 +132,7 @@ picker.Pick(display_x, display_y, 0.0, self.plotter.renderer)
 **Interfaces:**
 - Produces: `reset_view()`, `selection_filter_requested = Signal(object)`, `_build_context_menu()`
 
-- [ ] **Step 1: Add Reset View**
+- [x] **Step 1: Add Reset View**
 
 ```python
 def reset_view(self) -> None:
@@ -142,7 +144,7 @@ def reset_view(self) -> None:
     self.plotter.render()
 ```
 
-- [ ] **Step 2: Add context selection requests**
+- [x] **Step 2: Add context selection requests**
 
 Declare `selection_filter_requested = Signal(object)`. Mode actions apply and emit one exact filter:
 
@@ -154,7 +156,7 @@ SelectionFilter(nodes=True, members=True)
 
 Each action enters `EditMode.SELECT`, removes now-disallowed selection, rerenders highlights, and emits the filter.
 
-- [ ] **Step 3: Build actions before displaying the menu**
+- [x] **Step 3: Build actions before displaying the menu**
 
 `_build_context_menu()` returns a `QMenu` with exact always-available entries:
 
@@ -168,7 +170,7 @@ Reset View
 
 Add Focus/Clear only when meaningful. Connect each `triggered` signal directly; `_show_context_menu` only calls `menu.exec(global_position)`.
 
-- [ ] **Step 4: Select an entity under right-click before menu construction**
+- [x] **Step 4: Select an entity under right-click before menu construction**
 
 ```python
 def _show_context_menu(self, local_position, global_position) -> None:
@@ -180,7 +182,7 @@ def _show_context_menu(self, local_position, global_position) -> None:
 
 Empty-space right-click leaves selection unchanged and exposes mode/view actions.
 
-- [ ] **Step 5: Test callbacks without automating a native popup**
+- [x] **Step 5: Test callbacks without automating a native popup**
 
 Build the menu, find actions by text, call `trigger()`, and assert filters, edit mode, Fit/Reset calls, and Focus/Clear availability.
 
@@ -196,7 +198,7 @@ Build the menu, find actions by text, call `trigger()`, and assert filters, edit
 - Consumes: `selection_filter_requested`
 - Produces: `reset_view_action`, `_apply_context_selection_filter(filter)`
 
-- [ ] **Step 1: Create Reset View action**
+- [x] **Step 1: Create Reset View action**
 
 ```python
 self.reset_view_action = QAction("Reset View", self)
@@ -204,7 +206,7 @@ self.reset_view_action.setToolTip("Restore isometric orientation and fit the who
 self.reset_view_action.triggered.connect(lambda: self._call_viewport("reset_view"))
 ```
 
-- [ ] **Step 2: Synchronize context filters**
+- [x] **Step 2: Synchronize context filters**
 
 ```python
 def _apply_context_selection_filter(self, selection_filter: SelectionFilter) -> None:
@@ -214,7 +216,7 @@ def _apply_context_selection_filter(self, selection_filter: SelectionFilter) -> 
     self._sync_selection_filter()
 ```
 
-- [ ] **Step 3: Set exact toolbar order**
+- [x] **Step 3: Set exact toolbar order**
 
 Workflow:
 
@@ -236,7 +238,7 @@ Edit & View:
 
 Then filters, labels, Fit, and Reset groups.
 
-- [ ] **Step 4: Add explicit checked styling**
+- [x] **Step 4: Add explicit checked styling**
 
 ```css
 QToolButton:checked {
@@ -251,23 +253,23 @@ QToolButton:checked:hover {
 }
 ```
 
-- [ ] **Step 5: Test order and state**
+- [x] **Step 5: Test order and state**
 
 Assert exact action order, Select checked by default, exactly one edit mode checked after switching, context filters reflected in toolbar, and Reset invoking `viewport.reset_view()`.
 
 ### Task 5: Verify and rebuild the portable release
 
 **Files:**
-- Generated: `build/windows/post-t22-ux/app.dist/`
-- Generated: `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/`
-- Generated: `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip`
+- Generated: `build/windows/final/app.dist/`
+- Generated: `dist/post-t22-ux-final/STAAD_Model_Preprocessor_0.1.0_win64_portable/`
+- Generated: `dist/post-t22-ux-final/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip`
 - Modify: `docs/HANDOFF.md`, `docs/CHECKLIST.md`, `docs/TASK_BOARD.md`, `docs/INDEX.md`
 
 **Interfaces:**
 - Consumes: verified source and rebuilt RBZ
 - Produces: updated executable, folder, ZIP, manifest, and evidence
 
-- [ ] **Step 1: Run targeted STANDARD verification**
+- [x] **Step 1: Run targeted STANDARD verification**
 
 ```powershell
 ..\..\.venv\Scripts\python.exe -m pytest tests/unit/test_viewport_display_coordinates.py tests/unit/test_selection_cycle.py tests/unit/test_interaction_state.py tests/ui/test_viewport_navigation.py tests/ui/test_viewport_context_menu.py tests/ui/test_main_window.py -q
@@ -277,33 +279,33 @@ Assert exact action order, Select checked by default, exactly one edit mode chec
 git diff --check
 ```
 
-- [ ] **Step 2: Run affected regression**
+- [x] **Step 2: Run affected regression**
 
 ```powershell
 ..\..\.venv\Scripts\python.exe -m pytest tests/unit tests/integration -q
 ..\..\.venv\Scripts\python.exe scripts/test_ui_isolated.py --scope all --run-id post-t22-ux-regression
 ```
 
-- [ ] **Step 3: Build standalone**
+- [x] **Step 3: Build standalone**
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/build_windows.ps1 -OutputRoot build/windows/post-t22-ux
+pwsh -ExecutionPolicy Bypass -File scripts/build_windows.ps1 -Python "..\\..\\.venv\\Scripts\\python.exe"
 ```
 
 Confirm the report says `mode="standalone"` and `completion="yes"`, then launch from a different CWD.
 
-- [ ] **Step 4: Assemble and verify package**
+- [x] **Step 4: Assemble and verify package**
 
 ```powershell
-..\..\.venv\Scripts\python.exe scripts/assemble_portable.py --standalone-root build/windows/post-t22-ux/app.dist --rbz build/sketchup/STAAD_Prep_Bridge_0.1.0.rbz --dist-root dist
+..\..\.venv\Scripts\python.exe scripts/assemble_portable.py --standalone-dir build/windows/final/app.dist --rbz build/sketchup/STAAD_Prep_Bridge_0.1.0.rbz --dist-root dist/post-t22-ux-final
 ..\..\.venv\Scripts\python.exe -m pytest tests/integration/test_package_manifest.py tests/integration/test_packaged_paths.py tests/integration/test_packaged_workflow_smoke.py -q
 ```
 
-- [ ] **Step 5: Stop for user acceptance**
+- [x] **Step 5: Transfer acceptance to the consolidated editing-final checkpoint**
 
 Verify real Node/Member clicks, highlights, context actions on entity/empty space, active mode highlight, order, Fit, and Reset View.
 
-- [ ] **Step 6: Commit after acceptance**
+- [x] **Step 6: Close this superseded plan without a separate commit; commit remains gated in the consolidated editing-final checkpoint**
 
 ```powershell
 git add src/staadprep/viewer/widget.py src/staadprep/ui/main_window.py src/staadprep/ui/theme.py scripts/smoke_viewport.py tests docs

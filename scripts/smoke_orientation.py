@@ -14,6 +14,7 @@ from staadprep.model.geometry import Vec3
 from staadprep.model.project import ProjectModel
 from staadprep.orientation.normalize import needs_reverse
 from staadprep.ui.main_window import MainWindow
+from staadprep.ui.repair_apply_dialog import RepairApplyDialog
 from staadprep.viewer.widget import StructuralViewport
 
 
@@ -36,9 +37,17 @@ def _model() -> ProjectModel:
     return ProjectModel(nodes=nodes, members=members)
 
 
+def _apply_repair(dialog: RepairApplyDialog) -> None:
+    dialog.apply_button.click()
+    dialog.ok_button.click()
+
+
 def main() -> int:
     app = QApplication.instance() or QApplication([])
-    window = MainWindow()
+    window = MainWindow(
+        repair_dialog_runner=_apply_repair,
+        confirm_exit=lambda _dirty: True,
+    )
     model = _model()
     window.set_canonical_model(model)
     app.processEvents()
@@ -52,6 +61,7 @@ def main() -> int:
     if viewport._local_x_actor is not None:
         raise RuntimeError("Local-X arrows should be hidden by default in T16")
     revision_before_view_toggle = model.revision
+    viewport.highlight_members((_key(101),))
     window.local_x_view_action.setChecked(True)
     app.processEvents()
     if viewport._local_x_actor is None:
@@ -69,8 +79,12 @@ def main() -> int:
         raise RuntimeError(f"Expected revision 2, got {model.revision}")
     if any(needs_reverse(model, member) for member in model.members.values()):
         raise RuntimeError("A member still violates the deterministic incidence rule")
+    if not window.local_x_view_action.isChecked():
+        raise RuntimeError("Local-X view mode did not survive model refresh")
+    viewport.highlight_members((_key(101),))
+    app.processEvents()
     if viewport._local_x_actor is None:
-        raise RuntimeError("Local-X arrows disappeared after model refresh")
+        raise RuntimeError("Local-X arrows did not return after reselection")
 
     window.close()
     app.processEvents()

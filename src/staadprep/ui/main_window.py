@@ -8,14 +8,20 @@ from pathlib import Path
 from uuid import UUID
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QActionGroup, QKeySequence
+from PySide6.QtGui import QAction, QActionGroup, QCloseEvent, QKeySequence
 from PySide6.QtWidgets import (
+    QAbstractSpinBox,
+    QApplication,
+    QComboBox,
     QFileDialog,
     QInputDialog,
+    QLineEdit,
     QMainWindow,
     QMenu,
     QMessageBox,
+    QPlainTextEdit,
     QSplitter,
+    QTextEdit,
     QToolBar,
     QVBoxLayout,
     QWidget,
@@ -25,14 +31,19 @@ from staadprep.editing.create_node import (
     ExactNodeSpec,
     ExistingNodeCollision,
     ExistingNodeResolution,
+    MemberRepeatResolutionRequired,
+    MemberTranslationalRepeatSpec,
     RelativeNodeSpec,
     RepeatResolutionRequired,
     TranslationalRepeatSpec,
     build_exact_create,
+    build_member_translational_repeat,
     build_relative_create,
     build_translational_repeat,
 )
 from staadprep.editing.manual_ops import (
+    build_delete_selection,
+    build_merge_selected_members,
     build_split_member_distance,
     build_split_member_midpoint,
     build_split_member_percentage,
@@ -45,6 +56,7 @@ from staadprep.importers.neutral_reader import NeutralReader, NeutralReaderError
 from staadprep.importers.pipeline import ImportPipelineError, canonicalize_import_batch
 from staadprep.importers.raw_preview import raw_batch_to_preview_model
 from staadprep.model.project import ProjectModel
+from staadprep.model.serialization import load_project, save_project_atomic
 from staadprep.numbering.commands import (
     RenumberAllCommand,
     RenumberMembersCommand,
@@ -71,6 +83,8 @@ from staadprep.repair.history import RepairHistory
 from staadprep.topology.connectivity import connected_components
 from staadprep.ui.create_node_dialog import (
     CreateNodeDialog,
+    MemberRepeatPreviewRequest,
+    MemberTranslationalRepeatDialog,
     PrecisionNodePreviewRequest,
     RepeatPreviewRequest,
     TranslationalRepeatDialog,
@@ -84,6 +98,7 @@ from staadprep.ui.panels import (
     QuickFixPanel,
     ValidationPanel,
 )
+from staadprep.ui.repair_apply_dialog import RepairApplyDialog
 from staadprep.validation.issues import Issue, IssueType
 from staadprep.validation.ready_gate import ReadyGate, ReadyStatus
 from staadprep.validation.validators import validate_model
@@ -92,7 +107,9 @@ from staadprep.viewer.widget import StructuralViewport
 
 ConfirmDelete = Callable[[str], bool]
 ConfirmUseExisting = Callable[[str], bool]
+ConfirmExit = Callable[[bool], bool]
 RunNumberingPreview = Callable[[NumberingPreviewDialog], bool]
+RunRepairApplyDialog = Callable[[RepairApplyDialog], None]
 
 
 class MainWindow(QMainWindow):
@@ -104,7 +121,9 @@ class MainWindow(QMainWindow):
         *,
         confirm_delete: ConfirmDelete | None = None,
         confirm_use_existing: ConfirmUseExisting | None = None,
+        confirm_exit: ConfirmExit | None = None,
         numbering_preview_runner: RunNumberingPreview | None = None,
+        repair_dialog_runner: RunRepairApplyDialog | None = None,
         ready_gate: ReadyGate | None = None,
         project_root: Path | None = None,
         project_paths: ProjectPaths | None = None,
@@ -127,9 +146,16 @@ class MainWindow(QMainWindow):
         self._viewport_factory = viewport_factory or StructuralViewport
         self._confirm_delete = confirm_delete or self._confirm_delete_dialog
         self._confirm_use_existing = confirm_use_existing or self._confirm_use_existing_dialog
+        self._confirm_exit = confirm_exit or self._confirm_exit_dialog
         self._run_numbering_preview = (
             numbering_preview_runner or self._default_numbering_preview_runner
         )
+        if repair_dialog_runner is not None:
+            self._run_repair_dialog = repair_dialog_runner
+        elif confirm_delete is not None:
+            self._run_repair_dialog = self._legacy_repair_dialog_runner
+        else:
+            self._run_repair_dialog = self._default_repair_dialog_runner
         self.ready_gate = ready_gate or ReadyGate()
         self.current_ready_status: ReadyStatus | None = None
         self._direction_member_key: UUID | None = None
@@ -139,6 +165,8 @@ class MainWindow(QMainWindow):
         self.repair_history: RepairHistory | None = None
         self._selected_issue_id: str | None = None
         self.orientation_reverse_count = 0
+        self._current_project_path: Path | None = None
+        self._saved_revision: int | None = None
 
         self.setWindowTitle("STAAD Model Preprocessor")
         self.resize(1480, 900)
@@ -164,8 +192,14 @@ class MainWindow(QMainWindow):
             "Import DXF directly through the shared canonical pipeline"
         )
         self.import_dxf_action.triggered.connect(self._choose_dxf)
+        self.open_project_action = QAction("Open Project JSON", self)
+        self.open_project_action.setToolTip(
+            "Open a canonical STAAD Model Preprocessor project JSON"
+        )
+        self.open_project_action.triggered.connect(self._choose_project_json)
         self.import_menu.addAction(self.import_sketchup_action)
         self.import_menu.addAction(self.import_dxf_action)
+        self.import_menu.addAction(self.open_project_action)
         self.import_action.setMenu(self.import_menu)
         self.import_action.setToolTip("Import from SketchUp Bridge inbox or import DXF directly")
 
@@ -201,6 +235,11 @@ class MainWindow(QMainWindow):
         self.validate_action = QAction("Validate", self)
         self.validate_action.setEnabled(False)
         self.validate_action.triggered.connect(self.refresh_validation)
+        self.save_project_action = QAction("Save Project JSON", self)
+        self.save_project_action.setShortcut(QKeySequence.StandardKey.Save)
+        self.save_project_action.setEnabled(False)
+        self.save_project_action.setToolTip("Save the canonical project JSON atomically")
+        self.save_project_action.triggered.connect(self._confirm_and_save_current_project)
         self.export_std_action = QAction("Export STD", self)
         self.export_std_action.setEnabled(False)
         self.export_std_action.setToolTip(
@@ -226,7 +265,7 @@ class MainWindow(QMainWindow):
         self.select_mode_action.setToolTip("Safe selection mode; dragging does not edit geometry")
         self.select_mode_action.triggered.connect(self._activate_select_mode)
 
-        self.create_node_mode_action = QAction("Create Node", self)
+        self.create_node_mode_action = QAction("Create Node (Click)", self)
         self.create_node_mode_action.setCheckable(True)
         self.create_node_mode_action.setToolTip(
             "Create analytical Node by resolved click/snap inference"
@@ -235,7 +274,7 @@ class MainWindow(QMainWindow):
             lambda: self._activate_edit_mode(EditMode.CREATE_NODE)
         )
 
-        self.create_node_dialog_action = QAction("Create Node…", self)
+        self.create_node_dialog_action = QAction("Create Node (XYZ)…", self)
         self.create_node_dialog_action.setEnabled(False)
         self.create_node_dialog_action.setToolTip(
             "Create Node by exact STAAD XYZ or relative to a selected Node"
@@ -266,7 +305,15 @@ class MainWindow(QMainWindow):
         self.delete_mode_action = QAction("Delete", self)
         self.delete_mode_action.setCheckable(True)
         self.delete_mode_action.setToolTip("Delete the exact selected analytical entity")
-        self.delete_mode_action.triggered.connect(lambda: self._activate_edit_mode(EditMode.DELETE))
+        self.delete_mode_action.triggered.connect(self._activate_delete_mode_or_execute)
+
+        self.delete_selection_action = QAction("Delete Selected", self)
+        self.delete_selection_action.setShortcut(QKeySequence("Delete"))
+        self.delete_selection_action.setShortcutContext(
+            Qt.ShortcutContext.WidgetWithChildrenShortcut
+        )
+        self.delete_selection_action.triggered.connect(self._delete_shortcut_requested)
+        self.addAction(self.delete_selection_action)
 
         self.split_action = QAction("Split", self)
         self.split_action.setEnabled(False)
@@ -289,7 +336,14 @@ class MainWindow(QMainWindow):
             self.split_menu.addAction(split_action)
         self.split_action.setMenu(self.split_menu)
 
-        self.auto_fix_selected_action = QAction("Auto Fix Selected", self)
+        self.merge_members_action = QAction("Merge Members", self)
+        self.merge_members_action.setEnabled(False)
+        self.merge_members_action.setToolTip(
+            "Merge two selected collinear Members across one degree-2 Node"
+        )
+        self.merge_members_action.triggered.connect(self._merge_selected_members)
+
+        self.auto_fix_selected_action = QAction("Auto Fix Direction", self)
         self.auto_fix_selected_action.setEnabled(False)
         self.auto_fix_selected_action.triggered.connect(self._auto_fix_selected_directions)
         self.flip_selected_action = QAction("Flip Selected", self)
@@ -330,7 +384,7 @@ class MainWindow(QMainWindow):
         self.member_numbers_action.setCheckable(True)
         self.member_numbers_action.toggled.connect(self._sync_label_visibility)
 
-        self.local_x_view_action = QAction("Local-X", self)
+        self.local_x_view_action = QAction("Local Axes", self)
         self.local_x_view_action.setCheckable(True)
         self.local_x_view_action.toggled.connect(self._sync_label_visibility)
 
@@ -338,11 +392,26 @@ class MainWindow(QMainWindow):
         self.coordinates_action.setCheckable(True)
         self.coordinates_action.toggled.connect(self._sync_label_visibility)
 
-        self.fit_model_action = QAction("Fit", self)
+        self.fit_model_action = QAction("Fit Model", self)
         self.fit_model_action.setShortcut(QKeySequence("Shift+Z"))
         self.fit_model_action.setToolTip("Fit the whole model in the viewport (Shift+Z)")
         self.fit_model_action.triggered.connect(lambda: self._call_viewport("fit_model"))
         self.addAction(self.fit_model_action)
+
+        self.reset_view_action = QAction("Reset View", self)
+        self.reset_view_action.setToolTip(
+            "Restore isometric orientation and fit the whole model"
+        )
+        self.reset_view_action.triggered.connect(lambda: self._call_viewport("reset_view"))
+
+        self.crop_selection_action = QAction("Crop to Selection", self)
+        self.crop_selection_action.setEnabled(False)
+        self.crop_selection_action.setToolTip(
+            "Frame selected Nodes/Members without hiding model data"
+        )
+        self.crop_selection_action.triggered.connect(
+            lambda: self._call_viewport("crop_to_selection")
+        )
 
     def _disabled_action(self, text: str, reason: str) -> QAction:
         action = QAction(text, self)
@@ -362,32 +431,42 @@ class MainWindow(QMainWindow):
             self.repair_action,
             self.normalize_axis_action,
             self.renumber_action,
-            self.create_node_dialog_action,
-            self.translational_repeat_action,
             self.validate_action,
+            self.save_project_action,
             self.export_std_action,
         ):
             toolbar.addAction(action)
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, toolbar)
+        self.addToolBarBreak(Qt.ToolBarArea.TopToolBarArea)
 
-        view_toolbar = QToolBar("View & Selection", self)
-        view_toolbar.setObjectName("view_selection_toolbar")
-        view_toolbar.setMovable(False)
-        view_toolbar.setFloatable(False)
-        view_toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+        edit_toolbar = QToolBar("Edit & Selection", self)
+        edit_toolbar.setObjectName("view_selection_toolbar")
+        edit_toolbar.setMovable(False)
+        edit_toolbar.setFloatable(False)
+        edit_toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
         for action in (
             self.select_mode_action,
             self.create_node_mode_action,
+            self.create_node_dialog_action,
             self.draw_member_action,
             self.move_snap_action,
             self.delete_mode_action,
             self.split_action,
+            self.merge_members_action,
+            self.translational_repeat_action,
             self.auto_fix_selected_action,
             self.flip_selected_action,
             self.set_direction_action,
         ):
-            view_toolbar.addAction(action)
-        view_toolbar.addSeparator()
+            edit_toolbar.addAction(action)
+        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, edit_toolbar)
+        self.addToolBarBreak(Qt.ToolBarArea.TopToolBarArea)
+
+        view_toolbar = QToolBar("View", self)
+        view_toolbar.setObjectName("view_toolbar")
+        view_toolbar.setMovable(False)
+        view_toolbar.setFloatable(False)
+        view_toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
         for action in (
             self.select_nodes_action,
             self.select_members_action,
@@ -403,6 +482,8 @@ class MainWindow(QMainWindow):
             view_toolbar.addAction(action)
         view_toolbar.addSeparator()
         view_toolbar.addAction(self.fit_model_action)
+        view_toolbar.addAction(self.reset_view_action)
+        view_toolbar.addAction(self.crop_selection_action)
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, view_toolbar)
 
     def _create_workspace(self) -> None:
@@ -417,6 +498,12 @@ class MainWindow(QMainWindow):
         self.project_explorer = ProjectExplorerPanel()
         self.project_explorer.setMinimumWidth(210)
         self.project_explorer.setMaximumWidth(330)
+        self.project_explorer.node_selection_requested.connect(
+            self._select_explorer_nodes
+        )
+        self.project_explorer.member_selection_requested.connect(
+            self._select_explorer_members
+        )
         main_splitter.addWidget(self.project_explorer)
 
         self.viewport_host = self._viewport_factory()
@@ -426,6 +513,23 @@ class MainWindow(QMainWindow):
         direction_signal = getattr(self.viewport_host, "direction_endpoint_selected", None)
         if direction_signal is not None:
             direction_signal.connect(self._apply_direction_endpoint)
+        selection_filter_signal = getattr(
+            self.viewport_host,
+            "selection_filter_requested",
+            None,
+        )
+        if selection_filter_signal is not None:
+            selection_filter_signal.connect(self._apply_context_selection_filter)
+        selection_changed_signal = getattr(self.viewport_host, "selection_changed", None)
+        if selection_changed_signal is not None:
+            selection_changed_signal.connect(self._on_viewport_selection_changed)
+        delete_selection_signal = getattr(
+            self.viewport_host,
+            "delete_selection_requested",
+            None,
+        )
+        if delete_selection_signal is not None:
+            delete_selection_signal.connect(self.delete_selected_entities)
         main_splitter.addWidget(self.viewport_host)
 
         right_column = QWidget()
@@ -481,11 +585,140 @@ class MainWindow(QMainWindow):
         action = action_by_mode.get(mode)
         if action is not None:
             action.setChecked(True)
+        mode_filter = {
+            EditMode.CREATE_NODE: SelectionFilter(nodes=True, members=False),
+            EditMode.DRAW_MEMBER: SelectionFilter(nodes=True, members=False),
+            EditMode.MOVE_SNAP_NODE: SelectionFilter(nodes=True, members=False),
+            EditMode.DELETE: SelectionFilter(nodes=True, members=True),
+        }.get(mode)
+        if mode_filter is not None:
+            self.select_nodes_action.blockSignals(True)
+            self.select_members_action.blockSignals(True)
+            try:
+                self.select_nodes_action.setChecked(mode_filter.nodes)
+                self.select_members_action.setChecked(mode_filter.members)
+            finally:
+                self.select_nodes_action.blockSignals(False)
+                self.select_members_action.blockSignals(False)
+            self._sync_selection_filter()
         self._call_viewport("set_edit_mode", mode)
+        self._call_viewport("focus_interactor")
+        guidance = {
+            EditMode.SELECT: "Select mode: click a Node or Member; Ctrl+click adds to selection",
+            EditMode.CREATE_NODE: "Create Node (Click): click a Node/snap position",
+            EditMode.DRAW_MEMBER: "Draw Member: click the start Node, then the end Node",
+            EditMode.MOVE_SNAP_NODE: "Move/Snap: click the Node, then its target position",
+            EditMode.DELETE: "Delete: click a Node or Member, or select first and press Delete",
+            EditMode.SET_DIRECTION: "Set Direction: click the endpoint that must become Start (i)",
+        }
+        self.statusBar().showMessage(guidance[mode])
+
+    def _on_viewport_selection_changed(
+        self,
+        node_keys: object,
+        member_keys: object,
+    ) -> None:
+        self.properties_panel.set_selection(
+            self.current_model,
+            tuple(node_keys) if isinstance(node_keys, (tuple, list)) else (),
+            tuple(member_keys) if isinstance(member_keys, (tuple, list)) else (),
+        )
+        resolved_nodes = tuple(node_keys) if isinstance(node_keys, (tuple, list)) else ()
+        resolved_members = (
+            tuple(member_keys) if isinstance(member_keys, (tuple, list)) else ()
+        )
+        self.merge_members_action.setEnabled(
+            self.current_model is not None
+            and not resolved_nodes
+            and len(resolved_members) == 2
+        )
+        self.crop_selection_action.setEnabled(
+            self.current_model is not None
+            and bool(resolved_nodes or resolved_members)
+        )
+
+    @staticmethod
+    def _resolved_entity_keys(keys: object) -> tuple[UUID, ...]:
+        if not isinstance(keys, (tuple, list)):
+            return ()
+        return tuple(key for key in keys if isinstance(key, UUID))
+
+    def _select_explorer_nodes(self, keys: object) -> None:
+        resolved = self._resolved_entity_keys(keys)
+        if self.current_model is None:
+            return
+        resolved = tuple(key for key in resolved if key in self.current_model.nodes)
+        self._apply_context_selection_filter(
+            SelectionFilter(nodes=True, members=False)
+        )
+        self._call_viewport("clear_selection")
+        self._call_viewport("highlight_nodes", resolved)
+
+    def _select_explorer_members(self, keys: object) -> None:
+        resolved = self._resolved_entity_keys(keys)
+        if self.current_model is None:
+            return
+        resolved = tuple(key for key in resolved if key in self.current_model.members)
+        self._apply_context_selection_filter(
+            SelectionFilter(nodes=False, members=True)
+        )
+        self._call_viewport("clear_selection")
+        self._call_viewport("highlight_members", resolved)
+
+    def _activate_delete_mode_or_execute(self) -> None:
+        if self._selected_node_keys() or self._selected_member_keys():
+            self.delete_selected_entities()
+            return
+        self._activate_edit_mode(EditMode.DELETE)
+
+    def _delete_shortcut_requested(self) -> None:
+        focused = QApplication.focusWidget()
+        if isinstance(
+            focused,
+            (QLineEdit, QTextEdit, QPlainTextEdit, QAbstractSpinBox),
+        ):
+            return
+        if isinstance(focused, QComboBox) and focused.isEditable():
+            return
+        self.delete_selected_entities()
+
+    def delete_selected_entities(self) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        node_keys = self._selected_node_keys()
+        member_keys = self._selected_member_keys()
+        try:
+            command = build_delete_selection(
+                model,
+                node_keys=node_keys,
+                member_keys=member_keys,
+            )
+        except ValueError as exc:
+            self.statusBar().showMessage(f"Delete rejected: {exc}")
+            return
+        self._run_repair_apply_dialog(
+            command,
+            title="Delete Selected",
+            summary=f"Delete {len(node_keys)} Node(s) and {len(member_keys)} Member(s)?",
+        )
 
     @staticmethod
     def _default_numbering_preview_runner(dialog: NumberingPreviewDialog) -> bool:
         return dialog.exec() == dialog.DialogCode.Accepted
+
+    @staticmethod
+    def _default_repair_dialog_runner(dialog: RepairApplyDialog) -> None:
+        dialog.exec()
+
+    def _legacy_repair_dialog_runner(self, dialog: RepairApplyDialog) -> None:
+        """Keep existing non-interactive test/smoke injection while production uses Apply/OK."""
+        if not self._confirm_delete(dialog.summary_label.text()):
+            dialog.reject()
+            return
+        dialog.apply_button.click()
+        if dialog.applied:
+            dialog.ok_button.click()
 
     def _run_numbering_command(
         self,
@@ -518,7 +751,11 @@ class MainWindow(QMainWindow):
             self._refresh_orientation_preview()
             self.statusBar().showMessage("Member incidence/local-X already normalized")
             return
-        self._execute_manual_command(command)
+        self._run_repair_apply_dialog(
+            command,
+            title="Auto Fix Direction",
+            summary="Apply automatic member direction fixes to all affected Members?",
+        )
 
     def _auto_fix_selected_directions(self) -> None:
         model = self.current_model
@@ -536,7 +773,11 @@ class MainWindow(QMainWindow):
         if command is None:
             self.statusBar().showMessage("Selected member incidence/local-X already normalized")
             return
-        self._execute_manual_command(command)
+        self._run_repair_apply_dialog(
+            command,
+            title="Auto Fix Direction",
+            summary=f"Apply automatic direction fixes to {len(selected)} selected Member(s)?",
+        )
 
     def _flip_selected_directions(self) -> None:
         model = self.current_model
@@ -587,21 +828,63 @@ class MainWindow(QMainWindow):
         self._direction_member_key = None
         self._activate_select_mode()
 
-    def _execute_manual_command(self, command: RepairCommand) -> None:
+    def _execute_manual_command(
+        self,
+        command: RepairCommand,
+    ) -> None:
         if self.current_model is None or self.repair_history is None:
             return
         if isinstance(command, (DeleteNode, DeleteMember)):
-            if not self._confirm_delete(
-                f"Delete selected {type(command).__name__.removeprefix('Delete')}?"
-            ):
-                self.statusBar().showMessage("Manual edit cancelled")
-                return
+            self._run_repair_apply_dialog(
+                command,
+                title="Delete Selected",
+                summary=f"Delete selected {type(command).__name__.removeprefix('Delete')}?",
+            )
+            return
         try:
             self.repair_history.execute(command)
         except (ValueError, RuntimeError) as exc:
             self.statusBar().showMessage(f"Manual edit rejected: {exc}")
             return
         self.refresh_validation()
+
+    def _run_repair_apply_dialog(
+        self,
+        command: RepairCommand,
+        *,
+        title: str,
+        summary: str,
+    ) -> bool:
+        if self.current_model is None or self.repair_history is None:
+            return False
+
+        dialog: RepairApplyDialog
+
+        def apply_once() -> bool:
+            assert self.repair_history is not None
+            try:
+                self.repair_history.execute(command)
+            except (ValueError, RuntimeError) as exc:
+                message = f"Repair rejected: {exc}"
+                self.statusBar().showMessage(message)
+                dialog.show_error(message)
+                return False
+            self._refresh_after_mutation()
+            return True
+
+        dialog = RepairApplyDialog(title, summary, apply_once, parent=self)
+        self._run_repair_dialog(dialog)
+        if not dialog.applied:
+            return False
+        self._refresh_after_mutation()
+        return True
+
+    def _refresh_after_mutation(self) -> None:
+        self._call_viewport("clear_precision_preview")
+        self._call_viewport("clear_selection")
+        self.refresh_validation()
+        self._refresh_project_persistence_state()
+        self.viewport_host.update()
 
     def _selected_node_keys(self) -> tuple[UUID, ...]:
         selection = getattr(self.viewport_host, "selection", None)
@@ -698,6 +981,45 @@ class MainWindow(QMainWindow):
             return
         self._execute_manual_command(result)
 
+    def _apply_member_translational_repeat(
+        self,
+        spec: MemberTranslationalRepeatSpec,
+        *,
+        resolutions: dict[tuple[int, UUID], ExistingNodeResolution],
+        tolerance_m: float,
+    ) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        try:
+            result = build_member_translational_repeat(
+                model,
+                spec,
+                resolutions=resolutions,
+                tolerance_m=tolerance_m,
+            )
+        except ValueError as exc:
+            self.statusBar().showMessage(f"Member Repeat rejected: {exc}")
+            return
+        if isinstance(result, MemberRepeatResolutionRequired):
+            labels = ", ".join(
+                f"step {step} / node {source_key}"
+                for step, source_key in sorted(
+                    result.collisions,
+                    key=lambda item: (item[0], item[1].int),
+                )
+            )
+            self.statusBar().showMessage(
+                f"Member Repeat requires collision resolution for: {labels}"
+            )
+            return
+        if result is None:
+            self.statusBar().showMessage(
+                "Member Translational Repeat cancelled or produced no changes"
+            )
+            return
+        self._execute_manual_command(result)
+
     def _show_precision_preview_request(self, request: PrecisionNodePreviewRequest) -> None:
         method = getattr(self.viewport_host, "show_precise_node_preview", None)
         if method is None:
@@ -710,6 +1032,13 @@ class MainWindow(QMainWindow):
 
     def _show_repeat_preview_request(self, request: RepeatPreviewRequest) -> None:
         method = getattr(self.viewport_host, "show_translational_repeat_preview", None)
+        if method is None:
+            return
+        method(request.preview, request.spec, request.resolutions)
+
+
+    def _show_member_repeat_preview_request(self, request: MemberRepeatPreviewRequest) -> None:
+        method = getattr(self.viewport_host, "show_member_translational_repeat_preview", None)
         if method is None:
             return
         method(request.preview, request.spec, request.resolutions)
@@ -738,25 +1067,44 @@ class MainWindow(QMainWindow):
         model = self.current_model
         if model is None:
             return
-        selected = self._selected_node_keys()
-        if len(selected) != 1:
+        selected_nodes = self._selected_node_keys()
+        selected_members = self._selected_member_keys()
+        if selected_members and not selected_nodes:
+            member_dialog = MemberTranslationalRepeatDialog(
+                model,
+                member_keys=selected_members,
+                tolerance_m=1e-6,
+                parent=self,
+            )
+            member_dialog.preview_requested.connect(self._show_member_repeat_preview_request)
+            if member_dialog.exec() != member_dialog.DialogCode.Accepted:
+                self._call_viewport("clear_precision_preview")
+                return
+            self._apply_member_translational_repeat(
+                member_dialog.current_spec(),
+                resolutions=member_dialog.current_resolutions(),
+                tolerance_m=1e-6,
+            )
+            self._call_viewport("clear_precision_preview")
+            return
+        if len(selected_nodes) != 1 or selected_members:
             self.statusBar().showMessage(
-                "Translational Repeat requires exactly one selected reference Node"
+                "Translational Repeat requires one selected Node or selected Members"
             )
             return
-        dialog = TranslationalRepeatDialog(
+        node_dialog = TranslationalRepeatDialog(
             model,
-            reference_node=selected[0],
+            reference_node=selected_nodes[0],
             tolerance_m=1e-6,
             parent=self,
         )
-        dialog.preview_requested.connect(self._show_repeat_preview_request)
-        if dialog.exec() != dialog.DialogCode.Accepted:
+        node_dialog.preview_requested.connect(self._show_repeat_preview_request)
+        if node_dialog.exec() != node_dialog.DialogCode.Accepted:
             self._call_viewport("clear_precision_preview")
             return
         self._apply_translational_repeat(
-            dialog.current_spec(),
-            resolutions=dialog.current_resolutions(),
+            node_dialog.current_spec(),
+            resolutions=node_dialog.current_resolutions(),
             tolerance_m=1e-6,
         )
         self._call_viewport("clear_precision_preview")
@@ -772,6 +1120,25 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage("Split requires exactly one selected Member")
             return None
         return selected[0]
+
+    def _merge_selected_members(self) -> None:
+        model = self.current_model
+        if model is None:
+            return
+        selected = self._selected_member_keys()
+        if len(selected) != 2 or self._selected_node_keys():
+            self.statusBar().showMessage("Merge requires exactly two selected Members")
+            return
+        try:
+            command = build_merge_selected_members(model, selected[0], selected[1])
+        except ValueError as exc:
+            self.statusBar().showMessage(f"Merge rejected: {exc}")
+            return
+        self._run_repair_apply_dialog(
+            command,
+            title="Merge Members",
+            summary="Merge 2 selected Members and remove their shared Node?",
+        )
 
     def _execute_split_factory(self, factory: Callable[[], RepairCommand]) -> None:
         try:
@@ -849,6 +1216,18 @@ class MainWindow(QMainWindow):
         )
         self._call_viewport("set_selection_filter", selection_filter)
 
+    def _apply_context_selection_filter(self, selection_filter: SelectionFilter) -> None:
+        self._activate_select_mode()
+        self.select_nodes_action.blockSignals(True)
+        self.select_members_action.blockSignals(True)
+        try:
+            self.select_nodes_action.setChecked(selection_filter.nodes)
+            self.select_members_action.setChecked(selection_filter.members)
+        finally:
+            self.select_nodes_action.blockSignals(False)
+            self.select_members_action.blockSignals(False)
+        self._sync_selection_filter()
+
     def _current_label_visibility(self) -> LabelVisibility:
         return LabelVisibility(
             node_numbers=self.node_numbers_action.isChecked(),
@@ -864,6 +1243,115 @@ class MainWindow(QMainWindow):
             method(visibility)
             return
         self._call_viewport("show_local_x_arrows", visibility.local_x)
+
+    def has_unsaved_changes(self) -> bool:
+        model = self.current_model
+        return model is not None and (
+            self._current_project_path is None or self._saved_revision != model.revision
+        )
+
+    def _project_display_name(self) -> str:
+        if self.current_model is not None and self.current_model.metadata.source_file:
+            source = self.current_model.metadata.source_file.replace("\\", "/")
+            stem = Path(source).stem
+            if stem:
+                return stem
+        if self._current_project_path is not None:
+            name = self._current_project_path.name
+            suffix = ".staadprep.json"
+            if name.lower().endswith(suffix):
+                return name[: -len(suffix)]
+            return self._current_project_path.stem
+        return "Untitled"
+
+    def _update_project_title(self) -> None:
+        title = "STAAD Model Preprocessor"
+        if self.current_model is not None:
+            state = "NOT SAVED" if self.has_unsaved_changes() else "SAVED"
+            title = f"{title} - {self._project_display_name()} - {state}"
+        self.setWindowTitle(title)
+
+    def _refresh_project_persistence_state(self) -> None:
+        self.save_project_action.setEnabled(self.current_model is not None)
+        self._update_project_title()
+
+    def _assert_project_json_path(self, path: Path) -> Path:
+        projects = self._project_paths.projects.resolve()
+        try:
+            resolved = self._project_paths.assert_inside_project(path)
+        except ValueError as exc:
+            raise ValueError(f"Project JSON must be inside Projects directory: {projects}") from exc
+        if not resolved.is_relative_to(projects):
+            raise ValueError(f"Project JSON must be inside Projects directory: {projects}")
+        return resolved
+
+    def _confirm_and_save_current_project(self) -> bool:
+        answer = QMessageBox.question(
+            self,
+            "Save Project",
+            "Save project?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes,
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return False
+        return self.save_current_project()
+
+    def save_current_project(self) -> bool:
+        if self.current_model is None:
+            return False
+        target = self._current_project_path
+        if target is None:
+            default_name = f"{self._project_display_name()}.staadprep.json"
+            initial = self._project_paths.projects / default_name
+            file_name, _ = QFileDialog.getSaveFileName(
+                self,
+                "Save Project JSON",
+                str(initial),
+                "Project JSON (*.staadprep.json)",
+            )
+            if not file_name:
+                return False
+            target = Path(file_name)
+            if not str(target).lower().endswith(".staadprep.json"):
+                target = Path(f"{target}.staadprep.json")
+        try:
+            safe_path = self._assert_project_json_path(target)
+            save_project_atomic(self.current_model, safe_path, temp_dir=self._project_paths.tmp)
+        except (OSError, ValueError) as exc:
+            self.statusBar().showMessage(f"Save Blocked: {exc}")
+            QMessageBox.warning(self, "Save Blocked", str(exc))
+            return False
+        self._current_project_path = safe_path
+        self._saved_revision = self.current_model.revision
+        self._refresh_project_persistence_state()
+        self.statusBar().showMessage(f"PROJECT SAVED | {safe_path.name}")
+        return True
+
+    def _choose_project_json(self) -> None:
+        file_name, _ = QFileDialog.getOpenFileName(
+            self,
+            "Open Project JSON",
+            str(self._project_paths.projects),
+            "Project JSON (*.staadprep.json *.json)",
+        )
+        if not file_name:
+            return
+        try:
+            self.open_project_json(Path(file_name))
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            self.statusBar().showMessage(f"Open Blocked: {exc}")
+            QMessageBox.warning(self, "Open Blocked", str(exc))
+
+    def open_project_json(self, path: Path) -> ProjectModel:
+        safe_path = self._assert_project_json_path(path)
+        model = load_project(safe_path)
+        self.set_canonical_model(model)
+        self._current_project_path = safe_path
+        self._saved_revision = model.revision
+        self._refresh_project_persistence_state()
+        self.statusBar().showMessage(f"PROJECT OPENED | {safe_path.name}")
+        return model
 
     def _choose_sketchup_neutral(self) -> None:
         file_name, _ = QFileDialog.getOpenFileName(
@@ -973,6 +1461,8 @@ class MainWindow(QMainWindow):
 
         self.current_import_batch = batch
         self.current_model = None
+        self._current_project_path = None
+        self._saved_revision = None
         self.current_issues = []
         self.current_ready_status = None
         self.repair_history = None
@@ -1008,12 +1498,15 @@ class MainWindow(QMainWindow):
             "RAW DXF PREVIEW — NOT VALIDATED | "
             f"Segments: {len(batch.segments)} | Points: {len(batch.points)} | Unit: {unit}"
         )
+        self._refresh_project_persistence_state()
         return batch
 
     def set_canonical_model(self, model: ProjectModel) -> None:
         """Attach a metre/Y-Up canonical model to validation and repair UI."""
         self.current_model = model
         self.current_import_batch = None
+        self._current_project_path = None
+        self._saved_revision = None
         self.repair_history = RepairHistory(model)
         self.validate_action.setEnabled(True)
         self.create_node_dialog_action.setEnabled(True)
@@ -1033,6 +1526,7 @@ class MainWindow(QMainWindow):
         self._direction_member_key = None
         self._selected_issue_id = None
         self.refresh_validation()
+        self._refresh_project_persistence_state()
 
     def refresh_validation(self) -> None:
         if self.current_model is None:
@@ -1057,6 +1551,7 @@ class MainWindow(QMainWindow):
             member_count=len(self.current_model.members),
             structure_count=len(structures),
         )
+        self.project_explorer.set_canonical_entities(self.current_model)
         self.model_status_bar.set_canonical_summary(
             nodes=len(self.current_model.nodes),
             members=len(self.current_model.members),
@@ -1122,27 +1617,15 @@ class MainWindow(QMainWindow):
         if command is None:
             self.statusBar().showMessage("No safe predefined quick fix for this issue")
             return
-        if isinstance(command, (DeleteNode, DeleteMember)):
-            if not self._confirm_delete(f"Apply destructive repair for {issue.type.value}?"):
-                self.statusBar().showMessage("Repair cancelled")
-                return
-        self.repair_history.execute(command)
-        self.refresh_validation()
+        self._run_repair_apply_dialog(
+            command,
+            title="Apply Quick Fix",
+            summary=f"Apply repair for {issue.type.value}?",
+        )
 
     def normalize_member_directions(self) -> None:
         """Normalize all member incidence/local-X through reversible repair history."""
-        if self.current_model is None or self.repair_history is None:
-            return
-        commands = normalization_commands(self.current_model)
-        if not commands:
-            self._refresh_orientation_preview()
-            self.statusBar().showMessage("Member incidence/local-X already normalized")
-            return
-        for command in commands:
-            self.repair_history.execute(command)
-        count = len(commands)
-        self.refresh_validation()
-        self.statusBar().showMessage(f"Normalized local-X incidence for {count} member(s)")
+        self._auto_fix_all_directions()
 
     def _refresh_orientation_preview(self) -> None:
         if self.current_model is None:
@@ -1174,12 +1657,14 @@ class MainWindow(QMainWindow):
             return
         self.repair_history.undo()
         self.refresh_validation()
+        self._refresh_project_persistence_state()
 
     def redo_repair(self) -> None:
         if self.repair_history is None or not self.repair_history.redo_stack:
             return
         self.repair_history.redo()
         self.refresh_validation()
+        self._refresh_project_persistence_state()
 
     def _command_for_issue(self, issue: Issue) -> RepairCommand | None:
         if self.current_model is None:
@@ -1245,6 +1730,27 @@ class MainWindow(QMainWindow):
             QMessageBox.StandardButton.No,
         )
         return result is QMessageBox.StandardButton.Yes
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        if self._confirm_exit(self.has_unsaved_changes()):
+            super().closeEvent(event)
+            return
+        event.ignore()
+
+    def _confirm_exit_dialog(self, dirty: bool) -> bool:
+        state_text = (
+            "This project has unsaved changes."
+            if dirty
+            else "The current project is saved."
+        )
+        result = QMessageBox.question(
+            self,
+            "Exit STAAD Model Preprocessor?",
+            f"{state_text}\n\nUnsaved changes will be lost if present. Exit application?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        return result == QMessageBox.StandardButton.Yes
 
     def _confirm_delete_dialog(self, message: str) -> bool:
         result = QMessageBox.question(

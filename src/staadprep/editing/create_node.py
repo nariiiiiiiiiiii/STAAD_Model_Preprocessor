@@ -81,8 +81,32 @@ class RepeatResolutionRequired:
     collisions: dict[int, UUID]
 
 
+@dataclass(frozen=True, slots=True)
+class MemberTranslationalRepeatSpec:
+    member_keys: tuple[UUID, ...]
+    dx: float
+    dy: float
+    dz: float
+    repeats: int
+
+
+@dataclass(frozen=True, slots=True)
+class MemberTranslationalRepeatPreview:
+    source_node_count: int
+    new_node_count: int
+    new_member_count: int
+    reused_node_count: int
+    collisions: dict[tuple[int, UUID], UUID]
+
+
+@dataclass(frozen=True, slots=True)
+class MemberRepeatResolutionRequired:
+    collisions: dict[tuple[int, UUID], UUID]
+
+
 type CreateNodeBuildResult = RepairCommand | ExistingNodeCollision
 type RepeatBuildResult = CompositeRepair | RepeatResolutionRequired | None
+type MemberRepeatBuildResult = CompositeRepair | MemberRepeatResolutionRequired | None
 
 
 def _validate_tolerance(tolerance_m: float) -> float:
@@ -325,3 +349,194 @@ def build_translational_repeat(
     if not commands:
         return None
     return CompositeRepair(tuple(commands), label="translational repeat")
+
+
+def _member_repeat_sources(
+    model: ProjectModel,
+    spec: MemberTranslationalRepeatSpec,
+) -> tuple[tuple[UUID, ...], tuple[UUID, ...], Vec3]:
+    member_keys = tuple(sorted(set(spec.member_keys), key=lambda key: key.int))
+    if not member_keys:
+        raise ValueError("Member Translational Repeat requires at least one member")
+    missing = [key for key in member_keys if key not in model.members]
+    if missing:
+        raise ValueError(f"Member {missing[0]} does not exist")
+    delta = _finite_vec3(spec.dx, spec.dy, spec.dz)
+    if delta == Vec3(0.0, 0.0, 0.0):
+        raise ValueError("Member Translational Repeat step vector must not be zero")
+    if isinstance(spec.repeats, bool) or not isinstance(spec.repeats, int) or spec.repeats < 1:
+        raise ValueError("Member Translational Repeat count must be a positive integer")
+    node_keys = tuple(
+        sorted(
+            {
+                endpoint
+                for member_key in member_keys
+                for endpoint in (
+                    model.members[member_key].start,
+                    model.members[member_key].end,
+                )
+            },
+            key=lambda key: key.int,
+        )
+    )
+    return member_keys, node_keys, delta
+
+
+def _translated_position(position: Vec3, delta: Vec3, step: int) -> Vec3:
+    return Vec3(
+        position.x + delta.x * step,
+        position.y + delta.y * step,
+        position.z + delta.z * step,
+    )
+
+
+def _member_repeat_target_plan(
+    model: ProjectModel,
+    source_nodes: tuple[UUID, ...],
+    delta: Vec3,
+    repeats: int,
+    tolerance: float,
+) -> tuple[tuple[tuple[int, UUID], Vec3, tuple[int, UUID]], ...]:
+    plan: list[tuple[tuple[int, UUID], Vec3, tuple[int, UUID]]] = []
+    canonical_targets: list[tuple[tuple[int, UUID], Vec3]] = []
+    for step in range(1, repeats + 1):
+        for source_key in source_nodes:
+            occurrence = (step, source_key)
+            target = _translated_position(model.nodes[source_key].position, delta, step)
+            canonical = next(
+                (
+                    prior_key
+                    for prior_key, prior_target in canonical_targets
+                    if dist(target.as_tuple(), prior_target.as_tuple()) <= tolerance
+                ),
+                occurrence,
+            )
+            if canonical == occurrence:
+                canonical_targets.append((canonical, target))
+            plan.append((occurrence, target, canonical))
+    return tuple(plan)
+
+
+def analyze_member_translational_repeat(
+    model: ProjectModel,
+    spec: MemberTranslationalRepeatSpec,
+    tolerance_m: float,
+    resolutions: Mapping[tuple[int, UUID], ExistingNodeResolution] | None = None,
+) -> MemberTranslationalRepeatPreview:
+    member_keys, source_nodes, delta = _member_repeat_sources(model, spec)
+    tolerance = _validate_tolerance(tolerance_m)
+    resolution_map = resolutions or {}
+    collisions: dict[tuple[int, UUID], UUID] = {}
+    new_nodes = 0
+    reused_nodes = 0
+    plan = _member_repeat_target_plan(
+        model,
+        source_nodes,
+        delta,
+        spec.repeats,
+        tolerance,
+    )
+    for collision_key, target, canonical_key in plan:
+        if collision_key != canonical_key:
+            continue
+        collision = _find_collision(model, target, tolerance)
+        if collision is None:
+            new_nodes += 1
+            continue
+        collisions[collision_key] = collision.node_key
+        if resolution_map.get(collision_key) is ExistingNodeResolution.USE_EXISTING:
+            reused_nodes += 1
+
+    return MemberTranslationalRepeatPreview(
+        source_node_count=len(source_nodes),
+        new_node_count=new_nodes,
+        new_member_count=len(member_keys) * spec.repeats,
+        reused_node_count=reused_nodes,
+        collisions=collisions,
+    )
+
+
+def build_member_translational_repeat(
+    model: ProjectModel,
+    spec: MemberTranslationalRepeatSpec,
+    resolutions: Mapping[tuple[int, UUID], ExistingNodeResolution],
+    tolerance_m: float,
+) -> MemberRepeatBuildResult:
+    member_keys, source_nodes, delta = _member_repeat_sources(model, spec)
+    preview = analyze_member_translational_repeat(
+        model,
+        spec,
+        tolerance_m,
+        resolutions,
+    )
+    unresolved = {
+        collision_key: existing_key
+        for collision_key, existing_key in preview.collisions.items()
+        if collision_key not in resolutions
+    }
+    if unresolved:
+        return MemberRepeatResolutionRequired(unresolved)
+    if any(
+        resolutions[collision_key] is ExistingNodeResolution.CANCEL
+        for collision_key in preview.collisions
+    ):
+        return None
+
+    commands: list[RepairCommand] = []
+    translated_keys: dict[tuple[int, UUID], UUID] = {}
+    planned_edges: set[frozenset[UUID]] = set()
+    collision_targets = preview.collisions
+    plan = _member_repeat_target_plan(
+        model,
+        source_nodes,
+        delta,
+        spec.repeats,
+        _validate_tolerance(tolerance_m),
+    )
+    planned_target_by_key = {
+        occurrence: (target, canonical) for occurrence, target, canonical in plan
+    }
+
+    for step in range(1, spec.repeats + 1):
+        for source_key in source_nodes:
+            collision_key = (step, source_key)
+            target, canonical_key = planned_target_by_key[collision_key]
+            if canonical_key != collision_key:
+                translated_keys[collision_key] = translated_keys[canonical_key]
+                continue
+            existing_key = collision_targets.get(collision_key)
+            if existing_key is not None:
+                resolution = resolutions[collision_key]
+                if resolution is ExistingNodeResolution.SKIP_STEP:
+                    raise ValueError(
+                        "Skip Step is not supported for member repeat because it would "
+                        "break member topology"
+                    )
+                if resolution is not ExistingNodeResolution.USE_EXISTING:
+                    raise ValueError(
+                        f"Unsupported collision resolution for {collision_key}"
+                    )
+                translated_keys[collision_key] = existing_key
+                continue
+            new_key = uuid4()
+            translated_keys[collision_key] = new_key
+            commands.append(CreateNode(target, node_key=new_key))
+
+        for member_key in member_keys:
+            member = model.members[member_key]
+            start = translated_keys[(step, member.start)]
+            end = translated_keys[(step, member.end)]
+            edge = frozenset((start, end))
+            if start == end or edge in planned_edges or _has_incidence(model, start, end):
+                raise ValueError("duplicate incidence in Member Translational Repeat")
+            planned_edges.add(edge)
+            commands.append(
+                ConnectNodes(
+                    start,
+                    end,
+                    source_ref=member.source_ref,
+                    group=member.group,
+                )
+            )
+
+    return CompositeRepair(tuple(commands), label="selected member translational repeat")

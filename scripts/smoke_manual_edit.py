@@ -68,7 +68,11 @@ def _graph_signature(model: ProjectModel) -> tuple[object, ...]:
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     app = QApplication.instance() or QApplication([])
-    window = MainWindow(confirm_delete=lambda _message: True, project_root=root)
+    window = MainWindow(
+        confirm_delete=lambda _message: True,
+        confirm_exit=lambda _dirty: True,
+        project_root=root,
+    )
     model = _load_dirty_fixture(root)
     baseline = _graph_signature(model)
     window.set_canonical_model(model)

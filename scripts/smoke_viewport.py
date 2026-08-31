@@ -6,6 +6,8 @@ import os
 
 os.environ.setdefault("QT_API", "pyside6")
 
+from PySide6.QtCore import QPoint, Qt
+from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
 from staadprep.editing.inference import AxisLock, SnapKind
@@ -18,8 +20,11 @@ from staadprep.viewer.widget import StructuralViewport
 def main() -> int:
     app = QApplication.instance() or QApplication([])
     viewport = StructuralViewport()
+    viewport.resize(900, 700)
+    viewport.show()
     model = build_demo_frame()
     viewport.set_model(model)
+    QTest.qWait(100)
 
     if viewport.scene is None:
         raise RuntimeError("Viewport did not retain SceneData")
@@ -40,6 +45,44 @@ def main() -> int:
         raise RuntimeError("Node highlight state did not update")
     if emitted != [first_member]:
         raise RuntimeError("Member selection signal did not emit the selected UUID")
+
+    def qt_point_for_world(point: tuple[float, float, float]) -> QPoint:
+        viewport.plotter.renderer.SetWorldPoint(*point, 1.0)
+        viewport.plotter.renderer.WorldToDisplay()
+        display_x, display_y, _display_z = viewport.plotter.renderer.GetDisplayPoint()
+        render_width, render_height = viewport.plotter.render_window.GetSize()
+        widget_width = viewport.plotter.interactor.width()
+        widget_height = viewport.plotter.interactor.height()
+        return QPoint(
+            round(float(display_x) * float(widget_width) / float(render_width)),
+            round(
+                float(widget_height)
+                - float(display_y) * float(widget_height) / float(render_height)
+            ),
+        )
+
+    viewport.clear_selection()
+    viewport.set_selection_filter(SelectionFilter(nodes=True, members=False))
+    node_point = qt_point_for_world(tuple(float(value) for value in viewport.scene.points[0]))
+    QTest.mouseClick(viewport.plotter.interactor, Qt.MouseButton.LeftButton, pos=node_point)
+    app.processEvents()
+    if viewport.selection.selected_nodes != (first_node,):
+        raise RuntimeError("Real Qt/VTK click did not select the expected Node")
+    if viewport._node_highlight_actor is None:
+        raise RuntimeError("Real Node click did not create the highlight actor")
+
+    viewport.clear_selection()
+    viewport.set_selection_filter(SelectionFilter(nodes=False, members=True))
+    member_point = qt_point_for_world(
+        tuple(float(value) for value in viewport.scene.member_midpoints[0])
+    )
+    QTest.mouseClick(viewport.plotter.interactor, Qt.MouseButton.LeftButton, pos=member_point)
+    app.processEvents()
+    if viewport.selection.selected_members != (first_member,):
+        raise RuntimeError("Real Qt/VTK click did not select the expected Member")
+    if viewport._member_highlight_actor is None:
+        raise RuntimeError("Real Member click did not create the highlight actor")
+    viewport.set_selection_filter(SelectionFilter())
 
     viewport.isolate_entities((first_node, first_member))
     app.processEvents()
@@ -68,8 +111,14 @@ def main() -> int:
     viewport.end_navigation()
     viewport.zoom_by_steps(1.0, viewport._selection_center())
     viewport.focus_selection()
+    viewport.crop_to_selection()
     viewport.fit_model()
+    viewport.reset_view()
     app.processEvents()
+
+    reset_direction = viewport.plotter.camera.GetDirectionOfProjection()
+    if any(abs(float(component)) < 0.1 for component in reset_direction):
+        raise RuntimeError("Reset View did not restore an isometric camera direction")
 
     if viewport.interaction_state.mode is not initial_mode:
         raise RuntimeError("Navigation changed edit mode")
@@ -91,6 +140,7 @@ def main() -> int:
     if viewport.select_node_by_index(0) is not None:
         raise RuntimeError("Node selection filter did not block node picking")
     viewport.set_selection_filter(SelectionFilter())
+    viewport.highlight_members((first_member,))
 
     viewport.set_label_visibility(
         LabelVisibility(
@@ -153,9 +203,11 @@ def main() -> int:
         f"nodes={len(viewport.scene.point_keys)}",
         f"members={len(viewport.scene.member_keys)}",
         "focus=pass",
+        "crop=pass",
         "isolate=pass",
         "navigation=pass",
         "selection=pass",
+        "reset_view=pass",
         "labels=pass",
         "inference=pass",
         "axis_lock=pass",

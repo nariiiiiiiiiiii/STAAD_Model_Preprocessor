@@ -27,10 +27,13 @@ from PySide6.QtWidgets import (
 from staadprep.editing.create_node import (
     ExactNodeSpec,
     ExistingNodeResolution,
+    MemberTranslationalRepeatPreview,
+    MemberTranslationalRepeatSpec,
     RelativeNodeSpec,
     RepeatConnectionMode,
     TranslationalRepeatPreview,
     TranslationalRepeatSpec,
+    analyze_member_translational_repeat,
     analyze_translational_repeat,
     exact_position,
     relative_position,
@@ -51,6 +54,13 @@ class RepeatPreviewRequest:
     preview: TranslationalRepeatPreview
     spec: TranslationalRepeatSpec
     resolutions: dict[int, ExistingNodeResolution]
+
+
+@dataclass(frozen=True, slots=True)
+class MemberRepeatPreviewRequest:
+    preview: MemberTranslationalRepeatPreview
+    spec: MemberTranslationalRepeatSpec
+    resolutions: dict[tuple[int, UUID], ExistingNodeResolution]
 
 
 class CreateNodeDialog(QDialog):
@@ -342,6 +352,175 @@ class TranslationalRepeatDialog(QDialog):
             steps = ", ".join(str(step) for step in unresolved)
             self.preview_summary.setText(
                 self.preview_summary.text() + f" | Choose resolution for step(s): {steps}"
+            )
+            return
+        self.accept()
+
+
+class MemberTranslationalRepeatDialog(QDialog):
+    """Translate selected Members while preserving their shared-node topology."""
+
+    preview_requested = Signal(object)
+
+    def __init__(
+        self,
+        model: ProjectModel,
+        *,
+        member_keys: tuple[UUID, ...],
+        tolerance_m: float,
+        parent: QWidget | None = None,
+    ) -> None:
+        super().__init__(parent)
+        self.model = model
+        self.member_keys = tuple(sorted(set(member_keys), key=lambda key: key.int))
+        self.tolerance_m = tolerance_m
+        if not self.member_keys:
+            raise ValueError("Member Translational Repeat requires selected Members")
+
+        self.setWindowTitle("Translational Repeat — Members")
+        self.setModal(True)
+        root = QVBoxLayout(self)
+        self.selection_label = QLabel(
+            f"Selection: {len(self.member_keys)} selected Members",
+            self,
+        )
+        root.addWidget(self.selection_label)
+
+        form = QFormLayout()
+        self.dx = CreateNodeDialog._coordinate_spin()
+        self.dy = CreateNodeDialog._coordinate_spin()
+        self.dz = CreateNodeDialog._coordinate_spin()
+        self.repeats = QSpinBox(self)
+        self.repeats.setRange(1, 100_000)
+        self.repeats.setValue(1)
+        form.addRow("ΔX", self.dx)
+        form.addRow("ΔY (Vertical)", self.dy)
+        form.addRow("ΔZ", self.dz)
+        form.addRow("Repeat count (copies)", self.repeats)
+        root.addLayout(form)
+
+        self.preview_summary = QLabel("Preview: —", self)
+        root.addWidget(self.preview_summary)
+        self.collision_table = QTableWidget(0, 4, self)
+        self.collision_table.setHorizontalHeaderLabels(
+            ("Step", "Source Node", "Existing Node", "Resolution")
+        )
+        self.collision_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        self.collision_table.setVisible(False)
+        root.addWidget(self.collision_table)
+
+        buttons = QHBoxLayout()
+        self.preview_button = QPushButton("Preview", self)
+        self.apply_button = QPushButton("Apply", self)
+        self.cancel_button = QPushButton("Cancel", self)
+        buttons.addWidget(self.preview_button)
+        buttons.addWidget(self.apply_button)
+        buttons.addWidget(self.cancel_button)
+        root.addLayout(buttons)
+        self.preview_button.clicked.connect(self.preview_current)
+        self.apply_button.clicked.connect(self._accept_if_resolved)
+        self.cancel_button.clicked.connect(self.reject)
+
+    def current_spec(self) -> MemberTranslationalRepeatSpec:
+        return MemberTranslationalRepeatSpec(
+            member_keys=self.member_keys,
+            dx=self.dx.value(),
+            dy=self.dy.value(),
+            dz=self.dz.value(),
+            repeats=self.repeats.value(),
+        )
+
+    def current_resolutions(
+        self,
+    ) -> dict[tuple[int, UUID], ExistingNodeResolution]:
+        result: dict[tuple[int, UUID], ExistingNodeResolution] = {}
+        for row in range(self.collision_table.rowCount()):
+            step_item = self.collision_table.item(row, 0)
+            source_item = self.collision_table.item(row, 1)
+            combo = self.collision_table.cellWidget(row, 3)
+            if (
+                step_item is None
+                or source_item is None
+                or not isinstance(combo, QComboBox)
+            ):
+                continue
+            raw_resolution = combo.currentData()
+            if raw_resolution is None:
+                continue
+            try:
+                result[(int(step_item.text()), UUID(source_item.text()))] = (
+                    ExistingNodeResolution(raw_resolution)
+                )
+            except (TypeError, ValueError):
+                continue
+        return result
+
+    def _populate_collisions(
+        self,
+        collisions: dict[tuple[int, UUID], UUID],
+        previous: dict[tuple[int, UUID], ExistingNodeResolution],
+    ) -> None:
+        self.collision_table.setRowCount(0)
+        for row, (collision_key, existing_key) in enumerate(
+            sorted(collisions.items(), key=lambda item: (item[0][0], item[0][1].int))
+        ):
+            step, source_key = collision_key
+            self.collision_table.insertRow(row)
+            self.collision_table.setItem(row, 0, QTableWidgetItem(str(step)))
+            self.collision_table.setItem(row, 1, QTableWidgetItem(str(source_key)))
+            self.collision_table.setItem(row, 2, QTableWidgetItem(str(existing_key)))
+            combo = QComboBox(self.collision_table)
+            combo.addItem("Choose resolution…", None)
+            combo.addItem("Use Existing Node", ExistingNodeResolution.USE_EXISTING)
+            combo.addItem("Cancel Repeat", ExistingNodeResolution.CANCEL)
+            selected = previous.get(collision_key)
+            if selected is not None:
+                index = combo.findData(selected)
+                if index >= 0:
+                    combo.setCurrentIndex(index)
+            self.collision_table.setCellWidget(row, 3, combo)
+        self.collision_table.setVisible(bool(collisions))
+
+    def preview_current(self) -> MemberTranslationalRepeatPreview:
+        previous = self.current_resolutions()
+        preview = analyze_member_translational_repeat(
+            self.model,
+            self.current_spec(),
+            tolerance_m=self.tolerance_m,
+            resolutions=previous,
+        )
+        self._populate_collisions(preview.collisions, previous)
+        self.preview_summary.setText(
+            "Preview | "
+            f"Source Nodes: {preview.source_node_count} | "
+            f"New Nodes: {preview.new_node_count} | "
+            f"New Members: {preview.new_member_count} | "
+            f"Reused: {preview.reused_node_count}"
+        )
+        self.preview_requested.emit(
+            MemberRepeatPreviewRequest(
+                preview=preview,
+                spec=self.current_spec(),
+                resolutions=self.current_resolutions(),
+            )
+        )
+        return preview
+
+    def _accept_if_resolved(self) -> None:
+        preview = self.preview_current()
+        resolutions = self.current_resolutions()
+        unresolved = sorted(
+            set(preview.collisions) - set(resolutions),
+            key=lambda item: (item[0], item[1].int),
+        )
+        if unresolved:
+            labels = ", ".join(
+                f"step {step} / node {source_key}" for step, source_key in unresolved
+            )
+            self.preview_summary.setText(
+                self.preview_summary.text() + f" | Choose resolution for: {labels}"
             )
             return
         self.accept()

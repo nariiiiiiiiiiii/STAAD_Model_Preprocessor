@@ -30,6 +30,7 @@ def test_packaged_workflow_smoke_uses_production_repair_ready_and_export_paths(
         viewport_factory=RecordingViewport,
         project_paths=project_paths,
         sketchup_inbox=portable.sketchup_inbox,
+        confirm_exit=lambda _dirty: True,
     )
     qtbot.addWidget(window)
 
