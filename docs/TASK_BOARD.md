@@ -172,3 +172,6 @@ does not start T23.
 - `.tmp/` and `.cache/` were not moved or deleted; they require a separate explicit space-cleanup
   decision. Moving to `DEL/` does not itself free disk space.
 - Manifest: `DEL/UNUSED_FILES_MANIFEST.md`; audit: `artifacts/cleanup/storage-audit-20260901.md`.
+- After the move, the accepted standalone folder passed the focused no-Python/different-CWD smoke:
+  **1/1 PASS** (`test_final_package_launches_without_python_from_different_cwd`, 6.29 seconds).
+  No process remained, package hashes were unchanged, and no compile/source change was performed.

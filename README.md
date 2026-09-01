@@ -24,6 +24,7 @@ Primary workflow:
 - T22 Portable Standalone Windows Packaging is **COMPLETE** on branch `task/22-portable-packaging` in this worktree; T23 acceptance is **PASS** (user-tested 2026-09-01).
 - T24 post-acceptance quarantine is **COMPLETE**; the superseded editing-final package is recoverable under `DEL/t24-quarantine-20260901/` and no files were deleted.
 - T25 storage audit is **COMPLETE for the approved move set**; one old package and five superseded/failed build attempts are recoverable under `DEL/t25-storage-audit-20260901/`. No files were deleted.
+- Post-move standalone smoke recheck is **PASS (1/1)** from a different CWD with Python removed from PATH; the current executable and ZIP hashes are unchanged.
 - The post-T22 ten-item editing-correction package is a **VERIFIED HISTORICAL CHECKPOINT**. Its
   Reset/Crop, Properties, Delete, Merge, orphan removal, Member Repeat, Create Node, and edit-mode
   evidence is preserved, but it is superseded for current acceptance by later source follow-ups.

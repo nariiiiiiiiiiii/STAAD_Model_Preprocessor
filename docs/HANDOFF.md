@@ -620,3 +620,12 @@ Post-move inventory: `build/` is 5,522 files / 2,269,062,384 bytes; `artifacts/`
 regenerable `.tmp/` (57,412,145,481 bytes) and `.cache/` (506,361,099 bytes); they were deliberately
 not touched and require a separate explicit deletion decision. Moving files to `DEL/` does not free
 disk space. Manifest: `DEL/UNUSED_FILES_MANIFEST.md`; audit: `artifacts/cleanup/storage-audit-20260901.md`.
+
+Post-move standalone smoke checkpoint (2026-09-01): the current accepted folder
+`dist/post-t22-refresh-save-final/STAAD_Model_Preprocessor_0.1.0_win64_portable/` was launched through
+`tests/integration/test_packaged_paths.py::test_final_package_launches_without_python_from_different_cwd`.
+The test used a sanitized PATH without Python, a different temporary working directory, and the
+packaged smoke timeout; result: **1/1 PASS** in 6.29 seconds. No standalone process remained afterward.
+The executable hash remains `1C7BB68D12BEFA8A1DBDC5A8A18B031A1E19AEFCFB91C7567441E79DB88F4470`,
+the ZIP hash remains `0EF7933499179284B7FC01B011876BF196F7471D4F8CA5B7B12F46E36059E314`, and the
+worktree is clean. This was verification only; no Nuitka compile or source change was performed.
