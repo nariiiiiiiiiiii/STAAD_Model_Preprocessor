@@ -74,8 +74,8 @@ project-local quarantine instead of deleting them. Nothing was deleted:
 | Group | Quarantine path | Contents moved |
 |---|---|---:|
 | Generated temporary output | `DEL/t26-storage-cleanup-20260901/generated-tmp/` | 68,900 files; 58,120,618,730 bytes |
-| Generated cache output | `DEL/t26-storage-cleanup-20260901/generated-cache/` | 9,754 files; 506,089,890 bytes |
-| Old Git worktrees | `DEL/t26-storage-cleanup-20260901/old-worktrees/` | 22 clean worktrees; 67,737 files; 5,706,717,146 bytes |
+| Generated cache output | `DEL/t26-storage-cleanup-20260901/generated-cache/` | 10,211 files; 506,361,099 bytes |
+| Old Git worktrees | `DEL/t26-storage-cleanup-20260901/old-worktrees/` | 22 clean worktrees; 67,375 files; 5,706,009,647 bytes |
 
 The only active worktree remaining is `task-22-portable-packaging`. Git worktree metadata was updated
 for all moved historical worktrees; their branch refs remain available. The source `.tmp/` retains

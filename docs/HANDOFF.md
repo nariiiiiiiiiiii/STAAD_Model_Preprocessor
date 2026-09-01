@@ -641,7 +641,7 @@ All 22 historical clean worktrees (maintenance plus T01–T21) were moved to
 `DEL/t26-storage-cleanup-20260901/old-worktrees/` using Git worktree operations. Only the current
 T22 worktree remains under `.worktrees/`; all branch refs remain available and `git worktree list`
 has no prunable entry. Moved quarantine totals are 68,900 temp files / 58,120,618,730 bytes,
-9,754 cache files / 506,089,890 bytes, and 67,737 old-worktree files / 5,706,717,146 bytes.
+10,211 cache files / 506,361,099 bytes, and 67,375 old-worktree files / 5,706,009,647 bytes.
 
 The current accepted portable folder/ZIP, current RBZ, source, tests, final build, and documentation
 were retained. Executable and ZIP hashes remain unchanged, no Python or standalone process remains,

@@ -764,9 +764,9 @@ Current post-T26 snapshot:
 - Source `.tmp/` retains `.gitkeep` and an empty `pytest/` skeleton; generated contents moved to
   `DEL/t26-storage-cleanup-20260901/generated-tmp/` (68,900 files; 58,120,618,730 bytes).
 - Source `.cache/` retains an empty `pytest/` skeleton; generated contents moved to
-  `DEL/t26-storage-cleanup-20260901/generated-cache/` (9,754 files; 506,089,890 bytes).
+  `DEL/t26-storage-cleanup-20260901/generated-cache/` (10,211 files; 506,361,099 bytes).
 - Historical worktrees moved to `DEL/t26-storage-cleanup-20260901/old-worktrees/` (22 clean
-  worktrees; 67,737 files; 5,706,717,146 bytes). Branch refs remain available.
+  worktrees; 67,375 files; 5,706,009,647 bytes). Branch refs remain available.
 - The current package, current RBZ, final build, source, tests, and docs remain in place. User
   deletion of the T26 quarantine is still pending.
 
