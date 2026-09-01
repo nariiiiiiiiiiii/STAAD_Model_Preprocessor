@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-30-post-t22-editing-corrections-design.md`
 
-**Execution checkpoint (2026-08-31):** implementation and package verification are complete. Evidence: 325/325 unit+integration, 111/111 UI, three real Windows smokes, Ruff, strict mypy, `git diff --check`, package gates 4/4, manifest 811/811, and extracted-ZIP launch. `dist/post-t22-editing-final/` is a superseded historical package; the later consolidated `dist/post-t22-refresh-save-final/` package is the accepted release. Do not start T23 before the accepted release checkpoint is committed.
+**Execution checkpoint (2026-08-31):** implementation and package verification are complete. Evidence: 325/325 unit+integration, 111/111 UI, three real Windows smokes, Ruff, strict mypy, `git diff --check`, package gates 4/4, manifest 811/811, and extracted-ZIP launch. `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/` is a superseded historical package; the later consolidated `dist/post-t22-refresh-save-final/` package is the accepted release. Do not start T23 before the accepted release checkpoint is committed.
 
 ## Global Constraints
 
@@ -171,8 +171,8 @@
 - Modify: `docs/INDEX.md`
 - Modify: `docs/TASK_BOARD.md`
 - Generated: `build/windows/final/app.dist/`
-- Generated: `dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable/`
-- Generated: `dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip`
+- Generated: `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable/`
+- Generated: `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip`
 
 **Interfaces:**
 - Produces a separate verified folder and ZIP; does not overwrite earlier releases.
@@ -182,5 +182,5 @@
 - [x] Run all UI tests through `scripts/test_ui_isolated.py` and aggregate 100% PASS.
 - [x] Run Ruff, targeted strict mypy, `git diff --check`, and real viewport/manual-edit smokes.
 - [x] Rebuild RBZ and Nuitka standalone; require report `mode="standalone" completion="yes"`.
-- [x] Assemble under `dist/post-t22-editing-final/`, verify every manifest hash, no-Python/different-CWD/relocation/workflow gates, and launch a freshly extracted ZIP.
+- [x] Assemble under the historical path now preserved at `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/`, verify every manifest hash, no-Python/different-CWD/relocation/workflow gates, and launch a freshly extracted ZIP.
 - [x] Stop for real user acceptance before committing the editing checkpoint.

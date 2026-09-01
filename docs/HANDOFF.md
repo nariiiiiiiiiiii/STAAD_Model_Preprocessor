@@ -1,6 +1,6 @@
-Status: **T21 COMPLETE and merged to `master`; T22 Portable Standalone Windows Packaging is COMPLETE; all agreed post-T22 source behavior is USER ACCEPTED and FULL SOURCE VERIFIED on `task/22-portable-packaging`; NEW NUITKA COMPILE, PORTABLE ASSEMBLY, PACKAGE VERIFICATION, AND REAL PACKAGE ACCEPTANCE COMPLETE; T23 is not started.**
+Status: **T21 COMPLETE and merged to `master`; T22 Portable Standalone Windows Packaging is COMPLETE; all agreed post-T22 source behavior is USER ACCEPTED and FULL SOURCE VERIFIED on `task/22-portable-packaging`; NEW NUITKA COMPILE, PORTABLE ASSEMBLY, PACKAGE VERIFICATION, REAL PACKAGE ACCEPTANCE, AND T23 ACCEPTANCE COMPLETE; T24 is COMPLETE: inventory, reference/evidence mapping, manifest review, approved Step 4 move, post-move reference scan, targeted verification, and final documentation synchronization are complete; no files were deleted.**
 
-## Active post-T22 editing correction checkpoint — 2026-08-31
+## Historical post-T22 editing correction checkpoint — 2026-08-31
 
 After real package testing, the user supplied ten desktop editing corrections covering STAAD-axis
 Reset View, Node/Member selection and Properties, Delete/keyboard Delete, Crop to Selection,
@@ -21,9 +21,9 @@ Source implementation and the isolated final package are complete. Current evide
 - Nuitka report records `mode="standalone" completion="yes"`;
 - final editing-correction package gates pass **4/4**, manifest verification is **811/811**, and a
   freshly extracted ZIP launches with Python absent from `PATH`;
-- final folder: `dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable/`
+- final folder: `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable/`
   (**812 files**, **708,288,929 bytes**);
-- final ZIP: `dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip`
+- final ZIP: `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip`
   (**225,217,293 bytes**, SHA-256
   `5B261CCEC2DD75D88F6DB3456548F15D714190365F5348ADD77481D3CA48E52B`);
 - packaged executable is **160,055,296 bytes**, SHA-256
@@ -31,8 +31,8 @@ Source implementation and the isolated final package are complete. Current evide
 - detailed design/plan: `docs/superpowers/specs/2026-08-30-post-t22-editing-corrections-design.md`
   and `docs/superpowers/plans/2026-08-30-post-t22-editing-corrections.md`.
 
-Active remaining work: real user acceptance of the editing-correction package, then commit this
-checkpoint if accepted. Do not start T23.
+This checkpoint is superseded by the later consolidated refresh-save-final package, which was
+accepted by the user. Its source and historical package evidence remain preserved for traceability.
 
 Active incremental follow-up from user testing on 2026-08-31:
 
@@ -176,7 +176,9 @@ approval gate remains in force.
 On 2026-08-31 the user explicitly requested a recoverable archive of older standalone releases.
 The original T22 baseline folder+ZIP and the complete `post-t22-ux-final` checkpoint were moved to
 `DEL/standalone-archive-20260831/`; see `DEL/UNUSED_FILES_MANIFEST.md`. The current
-`dist/post-t22-editing-final/` release and `build/windows/final/app.dist/` were preserved. This
+the `dist/post-t22-editing-final/` release was preserved under
+`DEL/t24-quarantine-20260901/dist/post-t22-editing-final/`, and `build/windows/final/app.dist/` was
+preserved in place. This
 targeted move does not start the full T24 cleanup and nothing was deleted.
 
 Post-package user testing on 2026-08-30 identified nine usability corrections. Requirements and execution are captured in:
@@ -541,24 +543,43 @@ Final build and release evidence:
 - package README recommends a reasonably short extraction path because deeply nested paths can exceed the legacy Windows DLL path limit used by bundled VTK modules;
 - no Setup/MSI/NSIS/automatic-updater/one-file production artifacts were produced.
 
-Historical note: `dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable/` and
+Historical note: `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable/` and
 its sibling ZIP preserve the earlier ten-item package evidence but do not contain every later
-accepted source follow-up. Current next action is explicit user authorization for a new
-compile/package run. T23 remains separate and must not start automatically.
+accepted source follow-up. The consolidated package was accepted by the user, and T23 acceptance
+was subsequently reported PASS on 2026-09-01. The next available task is T24 cleanup, which still
+requires an explicit user instruction.
 
 ### USER ACTION REQUIRED
 
 **T22 package acceptance is complete.** Nuitka compile step 1, isolated portable-folder/ZIP
 assembly, package-only verification, and real user acceptance are complete under
-`dist/post-t22-refresh-save-final/`. The existing `dist/post-t22-editing-final/` package is
-historical and does not contain every accepted source follow-up. T23 remains not started and must
-wait for an explicit instruction.
+`dist/post-t22-refresh-save-final/`. The quarantined
+`DEL/t24-quarantine-20260901/dist/post-t22-editing-final/` package is
+historical and does not contain every accepted source follow-up. T23 acceptance is recorded as
+PASS by user report (2026-09-01); T24 is now active under the user's continuation instruction.
 
-T23 remains **not started**. Its T22 prerequisite is satisfied, but its STRICT acceptance work must not start automatically.
+T23 acceptance is **PASS by user report (2026-09-01)**. T24 is now unblocked; its inventory and
+reference/evidence map steps are complete. The user approved `DEL/UNUSED_FILES_MANIFEST.md` and
+Step 4 moved the superseded standalone package into `DEL/`; no quarantine file was deleted.
+
+T24 Step 2 evidence: `artifacts/cleanup/t24-reference-map-20260901.md`. The map protects current
+source/tests/native/vendor/packaging, current build/package/evidence paths, and ambiguous generated
+data. The moved package is recorded at
+`DEL/t24-quarantine-20260901/dist/post-t22-editing-final/`. Step 5 found no live
+source/test/script/config reference to the old path and updated historical documentation links.
+Next resume point: use the post-T24 mindmap plan at
+`docs/superpowers/plans/2026-09-01-worktree-mindmap.md`; do not move ambiguous candidates.
+
+T24 final audit evidence: `artifacts/cleanup/t24-final-verification-20260901.md`. The only
+quarantined item is `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/` (814 files,
+933,569,500 bytes). Final deletion remains user-controlled.
+Checkpoint commit: `chore: quarantine unused project files for review` (hash recorded by Git).
 
 ## T24 cleanup boundary
 
-T24 runs only after T23 acceptance. It moves only verified-unused/superseded files into project-local `DEL/`, writes `DEL/UNUSED_FILES_MANIFEST.md`, and never deletes files. Final deletion remains user-controlled.
+T24 may proceed because T23 acceptance is recorded. It moves only verified-unused/superseded
+files into project-local `DEL/`, writes `DEL/UNUSED_FILES_MANIFEST.md`, and never deletes files.
+Final deletion remains user-controlled.
 
 
 ## 2026-08-31 source handoff checkpoint

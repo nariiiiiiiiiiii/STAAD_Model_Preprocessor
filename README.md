@@ -21,7 +21,8 @@ Primary workflow:
 - Final T20 verification: **243 unit + 88 UI + 5 integration = 336 tests passed**. Ruff passed; T20-local strict mypy reports **0 issues in 5 affected source files**. Four inherited `dxf_reader.py` typing errors remain outside T20 when the full import graph is reported.
 - T21 complete: authoritative `ReadyGate`/`READY FOR STAAD`, golden 01-11 end-to-end coverage, combined dirty-model repair/manual-edit convergence, direction/numbering invariants, independent `.STD` parser round-trip, and project-local validation/audit JSON are implemented.
 - Final T21 verification: **275 unit+integration + 92 UI = 367 tests passed**. UI verification uses the permanent MCP-safe isolated runner (**62 lightweight + 30 VTK/renderer**); Ruff passed, T21-local strict mypy reports **0 issues in 4 affected source/runner files**, and `git diff --check` passed.
-- T22 Portable Standalone Windows Packaging is **COMPLETE** on branch `task/22-portable-packaging` in this worktree; T23 remains not started.
+- T22 Portable Standalone Windows Packaging is **COMPLETE** on branch `task/22-portable-packaging` in this worktree; T23 acceptance is **PASS** (user-tested 2026-09-01).
+- T24 post-acceptance quarantine is **COMPLETE**; the superseded editing-final package is recoverable under `DEL/t24-quarantine-20260901/` and no files were deleted.
 - The post-T22 ten-item editing-correction package is a **VERIFIED HISTORICAL CHECKPOINT**. Its
   Reset/Crop, Properties, Delete, Merge, orphan removal, Member Repeat, Create Node, and edit-mode
   evidence is preserved, but it is superseded for current acceptance by later source follow-ups.
@@ -30,13 +31,14 @@ Primary workflow:
   authorized compile step 1; Nuitka standalone compilation completed successfully. Portable
   assembly and ZIP creation completed in `dist/post-t22-refresh-save-final/`; package-only
   verification is **7/7 PASS**. Real user package acceptance is also **PASS** (2026-08-31).
-- `dist/post-t22-editing-final/` is historical and does not contain every accepted source follow-up.
-  Earlier baseline and `post-t22-ux-final` releases are recoverably archived under
-  `DEL/standalone-archive-20260831/`. A current test package will exist only after explicit compile
-  approval, successful package-only verification, and real user acceptance.
+- `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/` is the quarantined historical package
+  and does not contain every accepted source follow-up.
+  Earlier baseline and `post-t22-ux-final` releases are documented as recoverable historical
+  archives under `DEL/standalone-archive-20260831/`. The accepted current package is already
+  available under `dist/post-t22-refresh-save-final/`.
 - The Nuitka standalone `.exe` launches without Python from a different CWD and after relocation to paths containing spaces/Unicode; all runtime state remains under package-local `Data/`.
-- Current editing-final verification: **325/325 unit+integration**, **111/111 UI** (**77 lightweight + 34 isolated VTK**), three real Windows smokes, package gates **4/4**, manifest hashes **811/811**, extracted-ZIP launch without Python, strict mypy **0 issues in 7 affected source files**, Ruff, and `git diff --check` passed.
-- Current ZIP SHA-256: `5B261CCEC2DD75D88F6DB3456548F15D714190365F5348ADD77481D3CA48E52B`.
+- Historical editing-final verification: **325/325 unit+integration**, **111/111 UI** (**77 lightweight + 34 isolated VTK**), three real Windows smokes, package gates **4/4**, manifest hashes **811/811**, extracted-ZIP launch without Python, strict mypy **0 issues in 7 affected source files**, Ruff, and `git diff --check` passed; evidence is preserved under `DEL/`.
+- Historical editing-final ZIP SHA-256: `5B261CCEC2DD75D88F6DB3456548F15D714190365F5348ADD77481D3CA48E52B`.
 - Extract the ZIP to a writable, reasonably short path such as `D:\STAAD_Preprocessor\`; deeply nested paths can exceed the legacy Windows DLL path limit used by bundled VTK modules.
 - The synchronized documentation map and live-status entry point is [`docs/INDEX.md`](docs/INDEX.md).
 - Primary OS: Windows 11.

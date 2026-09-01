@@ -12,14 +12,16 @@
 
 ## Final execution checkpoint — 2026-08-30
 
-**Status:** T22 is **COMPLETE** on branch `task/22-portable-packaging` / worktree `.worktrees/task-22-portable-packaging`. T21 remains complete and unchanged; T23 is ready but not started.
+**Status:** T22 is **COMPLETE** on branch `task/22-portable-packaging` / worktree `.worktrees/task-22-portable-packaging`. T21 remains complete and unchanged; T23 is **COMPLETE / PASS** by user report (2026-09-01); T24 manifest review and the approved Step 4 move are complete, with the post-move reference scan next.
 
 **Current post-T22 checkpoint (2026-08-31):** all agreed source follow-ups are user accepted and
 full source verification passes **332/332 source unit+integration** plus **140/140 UI**. The
-verified `dist/post-t22-editing-final/` folder/ZIP is historical and lacks later follow-ups. The
+verified `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/` folder/ZIP is historical and lacks later follow-ups. The
 user authorized compile step 1 and a fresh Nuitka standalone build completed; portable assembly
-and ZIP creation also completed under `dist/post-t22-refresh-save-final/`. Package-only gates and
-T23 are still not started.
+and ZIP creation also completed under `dist/post-t22-refresh-save-final/`. Package-only gates
+passed **7/7**, and T23 acceptance was subsequently reported PASS by the user on 2026-09-01.
+T24 is active: inventory, reference/evidence mapping, manifest review, the approved Step 4 move,
+and the post-move reference scan are complete; affected verification is next.
 
 Completed committed checkpoints:
 
@@ -102,7 +104,9 @@ Completed and evidenced in the active worktree:
 
 The real `.exe` Qt/VTK launch, no-Python launch, different-CWD launch, relocation to spaces/Unicode paths, runtime-write containment under `Data/`, final portable ZIP assembly, manifest hashes, and packaged T21 READY/STD/report workflow are all evidenced.
 
-The synchronized documentation entry point is [`docs/INDEX.md`](../../INDEX.md). T23 remains not started until explicit user continuation.
+The synchronized documentation entry point is [`docs/INDEX.md`](../../INDEX.md). T23 acceptance is
+recorded as user-reported PASS on 2026-09-01; T24 inventory and reference/evidence mapping are
+complete, with pre-move manifest review next.
 
 ## Important portability boundary
 

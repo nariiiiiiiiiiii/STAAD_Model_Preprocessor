@@ -6,7 +6,7 @@ superseded for current acceptance by later user-accepted, fully verified source 
 
 **Historical evidence (2026-08-31):** 325/325 unit+integration, 111/111 UI, real
 viewport/manual/precision smokes, Ruff, strict mypy, package gates 4/4, manifest 811/811, and
-extracted-ZIP launch pass. `dist/post-t22-editing-final/` does not contain every later accepted
+extracted-ZIP launch pass. The quarantined `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/` does not contain every later accepted
 source follow-up and is not the current acceptance target; checkpoint changes remain uncommitted.
 
 ## Goal

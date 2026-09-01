@@ -2,8 +2,8 @@ Status: APPROVED FOR IMPLEMENTATION — task-gated execution; STRICT approved fo
 Date: 2026-08-28
 
 Current delivery checkpoint (2026-08-31): T22 is complete; the consolidated post-T22
-refresh/properties/save standalone/ZIP is package-verified and real-user accepted. T23
-target-STAAD.Pro acceptance is not started.
+ refresh/properties/save standalone/ZIP is package-verified and real-user accepted. T23
+ target-STAAD.Pro acceptance is **PASS** by user report (2026-09-01).
 
 ## 1. Problem statement
 
@@ -389,7 +389,7 @@ Milestones:
 - M11 manual analytical node/member editing
 - M12 precision Create Node + Translational Repeat
 - M13 numbering/member-direction controls (T20; COMPLETE)
-- M14 end-to-end READY / packaging / real-project acceptance (T21-T23; T21-T22 COMPLETE, T23 pending)
+- M14 end-to-end READY / packaging / real-project acceptance (T21-T23; **COMPLETE**, T23 user-accepted 2026-09-01)
 - M15 post-acceptance workspace cleanup / unused-file quarantine (T24)
 
 ## 9. Explicitly out of V1

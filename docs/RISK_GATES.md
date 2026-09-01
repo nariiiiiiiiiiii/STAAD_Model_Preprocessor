@@ -6,8 +6,11 @@ Current gate state (2026-08-31): the explicitly approved post-T22 HR-2 correctio
 STRICT source verification and its source behavior is user accepted. Full source verification is
 complete; the user authorized compile step 1 and Nuitka compilation completed successfully.
 Portable assembly and ZIP creation are complete under `dist/post-t22-refresh-save-final/`;
-package-only verification is **7/7 PASS**; real package acceptance and T23 target-STAAD.Pro
-acceptance work have not started.
+package-only verification is **7/7 PASS**; real package acceptance is PASS and T23 target-STAAD.Pro
+acceptance is **PASS by user report (2026-09-01)**. T24 inventory and reference/evidence mapping are
+complete; the approved Step 4 move, post-move reference scan, and targeted package verification are
+complete, no files were deleted, and final documentation synchronization is complete. The next
+planned deliverable is the post-T24 worktree mindmap.
 
 The Project Explorer entity inventory/select-one/select-all increment is STANDARD because it only
 changes UI selection/highlighting and does not execute a repair or mutate the analytical model.

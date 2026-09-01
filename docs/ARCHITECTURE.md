@@ -2,10 +2,9 @@
 
 Keep the application fast to develop, safe to edit, and easy to patch without coupling file formats, viewport interaction, canonical topology, or STAAD export logic together.
 
-Current implementation checkpoint (2026-08-31): all agreed post-T22 source behavior is user
-accepted and full source verification is complete. The latest portable package is a historical
-checkpoint; compilation of a replacement package awaits explicit approval. T23 and STAAD.Pro
-acceptance remain outside this checkpoint.
+Current implementation checkpoint (2026-09-01): all agreed post-T22 source behavior, the latest
+portable package, and T23 target acceptance are user accepted. T24 cleanup is the next available
+task but has not started.
 
 ## High-level architecture
 

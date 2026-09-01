@@ -893,7 +893,8 @@ Commit: `test: verify end-to-end clean model readiness`
 
 **Current post-T22 checkpoint 2026-08-31:** the consolidated refresh-save-final folder/ZIP is
 package-verified and real-user accepted. The earlier ten-item editing-final and UX-only packages
-are superseded historical artifacts. T23 remains not started.
+are superseded historical artifacts. T23 acceptance is **PASS by user report (2026-09-01)**; T24
+cleanup is in progress: inventory and reference/evidence mapping are complete, with no files moved.
 
 **Required outputs:**
 - `dist/STAAD_Model_Preprocessor_<VERSION>_win64_portable/`
@@ -965,6 +966,10 @@ Commit: `docs: record V1 real-project acceptance`
 
 ---
 
+**Current T23 acceptance record (2026-09-01):** The user reported that T23 testing passed. This
+closes the T23 gate by user acceptance; detailed external STAAD.Pro logs/screenshots were not
+captured by this agent. T24 is now eligible but remains gated on an explicit user instruction.
+
 ### Task 24: Post-Acceptance Unused-File Audit + DEL Quarantine
 
 **Risk:** STANDARD
@@ -983,37 +988,55 @@ Commit: `docs: record V1 real-project acceptance`
 - Output: a lean working tree plus `DEL/UNUSED_FILES_MANIFEST.md` containing original path, quarantine path, classification, evidence, and restore instruction for every moved item.
 - T24 never deletes files and never changes structural behavior intentionally.
 
-- [ ] **Step 1: Inventory and classify candidates without moving anything**
+- [x] **Step 1: Inventory and classify candidates without moving anything** — initial inventory recorded in `artifacts/cleanup/t24-inventory-20260901.md`; no files moved.
 
 Enumerate tracked files plus relevant project-local untracked/generated paths. Classify candidates as `KEEP`, `REGENERABLE`, `SUPERSEDED`, or `UNUSED`. Protect `.git`, active `.worktrees`, current `.venv`, required `vendor` SDK, T23 acceptance evidence, and any file with uncertain ownership.
 
-- [ ] **Step 2: Build a reference/evidence map**
+- [x] **Step 2: Build a reference/evidence map** — `artifacts/cleanup/t24-reference-map-20260901.md`; no files moved.
 
 Search Python imports, tests, scripts, docs links, package/build configuration, runtime path constants, fixtures/golden references, native CMake references, and README/HANDOFF references. A file may enter the move set only when this evidence demonstrates it is not required by current V1.
 
-- [ ] **Step 3: Write the pre-move manifest and review the exact move set**
+- [x] **Step 3: Write the pre-move manifest and review the exact move set** — user approved
+  `DEL/UNUSED_FILES_MANIFEST.md` before the move.
 
 For every proposed move record: original path, target under `DEL/`, classification, reason, evidence/search result, and restoration command/path. Do not include ambiguous candidates.
 
-- [ ] **Step 4: Move verified candidates to project-local `DEL/` only**
+- [x] **Step 4: Move verified candidates to project-local `DEL/` only** — moved
+  `dist/post-t22-editing-final/` to `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/`; no deletion.
 
 Preserve useful relative grouping under `DEL/` so restoration is obvious. Do not delete, overwrite, or move files outside the canonical project root.
 
-- [ ] **Step 5: Verify no live reference points to quarantined paths**
+- [x] **Step 5: Verify no live reference points to quarantined paths** — post-move scan found no
+  source/test/script/config reference to the old path; historical Markdown links now use the
+  quarantine path.
 
 Repeat reference/import/config search after the moves. Any broken or still-live reference means restore the affected file and remove it from the move set.
 
-- [ ] **Step 6: Run affected regression plus final project verification**
+- [x] **Step 6: Run affected regression plus final project verification** — current accepted package
+  suite **7/7 PASS**, `git diff --check` PASS, and quarantine/current-release counts preserved.
+  No source/lint/type/build rerun was needed because the approved move set touched only generated
+  historical package output and documentation.
 
 Run full Python tests, Ruff, targeted/full mypy as applicable, native/build/package smoke where the move set touches those areas, and `git diff --check`. The accepted V1 behavior must remain unchanged.
 
-- [ ] **Step 7: Update final docs and commit**
+- [x] **Step 7: Update final docs and commit** — final audit recorded in
+  `artifacts/cleanup/t24-final-verification-20260901.md`; synchronized docs and quarantine manifest
+  are ready for the T24 checkpoint commit.
 
 Document quarantine size/count, categories, remaining protected/regenerable directories, and explicit statement that the user—not T24—owns final deletion of `DEL/` contents.
 
 Commit: `chore: quarantine unused project files for review`
 
-**Checkpoint F:** accepted V1 workspace is audited and verified-unused files are isolated in `DEL/` for user-controlled deletion.
+**Checkpoint F:** accepted V1 workspace is audited and verified-unused files are isolated in `DEL/`
+for user-controlled deletion. T24 is **COMPLETE** after the checkpoint commit.
+
+## Post-T24 deliverable: complete worktree mindmap
+
+After Checkpoint F, execute [`docs/superpowers/plans/2026-09-01-worktree-mindmap.md`](2026-09-01-worktree-mindmap.md).
+It produces the canonical [`docs/WORKTREE_MINDMAP.md`](../../WORKTREE_MINDMAP.md), covering every
+tracked/protected/relevant generated file, source/test/document/build/package relationship, lifecycle
+status, and future patch entry point. This deliverable is intentionally not started before T24 is
+complete.
 
 ---
 

@@ -96,7 +96,7 @@
 - [x] Generate MEMBER INCIDENCES.
 - [x] Deterministic syntax/format validation.
 - [x] Golden expected `.STD`.
-- [ ] Verify exported `.STD` in target STAAD.Pro environment (T23).
+- [x] Verify exported `.STD` in target STAAD.Pro environment (T23) — user reported PASS on 2026-09-01.
 
 ## M9 — SketchUp-style navigation / selection (T16)
 - [x] Explicit EditMode state; default SELECT.
@@ -195,9 +195,9 @@ Status: **COMPLETE — implementation, strict verification, documentation, and t
 - [x] Manifest hashes verified: **811/811 managed files**; bundled `.rbz` and entrypoint present.
 - [x] Packaged T21 READY -> `.STD` -> validation-report workflow passed.
 - [x] Relevant affected UI regression: **3/3 PASS**; Ruff and T22-local strict mypy passed.
-- [x] Final T22 docs/checkpoint complete; T23 remains not started.
+- [x] Final T22 docs/checkpoint complete; T23 acceptance subsequently reported PASS on 2026-09-01.
 
-The final T22 evidence is maintained in [`docs/INDEX.md`](INDEX.md) and [`docs/HANDOFF.md`](HANDOFF.md). Remaining unchecked M14 items below belong to T23 production acceptance or later work and are not silently marked complete by T22 packaging tests.
+The final T22 evidence is maintained in [`docs/INDEX.md`](INDEX.md) and [`docs/HANDOFF.md`](HANDOFF.md). T23 acceptance is recorded as user-reported PASS on 2026-09-01; remaining unchecked M14 items are not silently marked complete without direct evidence.
 
 ### Post-T22 usability checkpoint — SketchUp Bridge
 
@@ -227,9 +227,11 @@ The final T22 evidence is maintained in [`docs/INDEX.md`](INDEX.md) and [`docs/H
 - [x] STRICT graph tests include exact undo, incidence, collision, metadata, and invalid-case checks.
 - [x] Verification: **299/299 unit**, **26/26 integration**, **77/77 lightweight UI**, and
   **34/34 isolated VTK UI**; Ruff and strict mypy for 7 affected source files pass.
-- [x] Rebuilt standalone folder/ZIP under `dist/post-t22-editing-final/`; exact package gates **4/4**, manifest **811/811**, and extracted-ZIP launch passed.
+- [x] Rebuilt standalone folder/ZIP under the now-quarantined `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/`; exact package gates **4/4**, manifest **811/811**, and extracted-ZIP launch passed.
 - [x] User-authorized targeted archive moved superseded baseline and `post-t22-ux-final` releases into `DEL/standalone-archive-20260831/`; current editing-final release and latest build input remain in place.
-- [ ] Real user acceptance of all ten corrections from `dist/post-t22-editing-final/` and commit of the accepted checkpoint.
+- [x] Historical ten-item package evidence is preserved at
+  `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/`; consolidated user acceptance and
+  commit are recorded under `dist/post-t22-refresh-save-final/`.
 
 ### Planned follow-up — repair refresh, Properties, Save/Open, exit confirmation
 
@@ -275,15 +277,23 @@ The final T22 evidence is maintained in [`docs/INDEX.md`](INDEX.md) and [`docs/H
 
 
 ## M15 — Post-acceptance cleanup / DEL quarantine (T24)
-- [ ] Inventory tracked/untracked/generated project files after T23 acceptance.
-- [ ] Build reference map for source imports, tests, docs, scripts, packaging config, fixtures, and runtime paths.
-- [ ] Classify each candidate as KEEP / REGENERABLE / SUPERSEDED / UNUSED with evidence.
-- [ ] Do not move `.git`, active `.worktrees`, current runtime `.venv`, required `vendor` SDK, acceptance evidence, or any referenced file.
-- [ ] Move only verified-unused/superseded candidates to project-local `DEL/`; do not delete.
-- [ ] Write `DEL/UNUSED_FILES_MANIFEST.md` with original path, reason, evidence, and restore path.
-- [ ] Run regression/lint/type/build/package smoke appropriate to the moved files.
-- [ ] Confirm Git/reference scan contains no live path pointing to quarantined files.
-- [ ] Update README/HANDOFF/TASK_BOARD/CHECKLIST with final lean workspace state.
+- [x] Inventory tracked/untracked/generated project files after T23 acceptance; see
+  `artifacts/cleanup/t24-inventory-20260901.md`.
+- [x] Build reference map for source imports, tests, docs, scripts, packaging config, fixtures, and runtime paths; see
+  `artifacts/cleanup/t24-reference-map-20260901.md`.
+- [x] Classify each candidate as KEEP / REGENERABLE / SUPERSEDED / UNUSED with evidence; see the
+  inventory and reference map.
+- [x] Keep `.git`, active `.worktrees`, current runtime `.venv`, required `vendor` SDK, acceptance
+  evidence, and all referenced files in place.
+- [x] Move only the verified superseded candidate to project-local `DEL/`; do not delete.
+- [x] Write `DEL/UNUSED_FILES_MANIFEST.md` with original path, reason, evidence, and restore path.
+- [x] Run affected verification appropriate to the moved files: current package suite **7/7 PASS**
+  and `git diff --check` PASS; no source/lint/type/build rerun was required because source and build
+  inputs were untouched.
+- [x] Confirm Git/reference scan contains no live source/test/script/config path pointing to the
+  quarantined package; historical documentation links point to its `DEL/` path.
+- [x] Update README/HANDOFF/TASK_BOARD/CHECKLIST and synchronized status documents with final lean
+  workspace state; see `artifacts/cleanup/t24-final-verification-20260901.md`.
 - [ ] User performs final deletion from `DEL/` separately after review.
 
 # Golden fixtures
@@ -318,8 +328,8 @@ Create/complete at minimum:
 - [x] Auto Fix / Flip / Set Direction controls work with local-X preview.
 - [x] Structure count reaches expected value.
 - [x] Critical validation passes and READY gate is authoritative.
-- [ ] `.STD` opens in STAAD.Pro with intended geometry/incidence/numbering.
-- [ ] Manual STAAD geometry cleanup is materially reduced.
+- [x] `.STD` opens in STAAD.Pro with intended geometry/incidence/numbering — user reported PASS on 2026-09-01.
+- [x] Manual STAAD geometry cleanup is materially reduced — user reported T23 PASS on 2026-09-01.
 
 
 ## 2026-08-31 source handoff checkpoint

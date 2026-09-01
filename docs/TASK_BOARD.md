@@ -26,8 +26,8 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T20 | Auto numbering + member direction controls | **STRICT HR-2/HR-4** | **COMPLETE** |
 | T21 | End-to-end READY gate + golden dirty-model suite + audit report | **STRICT HR-1..HR-4** | **COMPLETE** |
 | T22 | Portable standalone Windows packaging (`.exe` + bundled `.rbz` + update-ready manifest) | STANDARD | **COMPLETE** |
-| T23 | Real-project acceptance + target STAAD.Pro verification | **STRICT acceptance** | READY / not started |
-| T24 | Post-acceptance unused-file audit + quarantine to project-local `DEL/` | STANDARD | BLOCKED by T23 |
+| T23 | Real-project acceptance + target STAAD.Pro verification | **STRICT acceptance** | **COMPLETE / PASS** (user-tested 2026-09-01) |
+| T24 | Post-acceptance unused-file audit + quarantine to project-local `DEL/` | STANDARD | **COMPLETE** |
 
 ## Operational rules
 
@@ -105,8 +105,8 @@ Post-T22 usability checkpoint: SketchUp Bridge requirements 1-2 are **USER ACCEP
 Post-T22 ten-item editing corrections are a **VERIFIED HISTORICAL PACKAGE CHECKPOINT** on the same
 T22 worktree: **325/325 unit+integration**, **111/111 UI**, real Windows smokes, Ruff, strict mypy,
 exact package gates **4/4**, manifest **811/811**, and extracted-ZIP launch all passed. Release:
-`dist/post-t22-editing-final/`. It is superseded for current acceptance by accepted source
-follow-ups; T23 remains not started.
+`DEL/t24-quarantine-20260901/dist/post-t22-editing-final/`. It is superseded for current acceptance by accepted source
+follow-ups; T23 acceptance is now **PASS** by user report (2026-09-01).
 
 Targeted archive checkpoint (user-authorized, 2026-08-31): superseded baseline and
 `post-t22-ux-final` release artifacts moved recoverably to `DEL/standalone-archive-20260831/` with
@@ -117,9 +117,15 @@ Detailed live checkpoint: `docs/superpowers/plans/2026-08-29-t22-portable-standa
 
 **USER ACTION REQUIRED:** test and accept the new package. Nuitka compile step 1, isolated
 portable-folder/ZIP assembly, and package-only verification (**7/7 PASS**) are complete under
-`dist/post-t22-refresh-save-final/`; the historical `dist/post-t22-editing-final/` package does
-not contain every accepted source follow-up. T23 remains not started until package acceptance and
-an explicit instruction.
+`dist/post-t22-refresh-save-final/`; the historical quarantined `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/` package does
+not contain every accepted source follow-up. T23 package/target acceptance is **PASS** by user
+report (2026-09-01); T24 inventory and reference/evidence mapping are complete. The exact pre-move
+manifest `DEL/UNUSED_FILES_MANIFEST.md` was approved and Step 4 moved the superseded standalone
+package into `DEL/`; no files were deleted. Step 5 found no live source/test/script/config reference
+to the old path and historical Markdown links now point to `DEL/`. Step 6 targeted package
+verification passed 7/7 and `git diff --check` passed. The next gate is final documentation
+synchronization and commit. T24 final audit evidence is recorded in
+`artifacts/cleanup/t24-final-verification-20260901.md`; the checkpoint commit completes T24.
 
 Incremental follow-up (2026-08-31): all agreed source features are **USER ACCEPTED**, including
 Apply/OK repair refresh, repeated-Orphan handling, Project Explorer selection, engineering

@@ -1,6 +1,6 @@
 # STAAD Model Preprocessor — Project Index
 
-Last synchronized: **2026-08-31**
+Last synchronized: **2026-09-01**
 
 This file is the navigation and synchronization index for the project. It records which checkout contains the live task, where the authoritative handoff is, which artifacts exist, and which Markdown files must be updated at task checkpoints.
 
@@ -10,8 +10,8 @@ This file is the navigation and synchronization index for the project. It record
 |---|---|---|
 | T01–T21 | Complete | `master` / historical task checkpoints |
 | T22 | **COMPLETE** | branch `task/22-portable-packaging`, worktree `.worktrees/task-22-portable-packaging` |
-| T23 | Ready; not started | Target STAAD.Pro acceptance |
-| T24 | Blocked by T23; not started | Project-local `DEL/` quarantine only |
+| T23 | **COMPLETE / PASS** | User-tested target STAAD.Pro acceptance (2026-09-01) |
+| T24 | **COMPLETE** | Project-local `DEL/` quarantine only; final deletion remains user-controlled |
 
 Post-package user testing on 2026-08-30 produced a nine-item usability patch request. It is split into a SketchUp bridge checkpoint (requirements 1-2) and a desktop interaction checkpoint (requirements 3-9); no structural calculation, topology, repair, or `.STD` semantic change is included.
 
@@ -27,7 +27,7 @@ removal, Member Repeat, distinct Create Node actions, and usable Draw/Move/Delet
 implemented. Preserved evidence is **325/325
 unit+integration PASS**, **111/111 UI PASS**, three real Windows smokes, Ruff clean, strict mypy
 clean for 7 affected source files, package gates **4/4**, manifest **811/811**, and extracted-ZIP
-launch exit 0. `dist/post-t22-editing-final/` is historical and lacks later accepted source
+launch exit 0. `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/` is historical and lacks later accepted source
 follow-ups; the earlier UX package is also superseded.
 
 Next follow-up status: **ALL AGREED SOURCE FEATURES USER ACCEPTED / FULL SOURCE VERIFIED**. This
@@ -38,7 +38,12 @@ corrected Exit confirmation. Task 7 source evidence is **332/332 source unit+int
 and diff checks passing. The user authorized compile step 1 and Nuitka completed a fresh standalone
 build. Portable assembly/ZIP creation are complete under `dist/post-t22-refresh-save-final/`; the
 package-only verification is **7/7 PASS** and real package acceptance is **PASS** (2026-08-31).
-T23 remains not started.
+T23 acceptance is **PASS** (user-tested 2026-09-01). T24 inventory and reference/evidence mapping
+are complete; the approved pre-move manifest has been executed and no files were deleted. Evidence is recorded in
+`artifacts/cleanup/t24-inventory-20260901.md` and
+`artifacts/cleanup/t24-reference-map-20260901.md`; the move record is in
+`DEL/UNUSED_FILES_MANIFEST.md`. The post-move reference scan and targeted affected verification are
+complete; final documentation synchronization and commit are next.
 
 The active T22 handoff is [`task-22-portable-packaging/docs/HANDOFF.md`](D:/Dizayn59/CLICodex/gpt_mcp_workshop/STAAD_Model_Preprocessor/.worktrees/task-22-portable-packaging/docs/HANDOFF.md). The root `master` checkout contains T21 plus the T22 plan; the active T22 implementation is isolated in the dedicated worktree.
 
@@ -126,8 +131,8 @@ Current evidence/artifacts:
 - `build/windows/final/app.dist/STAAD Model Preprocessor.exe` exists (159,788,032 bytes; SHA-256 `2401E9C0689CE6ACFDA0E7E7BBE6859F6848780CD79792322CCCADAC2ADB1A57`).
 - Original T22 folder/ZIP: archived under `DEL/standalone-archive-20260831/dist-root/`; baseline ZIP SHA-256 `D31A70005D7F0B2C09B467D6A5591892868E9E56AC35874434BA38CFC4687115`.
 - Post-T22 desktop rebuild folder/ZIP: archived under `DEL/standalone-archive-20260831/post-t22-ux-final/`; UX ZIP SHA-256 `E1633876C102E5B77E6FD87D9B384235D25844EA6D324F01E9119963E9201AD2`.
-- Editing-correction folder: `dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable/` (812 files; 708,288,929 bytes).
-- Editing-correction ZIP: `dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip` (225,217,293 bytes; SHA-256 `5B261CCEC2DD75D88F6DB3456548F15D714190365F5348ADD77481D3CA48E52B`).
+- Editing-correction folder: `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable/` (812 files; 708,288,929 bytes).
+- Editing-correction ZIP: `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip` (225,217,293 bytes; SHA-256 `5B261CCEC2DD75D88F6DB3456548F15D714190365F5348ADD77481D3CA48E52B`).
 - Editing-correction executable: 160,055,296 bytes; SHA-256 `8AE21D68F21FFDDCC7A6DEE91D41E7303ECEC090D511760D9973A082928D1D9E`.
 
 ## Documentation catalog
@@ -161,8 +166,9 @@ Markdown synchronization audit (2026-08-31): all **28** source Markdown files pl
 - [`superpowers/plans/2026-08-30-sketchup-bridge-usability.md`](superpowers/plans/2026-08-30-sketchup-bridge-usability.md) — post-smoke RBZ interface and compact export-name patch.
 - [`superpowers/plans/2026-08-30-desktop-interaction-usability.md`](superpowers/plans/2026-08-30-desktop-interaction-usability.md) — post-smoke selection, context-menu, toolbar, active-mode, and Reset View patch.
 - [`superpowers/plans/2026-08-30-post-t22-editing-corrections.md`](superpowers/plans/2026-08-30-post-t22-editing-corrections.md) — ten-item post-package editing correction implementation and verification.
-- [`superpowers/plans/2026-08-31-post-t22-refresh-properties-save.md`](superpowers/plans/2026-08-31-post-t22-refresh-properties-save.md) — active incremental follow-up; item 1 and repeated-Orphan retest user-accepted, items 2-4 not started.
-- [`superpowers/plans/2026-08-31-project-explorer-entity-selection.md`](superpowers/plans/2026-08-31-project-explorer-entity-selection.md) — source-only Project Explorer entity inventory and selection wiring; compile intentionally deferred.
+- [`superpowers/plans/2026-08-31-post-t22-refresh-properties-save.md`](superpowers/plans/2026-08-31-post-t22-refresh-properties-save.md) — accepted Apply/OK refresh, Properties, Save/Open, exit, package verification, and user-acceptance checkpoint.
+- [`superpowers/plans/2026-08-31-project-explorer-entity-selection.md`](superpowers/plans/2026-08-31-project-explorer-entity-selection.md) — accepted Project Explorer entity inventory and selection wiring, included in the accepted portable package.
+- [`superpowers/plans/2026-09-01-worktree-mindmap.md`](superpowers/plans/2026-09-01-worktree-mindmap.md) — post-T24 canonical worktree/file relationship map; planned, gated until T24 completion.
 - [`superpowers/specs/2026-08-30-post-t22-editing-corrections-design.md`](superpowers/specs/2026-08-30-post-t22-editing-corrections-design.md) — approved correction behavior and STRICT graph contracts.
 - [`superpowers/specs/2026-08-31-post-t22-refresh-properties-save-design.md`](superpowers/specs/2026-08-31-post-t22-refresh-properties-save-design.md) — binding follow-up design and new HR-2 approval gate.
 - [`superpowers/specs/2026-08-31-project-explorer-entity-selection-design.md`](superpowers/specs/2026-08-31-project-explorer-entity-selection-design.md) — Node/Member row ordering, select-one/select-all, and no-mutation contract.
@@ -199,7 +205,7 @@ At every task checkpoint, update these together:
 5. `README.md`: update only user-visible behavior and tested packaging instructions.
 6. `docs/INDEX.md`: synchronize cross-tree location, artifacts, commit map, and document catalog.
 
-T22 is complete because the real `.exe`, final portable folder/ZIP, relocation/no-Python gates, manifest hashes, packaged T21 workflow, regression, lint/type checks, and documentation checkpoint are evidenced. Do not start T23 automatically.
+T22 is complete because the real `.exe`, final portable folder/ZIP, relocation/no-Python gates, manifest hashes, packaged T21 workflow, regression, lint/type checks, and documentation checkpoint are evidenced. T23 acceptance is recorded as PASS; do not start T24 automatically.
 
 
 ## 2026-08-31 source handoff checkpoint
@@ -215,3 +221,9 @@ T22 is complete because the real `.exe`, final portable folder/ZIP, relocation/n
 - The package-only verification suite was run against the new package after explicit authorization:
   **7/7 PASS**. Nuitka compilation, portable assembly, and ZIP creation completed successfully
   under `dist/post-t22-refresh-save-final/`; real package acceptance is **PASS** (2026-08-31).
+  T23 target acceptance is also **PASS** by user report (2026-09-01); T24 reference/evidence mapping
+  is complete and the approved move is recorded in `DEL/UNUSED_FILES_MANIFEST.md`; the post-move
+  reference scan and targeted affected verification are complete; final documentation synchronization
+  and commit are complete. Final audit evidence is recorded in
+  `artifacts/cleanup/t24-final-verification-20260901.md`; the next planned deliverable is the
+  post-T24 worktree mindmap.
