@@ -606,3 +606,17 @@ The document is documentation-only: it does not compile, alter model behavior, o
 T24 remains complete from checkpoint `9f9dc79 chore: quarantine unused project files for review`.
 The mindmap plus synchronized current documents are committed in `9751746 docs: add complete
 worktree and RBZ mindmap`; stop for user review after this documentation checkpoint.
+
+## 2026-09-01 T25 storage audit checkpoint
+
+The user approved the exact six-item move set after a full project storage recheck. The old package
+now under `DEL/t25-storage-audit-20260901/artifacts/t22/pre-path-guidance-release/` and five
+non-current/failed build attempts were moved to `DEL/t25-storage-audit-20260901/`. The original paths
+are absent, targets exist, no live
+references point to the old names, and the current package/RBZ/build final remain intact.
+
+Post-move inventory: `build/` is 5,522 files / 2,269,062,384 bytes; `artifacts/` is 6 files /
+155,022 bytes; quarantine is 6,329 files / 3,205,802,166 bytes. The largest remaining consumers are
+regenerable `.tmp/` (57,412,145,481 bytes) and `.cache/` (506,361,099 bytes); they were deliberately
+not touched and require a separate explicit deletion decision. Moving files to `DEL/` does not free
+disk space. Manifest: `DEL/UNUSED_FILES_MANIFEST.md`; audit: `artifacts/cleanup/storage-audit-20260901.md`.

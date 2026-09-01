@@ -1,6 +1,6 @@
 # STAAD Model Preprocessor — Worktree Mindmap
 
-Status: **ACTIVE POST-T24 MAP**
+Status: **ACTIVE POST-T25 STORAGE AUDIT MAP**
 Generated: 2026-09-01
 Branch: `task/22-portable-packaging`
 T24 checkpoint: `chore: quarantine unused project files for review`
@@ -20,7 +20,8 @@ group rules and T24 audit counts.
 | T22 portable standalone packaging | Complete | `dist/post-t22-refresh-save-final/` |
 | T23 real-project / STAAD.Pro acceptance | Pass by user report | `docs/HANDOFF.md`, 2026-09-01 |
 | T24 cleanup | Complete | `DEL/UNUSED_FILES_MANIFEST.md` and final audit |
-| Post-T24 mindmap | Active | this document |
+| T25 storage audit | Move complete; space deletion pending user | `DEL/UNUSED_FILES_MANIFEST.md`, `artifacts/cleanup/storage-audit-20260901.md` |
+| Post-T25 mindmap | Active/current | this document |
 
 T24 performed one recoverable move only:
 
@@ -34,6 +35,11 @@ The accepted current release remains `dist/post-t22-refresh-save-final/` with 81
 933,750,946 bytes. Its ZIP SHA-256 is
 `0EF7933499179284B7FC01B011876BF196F7471D4F8CA5B7B12F46E36059E314`; its executable SHA-256 is
 `1C7BB68D12BEFA8A1DBDC5A8A18B031A1E19AEFCFB91C7567441E79DB88F4470`.
+
+T25 moved the approved old package and five superseded/failed build attempts to
+`DEL/t25-storage-audit-20260901/`. The quarantine contains 6,329 files and 3,205,802,166 bytes;
+the original six paths are absent and no live references to their old names remain. Post-move
+`build/` is 5,522 files / 2,269,062,384 bytes and `artifacts/` is 6 files / 155,022 bytes.
 
 ## 2. Main relationship map
 
@@ -718,18 +724,19 @@ The following groups are intentionally not treated as ordinary source files. The
 worktree operational state and are included here so a future maintainer knows where evidence and
 large runtime trees belong.
 
-| Group | Current role | T24 handling |
+| Group | Current role | T24/T25 handling |
 |---|---|---|
 | dist/ | generated distributables and release candidates | current accepted release retained; old candidate quarantined |
-| build/ | build staging and source/evidence outputs | retained; current RBZ/Nuitka evidence protected |
-| artifacts/ | generated reports, package evidence, and test outputs | retained; T24 inventory/reference/final reports are ignored artifacts |
+| build/ | build staging and source/evidence outputs | current final retained; five old attempts moved to T25 quarantine |
+| artifacts/ | generated reports, package evidence, and test outputs | current evidence retained; old package moved to T25 quarantine |
 | .tmp/ | test temporary output | retained/ignored; never a source of truth |
 | .cache/ | dependency/test/cache material | retained/ignored |
 | .logs/ | runtime/build logs | retained/ignored |
 | .venv/ | local Python runtime | protected from cleanup |
 | .worktrees/ | active Git worktrees | protected from cleanup |
 | vendor/sketchup-sdk/ | optional official native SDK boundary | protected from cleanup |
-| DEL/t24-quarantine-20260901/ | recoverable T24 quarantine | moved into, never deleted |
+| DEL/t24-quarantine-20260901/ | recoverable T24 quarantine | prior superseded package; user deleted contents |
+| DEL/t25-storage-audit-20260901/ | recoverable T25 quarantine | six approved generated items moved into; never deleted |
 
 T24 inventory snapshot:
 
@@ -741,6 +748,14 @@ T24 inventory snapshot:
 - .logs/: 8 files, 53,625 bytes.
 - quarantined dist/post-t22-editing-final/: 814 files, 933,569,500 bytes.
 - current dist/post-t22-refresh-save-final/: 813 files, 933,750,946 bytes.
+
+Current post-T25 snapshot:
+
+- build/: 5,522 files, 2,269,062,384 bytes.
+- artifacts/: 6 files, 155,022 bytes.
+- DEL/t25-storage-audit-20260901/: 6,329 files, 3,205,802,166 bytes.
+- .tmp/: 68,089 files, 57,412,145,481 bytes; not touched.
+- .cache/: 10,211 files, 506,361,099 bytes; not touched.
 
 The large generated trees are intentionally not expanded into the tracked catalog. The manifest and
 the current package evidence are the authoritative records for their contents.

@@ -355,3 +355,13 @@ Create/complete at minimum:
   and Python handoff mapped.
 - [x] Current status and future safe patch entry points recorded.
 - [x] Separate documentation checkpoint commit contains the mindmap and synchronized status docs.
+
+## M17 — T25 full storage audit and approved quarantine
+
+- [x] Recheck project storage and classify current/protected/generated/superseded material.
+- [x] Preserve current accepted package, current RBZ, final build, source, tests, and evidence.
+- [x] Move the approved old package and five old build attempts into `DEL/t25-storage-audit-20260901/`.
+- [x] Verify originals are absent, quarantine targets exist, and live references to old names are 0.
+- [x] Recreate `DEL/UNUSED_FILES_MANIFEST.md` after the user had deleted the previous manifest.
+- [ ] User reviews and separately deletes quarantined files if actual disk-space recovery is desired.
+- [ ] Separate explicit decision for clearing `.tmp/` and `.cache/` regenerable output.

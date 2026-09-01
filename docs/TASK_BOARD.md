@@ -28,6 +28,7 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T22 | Portable standalone Windows packaging (`.exe` + bundled `.rbz` + update-ready manifest) | STANDARD | **COMPLETE** |
 | T23 | Real-project acceptance + target STAAD.Pro verification | **STRICT acceptance** | **COMPLETE / PASS** (user-tested 2026-09-01) |
 | T24 | Post-acceptance unused-file audit + quarantine to project-local `DEL/` | STANDARD | **COMPLETE** |
+| T25 | Full project storage recheck + approved old package/build quarantine | STANDARD | **MOVE COMPLETE; SPACE DELETION PENDING USER** |
 
 ## Operational rules
 
@@ -160,3 +161,14 @@ does not start T23.
 - T24 remains **COMPLETE**; the mindmap is documentation-only and does not start T25 or compile.
 - Documentation checkpoint is **COMPLETE** in commit `9751746 docs: add complete worktree and RBZ
   mindmap`; stop for user review before any next implementation task.
+
+## 2026-09-01 T25 storage audit checkpoint
+
+- Approved old package under `DEL/t25-storage-audit-20260901/artifacts/t22/pre-path-guidance-release/`
+  and five non-current build attempts were moved to `DEL/t25-storage-audit-20260901/`.
+- Current package, current RBZ, `build/windows/final/`, source, tests, and evidence boundaries were
+  retained and verified.
+- Post-move result: originals 0, quarantine targets 6, live references to original names 0.
+- `.tmp/` and `.cache/` were not moved or deleted; they require a separate explicit space-cleanup
+  decision. Moving to `DEL/` does not itself free disk space.
+- Manifest: `DEL/UNUSED_FILES_MANIFEST.md`; audit: `artifacts/cleanup/storage-audit-20260901.md`.

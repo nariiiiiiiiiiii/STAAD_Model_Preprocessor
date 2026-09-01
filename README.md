@@ -23,6 +23,7 @@ Primary workflow:
 - Final T21 verification: **275 unit+integration + 92 UI = 367 tests passed**. UI verification uses the permanent MCP-safe isolated runner (**62 lightweight + 30 VTK/renderer**); Ruff passed, T21-local strict mypy reports **0 issues in 4 affected source/runner files**, and `git diff --check` passed.
 - T22 Portable Standalone Windows Packaging is **COMPLETE** on branch `task/22-portable-packaging` in this worktree; T23 acceptance is **PASS** (user-tested 2026-09-01).
 - T24 post-acceptance quarantine is **COMPLETE**; the superseded editing-final package is recoverable under `DEL/t24-quarantine-20260901/` and no files were deleted.
+- T25 storage audit is **COMPLETE for the approved move set**; one old package and five superseded/failed build attempts are recoverable under `DEL/t25-storage-audit-20260901/`. No files were deleted.
 - The post-T22 ten-item editing-correction package is a **VERIFIED HISTORICAL CHECKPOINT**. Its
   Reset/Crop, Properties, Delete, Merge, orphan removal, Member Repeat, Create Node, and edit-mode
   evidence is preserved, but it is superseded for current acceptance by later source follow-ups.
