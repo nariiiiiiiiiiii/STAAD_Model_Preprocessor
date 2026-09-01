@@ -41,6 +41,8 @@ Primary workflow:
 - Historical editing-final ZIP SHA-256: `5B261CCEC2DD75D88F6DB3456548F15D714190365F5348ADD77481D3CA48E52B`.
 - Extract the ZIP to a writable, reasonably short path such as `D:\STAAD_Preprocessor\`; deeply nested paths can exceed the legacy Windows DLL path limit used by bundled VTK modules.
 - The synchronized documentation map and live-status entry point is [`docs/INDEX.md`](docs/INDEX.md).
+- The complete post-T24 worktree, source/test/package, and RBZ relationship map is
+  [`docs/WORKTREE_MINDMAP.md`](docs/WORKTREE_MINDMAP.md).
 - Primary OS: Windows 11.
 - Primary language: Python.
 - UI: PySide6.

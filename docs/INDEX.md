@@ -168,7 +168,8 @@ Markdown synchronization audit (2026-08-31): all **28** source Markdown files pl
 - [`superpowers/plans/2026-08-30-post-t22-editing-corrections.md`](superpowers/plans/2026-08-30-post-t22-editing-corrections.md) — ten-item post-package editing correction implementation and verification.
 - [`superpowers/plans/2026-08-31-post-t22-refresh-properties-save.md`](superpowers/plans/2026-08-31-post-t22-refresh-properties-save.md) — accepted Apply/OK refresh, Properties, Save/Open, exit, package verification, and user-acceptance checkpoint.
 - [`superpowers/plans/2026-08-31-project-explorer-entity-selection.md`](superpowers/plans/2026-08-31-project-explorer-entity-selection.md) — accepted Project Explorer entity inventory and selection wiring, included in the accepted portable package.
-- [`superpowers/plans/2026-09-01-worktree-mindmap.md`](superpowers/plans/2026-09-01-worktree-mindmap.md) — post-T24 canonical worktree/file relationship map; planned, gated until T24 completion.
+- [`superpowers/plans/2026-09-01-worktree-mindmap.md`](superpowers/plans/2026-09-01-worktree-mindmap.md) — plan and completion record for the post-T24 map.
+- [`WORKTREE_MINDMAP.md`](WORKTREE_MINDMAP.md) — current complete worktree, source/test/build/package, and deep RBZ relationship map.
 - [`superpowers/specs/2026-08-30-post-t22-editing-corrections-design.md`](superpowers/specs/2026-08-30-post-t22-editing-corrections-design.md) — approved correction behavior and STRICT graph contracts.
 - [`superpowers/specs/2026-08-31-post-t22-refresh-properties-save-design.md`](superpowers/specs/2026-08-31-post-t22-refresh-properties-save-design.md) — binding follow-up design and new HR-2 approval gate.
 - [`superpowers/specs/2026-08-31-project-explorer-entity-selection-design.md`](superpowers/specs/2026-08-31-project-explorer-entity-selection-design.md) — Node/Member row ordering, select-one/select-all, and no-mutation contract.

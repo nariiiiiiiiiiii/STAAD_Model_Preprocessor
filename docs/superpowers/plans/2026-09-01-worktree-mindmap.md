@@ -8,7 +8,7 @@
 
 **Tech Stack:** Git file inventory, `rg` reference scans, Python AST/import inspection, Markdown, Mermaid, existing project path/build/package conventions.
 
-**Output:** `docs/WORKTREE_MINDMAP.md`
+**Output:** `docs/WORKTREE_MINDMAP.md` — created and synchronized in the active worktree.
 **Prerequisite:** T24 complete, including the final `DEL/UNUSED_FILES_MANIFEST.md`, post-move reference scan, verification, and commit.
 
 ## Global Constraints
@@ -30,7 +30,7 @@
 - `docs/HANDOFF.md` records task state, acceptance, artifacts, and resume points.
 - `docs/TASK_BOARD.md` and the master plan record T01–T24 status.
 - T24 Step 1 inventory is recorded in `artifacts/cleanup/t24-inventory-20260901.md`.
-- The complete mindmap does **not** exist yet; it is intentionally gated until after T24.
+- T24 is complete and the complete mindmap now exists; the original gate is satisfied.
 
 ## Planned file structure
 
@@ -44,57 +44,60 @@
 
 ## Planned execution
 
-### Task 1: Freeze the post-T24 source state
+### Task 1: Freeze the post-T24 source state — COMPLETE
 
-- [ ] Confirm T24 move set, manifest, post-move reference scan, regression checks, and commit are complete.
-- [ ] Record the exact commit, branch, worktree path, and date at the top of the mindmap.
+- [x] Confirm T24 move set, manifest, post-move reference scan, regression checks, and commit are complete.
+- [x] Record the exact commit, branch, worktree path, and date at the top of the mindmap.
 
-### Task 2: Build the complete inventory
+### Task 2: Build the complete inventory — COMPLETE
 
-- [ ] Enumerate every tracked file with `git ls-files`.
-- [ ] Enumerate relevant ignored/generated/protected directories: `build/`, `dist/`, `artifacts/`, `.tmp/`, `.cache/`, `.logs/`, `DEL/`, `.venv/`, `vendor/`, and active `.worktrees/`.
-- [ ] Assign each entry a stable category, owner/role, lifecycle status, and protection reason.
-- [ ] Include quarantined files from `DEL/UNUSED_FILES_MANIFEST.md` without presenting them as current source.
+- [x] Enumerate every tracked file with `git ls-files`.
+- [x] Enumerate relevant ignored/generated/protected directories: `build/`, `dist/`, `artifacts/`, `.tmp/`, `.cache/`, `.logs/`, `DEL/`, `.venv/`, `vendor/`, and active `.worktrees/`.
+- [x] Assign each entry a stable category, owner/role, lifecycle status, and protection reason.
+- [x] Include quarantined files from `DEL/UNUSED_FILES_MANIFEST.md` without presenting them as current source.
 
-### Task 3: Derive source and test relationships
+### Task 3: Derive source and test relationships — COMPLETE
 
-- [ ] Parse Python imports for `src/` and identify package/module boundaries.
-- [ ] Link each test file to the source modules, fixtures, scripts, or runtime paths it exercises.
-- [ ] Link smoke/build/package scripts to the executable, RBZ, manifest, ZIP, and runtime `Data/` outputs.
-- [ ] Record high-risk boundaries: coordinate/unit conversion, topology/repair commands, `.STD` export, and acceptance gates.
+- [x] Parse Python imports for `src/` and identify package/module boundaries.
+- [x] Link each test file to the source modules, fixtures, scripts, or runtime paths it exercises.
+- [x] Link smoke/build/package scripts to the executable, RBZ, manifest, ZIP, and runtime `Data/` outputs.
+- [x] Record high-risk boundaries: coordinate/unit conversion, topology/repair commands, `.STD` export, and acceptance gates.
 
-### Task 4: Reverse-map the SketchUp RBZ contract
+### Task 4: Reverse-map the SketchUp RBZ contract — COMPLETE
 
-- [ ] Enumerate the RBZ archive members and map each member to its source file under `extensions/` or to an intentionally generated packaging entry.
-- [ ] Identify the RBZ loader/registration entrypoint, extension metadata, HtmlDialog/UI assets, callback names, and Ruby modules/classes.
-- [ ] Map the callback flow from user action to geometry traversal, JSON serialization, atomic write, output filename, and inbox destination.
-- [ ] Record source units/axis, JSON schema/protocol version, compact filename convention, portable inbox path, legacy development inbox path, and version-matching rules.
-- [ ] Link RBZ tests, builder script, package manifest entry, installation documentation, and future patch points.
+- [x] Enumerate the RBZ archive members and map each member to its source file under `extensions/` or to an intentionally generated packaging entry.
+- [x] Identify the RBZ loader/registration entrypoint, extension metadata, HtmlDialog/UI assets, callback names, and Ruby modules/classes.
+- [x] Map the callback flow from user action to geometry traversal, JSON serialization, atomic write, output filename, and inbox destination.
+- [x] Record source units/axis, JSON schema/protocol version, compact filename convention, portable inbox path, legacy development inbox path, and version-matching rules.
+- [x] Link RBZ tests, builder script, package manifest entry, installation documentation, and future patch points.
 
-### Task 5: Derive documentation and workflow relationships
+### Task 5: Derive documentation and workflow relationships — COMPLETE
 
-- [ ] Scan Markdown/code/config references with `rg` and link specs to plans, plans to source/tests, and handoff/checklist/index to evidence.
-- [ ] Map the operational workflow: SketchUp/DXF input → Neutral JSON → model/repair/edit → validation/READY → `.STD`/report → portable package → T23 acceptance → T24 quarantine.
-- [ ] Map runtime writable paths and the CWD/compiled-root boundary, including `Data/Inbox/SketchUp`, `Data/Projects`, and development `artifacts/` paths.
+- [x] Scan Markdown/code/config references with `rg` and link specs to plans, plans to source/tests, and handoff/checklist/index to evidence.
+- [x] Map the operational workflow: SketchUp/DXF input → Neutral JSON → model/repair/edit → validation/READY → `.STD`/report → portable package → T23 acceptance → T24 quarantine.
+- [x] Map runtime writable paths and the CWD/compiled-root boundary, including `Data/Inbox/SketchUp`, `Data/Projects`, and development `artifacts/` paths.
 
-### Task 6: Write the canonical mindmap
+### Task 6: Write the canonical mindmap — COMPLETE
 
-- [ ] Add a Mermaid graph showing worktree/branch, application layers, data flow, verification, packaging, acceptance, and quarantine relationships.
-- [ ] Add a dedicated Mermaid RBZ subgraph showing extension source, archive members, SketchUp callbacks/UI, JSON output, inbox, and application import.
-- [ ] Add a complete catalog table with path, type, role, status, inbound relationships, outbound relationships, and evidence link.
-- [ ] Add an RBZ archive table with member path, source mapping, runtime role, build source, version/schema contract, and future patch notes.
-- [ ] Add separate sections for `DONE`, `CURRENT`, `REGENERABLE`, `SUPERSEDED`, `QUARANTINED`, `PROTECTED`, and `NEXT PATCH ENTRY POINTS`.
-- [ ] Mark each known feature/task as implemented, user accepted, package verified, deferred, or blocked, without silently promoting historical evidence.
+- [x] Add a Mermaid graph showing worktree/branch, application layers, data flow, verification, packaging, acceptance, and quarantine relationships.
+- [x] Add a dedicated Mermaid RBZ subgraph showing extension source, archive members, SketchUp callbacks/UI, JSON output, inbox, and application import.
+- [x] Add a complete tracked-file catalog and generated/protected group map with role and lifecycle status.
+- [x] Add an RBZ archive table with member path, source mapping, runtime role, build source, version/schema contract, and future patch notes.
+- [x] Add sections for completed/current/protected/quarantined material and future patch entry points.
+- [x] Mark known feature/task status without silently promoting historical evidence.
 
-### Task 7: Self-check and synchronize
+### Task 7: Self-check and synchronize — COMPLETE
 
-- [ ] Verify every tracked file is represented exactly once or explicitly covered by a documented group rule.
-- [ ] Verify every linked current path exists and every quarantined path resolves through the manifest/restore map.
-- [ ] Scan for broken or stale references and resolve or flag each ambiguity.
-- [ ] Validate Mermaid blocks and Markdown links as far as the available local tooling permits.
-- [ ] Verify the RBZ member list matches the builder output and that every documented callback/path/schema claim has source or test evidence.
-- [ ] Update `docs/INDEX.md`, `docs/HANDOFF.md`, `docs/TASK_BOARD.md`, and `docs/CHECKLIST.md` with counts, commit, and verification results.
-- [ ] Commit the mindmap and synchronized documentation as a separate maintenance checkpoint.
+- [x] Verify every tracked file is represented exactly once or explicitly covered by a documented group rule.
+- [x] Verify every linked current path exists and every quarantined path resolves through the manifest/restore map.
+- [x] Scan for broken or stale references and resolve or flag each ambiguity.
+- [x] Validate Mermaid blocks and Markdown links as far as the available local tooling permits.
+- [x] Verify the RBZ member list matches the builder output and that every documented callback/path/schema claim has source or test evidence.
+- [x] Update `docs/INDEX.md`, `docs/HANDOFF.md`, `docs/TASK_BOARD.md`, and `docs/CHECKLIST.md` with counts, commit, and verification results.
+- [x] Commit the mindmap and synchronized documentation as a separate maintenance checkpoint.
+
+Implementation note: Tasks 1–7 content, self-check work, and the separate documentation checkpoint
+are complete. No compile or new implementation task is part of this plan.
 
 ## Definition of done
 

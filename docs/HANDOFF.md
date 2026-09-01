@@ -595,3 +595,14 @@ Final deletion remains user-controlled.
 - The package-only verification suite was run against the new package after explicit user
   authorization: **7/7 PASS**. Nuitka compilation, portable assembly, ZIP creation, and real user
   package acceptance completed under `dist/post-t22-refresh-save-final/` on 2026-08-31.
+
+## 2026-09-01 post-T24 documentation checkpoint
+
+`docs/WORKTREE_MINDMAP.md` is now the canonical navigation map for this worktree. It records the
+tracked-file catalog, source/import/test/build/package relationships, generated and protected
+directories, the recoverable T24 quarantine, and the RBZ archive/source/callback/JSON contract.
+The document is documentation-only: it does not compile, alter model behavior, or start T25.
+
+T24 remains complete from checkpoint `9f9dc79 chore: quarantine unused project files for review`.
+The mindmap plus synchronized current documents require one separate maintenance commit after the
+final self-check below; stop for user review after that commit.

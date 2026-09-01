@@ -345,3 +345,13 @@ Create/complete at minimum:
 - The package-only verification suite was run after the user authorized step 3: **7/7 PASS**.
   Nuitka compilation, portable assembly, and ZIP creation are complete under
   `dist/post-t22-refresh-save-final/`; real package acceptance is **PASS** (2026-08-31).
+
+## M16 — Post-T24 worktree/RBZ mindmap
+
+- [x] Canonical `docs/WORKTREE_MINDMAP.md` created in the active T22 worktree.
+- [x] Tracked source, tests, docs, plans/specs, scripts, native boundary, and fixtures cataloged.
+- [x] Build/package/runtime, portable `Data/`, accepted package, hashes, and T24 quarantine mapped.
+- [x] RBZ archive members, Ruby source, loader, callbacks, HtmlDialog actions, JSON schema, inbox,
+  and Python handoff mapped.
+- [x] Current status and future safe patch entry points recorded.
+- [x] Separate documentation checkpoint commit contains the mindmap and synchronized status docs.

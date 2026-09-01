@@ -4,7 +4,7 @@ Current checkpoint (2026-08-31): all agreed source behavior is user accepted and
 verification is complete. The user explicitly authorized compile step 1 and Nuitka produced a fresh
 standalone build. `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/` remains historical; portable assembly and ZIP
 creation are complete under `dist/post-t22-refresh-save-final/`. Package-only verification is
-**7/7 PASS**; real package acceptance is **PASS** (2026-08-31), and T23 acceptance is **PASS by user report** (2026-09-01). T24 inventory, reference/evidence mapping, manifest review, the approved Step 4 move, and the post-move reference scan are complete; affected verification is next.
+**7/7 PASS**; real package acceptance is **PASS** (2026-08-31), and T23 acceptance is **PASS by user report** (2026-09-01). T24 inventory, reference/evidence mapping, manifest review, the approved Step 4 move, post-move reference scan, targeted verification, and final documentation synchronization are complete. The post-T24 map is `docs/WORKTREE_MINDMAP.md`.
 
 ```text
 1. Open project

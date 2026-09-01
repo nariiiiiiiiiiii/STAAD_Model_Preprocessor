@@ -151,3 +151,12 @@ does not start T23.
 - The package-only verification suite was run against the new package after explicit authorization:
   **7/7 PASS**. Nuitka compilation, portable assembly, and ZIP creation completed under
   `dist/post-t22-refresh-save-final/`; real package acceptance is **PASS** (2026-08-31).
+
+## 2026-09-01 post-T24 mindmap checkpoint
+
+- `docs/WORKTREE_MINDMAP.md` is the canonical current worktree/file relationship map.
+- It covers tracked source, tests, plans/specs, build/package/runtime flow, generated/protected
+  groups, T24 quarantine, and the RBZ archive/source/callback/JSON contract in depth.
+- T24 remains **COMPLETE**; the mindmap is documentation-only and does not start T25 or compile.
+- Pending action: commit this mindmap and synchronized documentation as a separate maintenance
+  checkpoint, then stop for user review before any next implementation task.

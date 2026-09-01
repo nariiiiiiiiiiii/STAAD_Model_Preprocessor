@@ -3,8 +3,9 @@
 Keep the application fast to develop, safe to edit, and easy to patch without coupling file formats, viewport interaction, canonical topology, or STAAD export logic together.
 
 Current implementation checkpoint (2026-09-01): all agreed post-T22 source behavior, the latest
-portable package, and T23 target acceptance are user accepted. T24 cleanup is the next available
-task but has not started.
+portable package, and T23 target acceptance are user accepted. T24 cleanup is complete, including
+the recoverable DEL quarantine and post-move verification. The canonical post-T24 file and RBZ
+relationship map is docs/WORKTREE_MINDMAP.md; this document remains the subsystem-boundary view.
 
 ## High-level architecture
 
