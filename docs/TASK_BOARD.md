@@ -164,8 +164,8 @@ does not start T23.
 
 ## 2026-09-01 T25 storage audit checkpoint
 
-- Approved old package under `DEL/t25-storage-audit-20260901/artifacts/t22/pre-path-guidance-release/`
-  and five non-current build attempts were moved to `DEL/t25-storage-audit-20260901/`.
+- Approved old package and five non-current build attempts were moved to
+  `DEL/t25-storage-audit-20260901/` and later removed by the user; the manifest retains the move record.
 - Current package, current RBZ, `build/windows/final/`, source, tests, and evidence boundaries were
   retained and verified.
 - Post-move result: originals 0, quarantine targets 6, live references to original names 0.
@@ -175,3 +175,16 @@ does not start T23.
 - After the move, the accepted standalone folder passed the focused no-Python/different-CWD smoke:
   **1/1 PASS** (`test_final_package_launches_without_python_from_different_cwd`, 6.29 seconds).
   No process remained, package hashes were unchanged, and no compile/source change was performed.
+
+## 2026-09-01 T26 space-cleanup checkpoint
+
+- Generated contents of the active `.tmp/` and `.cache/` were moved to
+  `DEL/t26-storage-cleanup-20260901/`; only empty pytest skeletons and `.tmp/.gitkeep` remain.
+- All 22 historical clean worktrees (maintenance plus T01–T21) were moved to
+  `DEL/t26-storage-cleanup-20260901/old-worktrees/`; only T22 remains active and registered in
+  `.worktrees/`. Branch refs remain available.
+- Post-move checks: no prunable worktree, current executable and ZIP exist with unchanged hashes,
+  no Python/standalone process remains, and no source/package/build-final path was moved.
+- Quarantine contents are recoverable until the user separately deletes them. No deletion was performed.
+- Post-cleanup standalone recheck passed **1/1 in 6.54 seconds** with Python removed from PATH and a
+  different CWD; its newly generated test output was moved into the T26 quarantine afterward.

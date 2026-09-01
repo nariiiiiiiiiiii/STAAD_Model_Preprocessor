@@ -11,7 +11,8 @@ acceptance is **PASS by user report (2026-09-01)**. T24 inventory and reference/
 complete; the approved Step 4 move, post-move reference scan, targeted package verification, and
 final documentation synchronization are complete, no files were deleted. The post-T24 worktree
 mindmap is recorded at `docs/WORKTREE_MINDMAP.md`; T25 storage audit approved moves are now recorded
-in `DEL/UNUSED_FILES_MANIFEST.md`; no new implementation task is started by the cleanup.
+in `DEL/UNUSED_FILES_MANIFEST.md`; T26 generated-output/worktree moves are complete and remain
+recoverable until user deletion; no new implementation task is started by the cleanup.
 
 The Project Explorer entity inventory/select-one/select-all increment is STANDARD because it only
 changes UI selection/highlighting and does not execute a repair or mutate the analytical model.

@@ -1,10 +1,12 @@
 ## A. User workflow — V1
 
-Current checkpoint (2026-08-31): all agreed source behavior is user accepted and full source
+Current checkpoint (2026-09-01): all agreed source behavior is user accepted and full source
 verification is complete. The user explicitly authorized compile step 1 and Nuitka produced a fresh
 standalone build. `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/` remains historical; portable assembly and ZIP
 creation are complete under `dist/post-t22-refresh-save-final/`. Package-only verification is
 **7/7 PASS**; real package acceptance is **PASS** (2026-08-31), and T23 acceptance is **PASS by user report** (2026-09-01). T24 inventory, reference/evidence mapping, manifest review, the approved Step 4 move, post-move reference scan, targeted verification, and final documentation synchronization are complete. T25 storage audit approved moves are complete; the post-T24/T25 map is `docs/WORKTREE_MINDMAP.md` and storage evidence is `artifacts/cleanup/storage-audit-20260901.md`.
+T26 then moved regenerable `.tmp`/`.cache` contents and 22 historical clean worktrees into
+`DEL/t26-storage-cleanup-20260901/`; deletion remains user-controlled.
 
 ```text
 1. Open project

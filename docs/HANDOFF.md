@@ -610,9 +610,8 @@ worktree and RBZ mindmap`; stop for user review after this documentation checkpo
 ## 2026-09-01 T25 storage audit checkpoint
 
 The user approved the exact six-item move set after a full project storage recheck. The old package
-now under `DEL/t25-storage-audit-20260901/artifacts/t22/pre-path-guidance-release/` and five
-non-current/failed build attempts were moved to `DEL/t25-storage-audit-20260901/`. The original paths
-are absent, targets exist, no live
+and five non-current/failed build attempts were moved to `DEL/t25-storage-audit-20260901/`; those
+quarantine contents were later removed by the user. The original paths are absent, no live
 references point to the old names, and the current package/RBZ/build final remain intact.
 
 Post-move inventory: `build/` is 5,522 files / 2,269,062,384 bytes; `artifacts/` is 6 files /
@@ -629,3 +628,25 @@ packaged smoke timeout; result: **1/1 PASS** in 6.29 seconds. No standalone proc
 The executable hash remains `1C7BB68D12BEFA8A1DBDC5A8A18B031A1E19AEFCFB91C7567441E79DB88F4470`,
 the ZIP hash remains `0EF7933499179284B7FC01B011876BF196F7471D4F8CA5B7B12F46E36059E314`, and the
 worktree is clean. This was verification only; no Nuitka compile or source change was performed.
+
+## 2026-09-01 T26 space-cleanup move checkpoint
+
+The user approved moving regenerable output and historical worktrees into a project-local DEL
+quarantine instead of deleting them. Generated contents from the active `.tmp/` and `.cache/` were
+moved to `DEL/t26-storage-cleanup-20260901/generated-tmp/` and
+`DEL/t26-storage-cleanup-20260901/generated-cache/`. The source `.tmp/` retains only `.gitkeep` and
+an empty pytest skeleton; source `.cache/` retains an empty pytest skeleton.
+
+All 22 historical clean worktrees (maintenance plus T01–T21) were moved to
+`DEL/t26-storage-cleanup-20260901/old-worktrees/` using Git worktree operations. Only the current
+T22 worktree remains under `.worktrees/`; all branch refs remain available and `git worktree list`
+has no prunable entry. Moved quarantine totals are 68,900 temp files / 58,120,618,730 bytes,
+9,754 cache files / 506,089,890 bytes, and 67,737 old-worktree files / 5,706,717,146 bytes.
+
+The current accepted portable folder/ZIP, current RBZ, source, tests, final build, and documentation
+were retained. Executable and ZIP hashes remain unchanged, no Python or standalone process remains,
+and no deletion or compile was performed. The user may delete the quarantine separately after review.
+
+The post-cleanup standalone recheck also passed **1/1 in 6.54 seconds** using the no-Python,
+different-CWD packaged launch test. Its generated basetemp/cache were moved into the same T26
+quarantine, leaving only the standard empty pytest skeletons in the active `.tmp/` and `.cache/` paths.

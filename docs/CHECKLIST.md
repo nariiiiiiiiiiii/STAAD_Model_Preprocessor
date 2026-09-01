@@ -365,3 +365,14 @@ Create/complete at minimum:
 - [x] Recreate `DEL/UNUSED_FILES_MANIFEST.md` after the user had deleted the previous manifest.
 - [ ] User reviews and separately deletes quarantined files if actual disk-space recovery is desired.
 - [ ] Separate explicit decision for clearing `.tmp/` and `.cache/` regenerable output.
+
+## M18 — T26 space-cleanup move
+
+- [x] Move generated `.tmp/` contents to the project-local T26 quarantine, preserving `.tmp/.gitkeep`.
+- [x] Move generated `.cache/` contents to the project-local T26 quarantine.
+- [x] Move all 22 historical clean worktrees (maintenance plus T01–T21) with Git metadata repaired;
+  retain only the active T22 worktree under `.worktrees/`.
+- [x] Verify current package, ZIP/RBZ, source, tests, final build, and hashes remain intact.
+- [x] Re-run focused standalone smoke after the move: **1/1 PASS** with no Python and a different CWD;
+  quarantine the test output afterward.
+- [ ] User reviews and deletes T26 quarantine when disk-space reclamation is desired.

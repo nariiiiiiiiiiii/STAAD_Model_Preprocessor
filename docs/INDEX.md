@@ -12,7 +12,8 @@ This file is the navigation and synchronization index for the project. It record
 | T22 | **COMPLETE** | branch `task/22-portable-packaging`, worktree `.worktrees/task-22-portable-packaging` |
 | T23 | **COMPLETE / PASS** | User-tested target STAAD.Pro acceptance (2026-09-01) |
 | T24 | **COMPLETE** | Project-local `DEL/` quarantine only; final deletion remains user-controlled |
-| T25 | **MOVE + SMOKE VERIFIED** | Storage audit; approved old package/build attempts moved to `DEL/t25-storage-audit-20260901/`; standalone smoke 1/1 PASS; cache cleanup remains separate |
+| T25 | **HISTORICAL MOVE VERIFIED** | Approved old package/build attempts were moved and later removed by the user; standalone smoke 1/1 PASS |
+| T26 | **MOVE + SMOKE VERIFIED** | Generated temp/cache output and 22 old clean worktrees moved to `DEL/t26-storage-cleanup-20260901/`; post-move standalone smoke 1/1 PASS; user deletion remains pending |
 
 Post-package user testing on 2026-08-30 produced a nine-item usability patch request. It is split into a SketchUp bridge checkpoint (requirements 1-2) and a desktop interaction checkpoint (requirements 3-9); no structural calculation, topology, repair, or `.STD` semantic change is included.
 

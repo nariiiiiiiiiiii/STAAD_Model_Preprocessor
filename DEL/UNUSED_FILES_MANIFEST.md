@@ -1,6 +1,6 @@
 # Project Storage Audit Manifest
 
-Status: **T25 STORAGE AUDIT — APPROVED MOVES COMPLETE; NO DELETION**
+Status: **T25/T26 STORAGE AUDIT — APPROVED MOVES COMPLETE; NO DELETION**
 Prepared: 2026-09-01
 Worktree: `task/22-portable-packaging`
 Policy: move-only, recoverable quarantine; final deletion remains user-controlled.
@@ -8,13 +8,15 @@ Policy: move-only, recoverable quarantine; final deletion remains user-controlle
 ## Scope
 
 The previous T24 manifest and quarantine contents were deleted by the user before this audit. This
-manifest is the recreated current record for the six exact paths approved for the T25 storage audit.
-No source, test, current package, current RBZ, `.tmp/`, `.cache/`, or `.venv/` path was moved.
+manifest is the recreated record for the six exact paths approved for the T25 storage audit. The
+T25 quarantine contents were subsequently removed by the user; the T25 paths below are historical
+move evidence and are not currently present on disk.
 
 ## Move result
 
-All six approved sources existed, all six destinations were absent, and all six moves completed with
-no overwrite on 2026-09-01.
+At the time of the T25 operation, all six approved sources existed, all six destinations were absent,
+and all six moves completed with no overwrite on 2026-09-01. The user later removed that T25
+quarantine; no T25 archive content is currently present.
 
 | # | Original path | Quarantine path | Classification | Contents at move time |
 |---:|---|---|---|---:|
@@ -32,8 +34,9 @@ no overwrite on 2026-09-01.
 - `build/sketchup/` — current RBZ source/stage/archive; retained.
 - `src/`, `tests/`, `scripts/`, `extensions/`, `native/`, `packaging/`, `vendor/` — retained.
 - `.venv/`, `.worktrees/`, `.git/` — retained.
-- `.tmp/`, `.cache/`, `.logs/`, `artifacts/projects/`, `artifacts/sketchup_bridge/` — not part of
-  this move; separately review before any space-reclamation deletion.
+- `.tmp/`, `.cache/`, `.logs/`, `artifacts/projects/`, `artifacts/sketchup_bridge/` — generated or
+  evidence paths; T26 moved their generated contents to the T26 quarantine, while `.tmp/.gitkeep`
+  and empty pytest skeletons remain.
 
 ## Verification and restore
 
@@ -62,3 +65,24 @@ Move-Item -LiteralPath 'DEL/t25-storage-audit-20260901/build/windows/failed-inte
 
 Moving to `DEL/` does not reduce used disk space on the same drive. The user may delete the
 quarantined paths separately after review. This agent does not delete them as part of this audit.
+
+## T26 space-cleanup move
+
+On 2026-09-01 the user approved moving regenerable output and historical worktrees into a
+project-local quarantine instead of deleting them. Nothing was deleted:
+
+| Group | Quarantine path | Contents moved |
+|---|---|---:|
+| Generated temporary output | `DEL/t26-storage-cleanup-20260901/generated-tmp/` | 68,900 files; 58,120,618,730 bytes |
+| Generated cache output | `DEL/t26-storage-cleanup-20260901/generated-cache/` | 9,754 files; 506,089,890 bytes |
+| Old Git worktrees | `DEL/t26-storage-cleanup-20260901/old-worktrees/` | 22 clean worktrees; 67,737 files; 5,706,717,146 bytes |
+
+The only active worktree remaining is `task-22-portable-packaging`. Git worktree metadata was updated
+for all moved historical worktrees; their branch refs remain available. The source `.tmp/` retains
+`.gitkeep` plus an empty `pytest/` directory, and source `.cache/` retains an empty `pytest/` directory.
+The current portable package, current RBZ, source, tests, build final, and documentation were not moved.
+
+Post-cleanup standalone verification: `tests/integration/test_packaged_paths.py::test_final_package_launches_without_python_from_different_cwd`
+passed **1/1 in 6.54 seconds** after the T26 moves. The test used the current portable package, a
+different temporary CWD, and a sanitized PATH without Python. Its generated basetemp and pytest
+cache were moved into `DEL/t26-storage-cleanup-20260901/post-move-standalone-test/` afterward.
