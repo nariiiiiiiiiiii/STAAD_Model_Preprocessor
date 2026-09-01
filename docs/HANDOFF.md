@@ -604,5 +604,5 @@ directories, the recoverable T24 quarantine, and the RBZ archive/source/callback
 The document is documentation-only: it does not compile, alter model behavior, or start T25.
 
 T24 remains complete from checkpoint `9f9dc79 chore: quarantine unused project files for review`.
-The mindmap plus synchronized current documents require one separate maintenance commit after the
-final self-check below; stop for user review after that commit.
+The mindmap plus synchronized current documents are committed in `9751746 docs: add complete
+worktree and RBZ mindmap`; stop for user review after this documentation checkpoint.

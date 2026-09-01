@@ -158,5 +158,5 @@ does not start T23.
 - It covers tracked source, tests, plans/specs, build/package/runtime flow, generated/protected
   groups, T24 quarantine, and the RBZ archive/source/callback/JSON contract in depth.
 - T24 remains **COMPLETE**; the mindmap is documentation-only and does not start T25 or compile.
-- Pending action: commit this mindmap and synchronized documentation as a separate maintenance
-  checkpoint, then stop for user review before any next implementation task.
+- Documentation checkpoint is **COMPLETE** in commit `9751746 docs: add complete worktree and RBZ
+  mindmap`; stop for user review before any next implementation task.
