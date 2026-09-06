@@ -9,7 +9,7 @@ The portable Windows application itself does not require installation. SketchUp 
 5. Restart SketchUp if requested.
 6. Open **STAAD Prep Bridge...** from the extension toolbar/menu.
 7. The bridge window explains the geometry handoff and displays the configured inbox.
-8. Use **Choose Inbox...** when the portable `Data/Inbox/SketchUp` location changes.
+8. Use **Choose Inbox...** to select any existing output folder; the portable `Data/Inbox/SketchUp` folder is only the default.
 9. Use **Export Geometry** to write a compact timestamped file such as `SP_20260830_140328.json`.
 
 The extension writes Neutral JSON to the configured STAAD Prep inbox. It transfers geometry only and does not perform structural analysis. Installing or updating the `.rbz` is a SketchUp action separate from the no-install portable Windows application.

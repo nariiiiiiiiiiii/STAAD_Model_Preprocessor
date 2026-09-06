@@ -26,6 +26,7 @@ Primary workflow:
 - T25 storage audit is **COMPLETE as historical move evidence**; its quarantine contents were later removed by the user. The current manifest remains under `DEL/`.
 - Post-move standalone smoke recheck is **PASS (1/1)** from a different CWD with Python removed from PATH; the current executable and ZIP hashes are unchanged.
 - T26 space-cleanup move is **COMPLETE**; generated `.tmp`/`.cache` contents and 22 old clean worktrees are under `DEL/t26-storage-cleanup-20260901/`. Nothing was deleted; only T22 remains registered as an active worktree.
+- T27 free user-selected paths is **SOURCE + PACKAGE COMPLETE**; SketchUp input/output and STD export accept explicit user-selected locations, with the previous package/build/RBZ archived under `DEL/t27-free-path-selection-20260906/`.
 - The post-T22 ten-item editing-correction package is a **VERIFIED HISTORICAL CHECKPOINT**. Its
   Reset/Crop, Properties, Delete, Merge, orphan removal, Member Repeat, Create Node, and edit-mode
   evidence is preserved, but it is superseded for current acceptance by later source follow-ups.

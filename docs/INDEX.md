@@ -14,6 +14,7 @@ This file is the navigation and synchronization index for the project. It record
 | T24 | **COMPLETE** | Project-local `DEL/` quarantine only; final deletion remains user-controlled |
 | T25 | **HISTORICAL MOVE VERIFIED** | Approved old package/build attempts were moved and later removed by the user; standalone smoke 1/1 PASS |
 | T26 | **MOVE + SMOKE VERIFIED** | Generated temp/cache output and 22 old clean worktrees moved to `DEL/t26-storage-cleanup-20260901/`; post-move standalone smoke 1/1 PASS; user deletion remains pending |
+| T27 | **SOURCE + PACKAGE COMPLETE** | User-selected SketchUp paths and STD export destinations; source 24/24, unit+integration 336/336, package gates 9/9 |
 
 Post-package user testing on 2026-08-30 produced a nine-item usability patch request. It is split into a SketchUp bridge checkpoint (requirements 1-2) and a desktop interaction checkpoint (requirements 3-9); no structural calculation, topology, repair, or `.STD` semantic change is included.
 
@@ -171,9 +172,11 @@ Markdown synchronization audit (2026-08-31): all **28** source Markdown files pl
 - [`superpowers/plans/2026-08-31-post-t22-refresh-properties-save.md`](superpowers/plans/2026-08-31-post-t22-refresh-properties-save.md) — accepted Apply/OK refresh, Properties, Save/Open, exit, package verification, and user-acceptance checkpoint.
 - [`superpowers/plans/2026-08-31-project-explorer-entity-selection.md`](superpowers/plans/2026-08-31-project-explorer-entity-selection.md) — accepted Project Explorer entity inventory and selection wiring, included in the accepted portable package.
 - [`superpowers/plans/2026-09-01-worktree-mindmap.md`](superpowers/plans/2026-09-01-worktree-mindmap.md) — plan and completion record for the post-T24 map.
+- [`superpowers/plans/2026-09-06-free-user-selected-paths.md`](superpowers/plans/2026-09-06-free-user-selected-paths.md) — source/package plan for unrestricted explicit SketchUp and STD destinations.
 - [`WORKTREE_MINDMAP.md`](WORKTREE_MINDMAP.md) — current complete worktree, source/test/build/package, and deep RBZ relationship map.
 - [`superpowers/specs/2026-08-30-post-t22-editing-corrections-design.md`](superpowers/specs/2026-08-30-post-t22-editing-corrections-design.md) — approved correction behavior and STRICT graph contracts.
 - [`superpowers/specs/2026-08-31-post-t22-refresh-properties-save-design.md`](superpowers/specs/2026-08-31-post-t22-refresh-properties-save-design.md) — binding follow-up design and new HR-2 approval gate.
+- [`superpowers/specs/2026-09-06-free-user-selected-paths-spec.md`](superpowers/specs/2026-09-06-free-user-selected-paths-spec.md) — explicit user-selected path boundary and preserved runtime path contracts.
 - [`superpowers/specs/2026-08-31-project-explorer-entity-selection-design.md`](superpowers/specs/2026-08-31-project-explorer-entity-selection-design.md) — Node/Member row ordering, select-one/select-all, and no-mutation contract.
 - [`superpowers/specs/2026-08-28-staad-model-preprocessor-design.md`](superpowers/specs/2026-08-28-staad-model-preprocessor-design.md) — approved V1 design.
 - [`superpowers/specs/2026-08-28-manual-model-editing-design.md`](superpowers/specs/2026-08-28-manual-model-editing-design.md) — approved manual-editing design.

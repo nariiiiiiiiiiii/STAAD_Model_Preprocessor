@@ -22,6 +22,7 @@ group rules and T25/T26 audit counts.
 | T24 cleanup | Complete | `DEL/UNUSED_FILES_MANIFEST.md` and final audit |
 | T25 storage audit | Move complete; space deletion pending user | `DEL/UNUSED_FILES_MANIFEST.md`, `artifacts/cleanup/storage-audit-20260901.md` |
 | T26 storage cleanup | Move + standalone smoke verified; space deletion pending user | `DEL/t26-storage-cleanup-20260901/` |
+| T27 free user-selected paths | Source + package gates complete; user package acceptance pending | `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/`, `docs/HANDOFF.md` |
 | Post-T26 mindmap | Active/current | this document |
 
 T24 performed one recoverable move only:

@@ -376,3 +376,12 @@ Create/complete at minimum:
 - [x] Re-run focused standalone smoke after the move: **1/1 PASS** with no Python and a different CWD;
   quarantine the test output afterward.
 - [ ] User reviews and deletes T26 quarantine when disk-space reclamation is desired.
+
+## M19 — T27 free user-selected paths
+
+- [x] Allow selected SketchUp Bridge JSON import from any file location while retaining the default inbox.
+- [x] Allow RBZ output folder selection from any existing directory.
+- [x] Allow selected STD export destinations outside the project and write the sibling validation report.
+- [x] Preserve project-local Project JSON and application-managed runtime path contracts.
+- [x] Run source regressions, Ruff, strict mypy, and package gates before release assembly.
+- [x] Compile/package the updated standalone and archive the previous accepted package/build/RBZ in DEL.

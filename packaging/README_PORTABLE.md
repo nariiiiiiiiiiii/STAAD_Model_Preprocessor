@@ -31,6 +31,12 @@ Important subfolders include:
 
 The extracted release must be placed in a location where the current Windows user can write files. The app intentionally does not fall back to hidden AppData or system Temp locations.
 
+User-selected files and exports may be outside the portable folder. Use the file chooser to select
+an existing SketchUp Bridge JSON from any location, or choose any destination folder when exporting
+STAAD `.STD`; the matching `.validation.json` report is written beside the selected `.STD` file.
+Application-managed runtime state and Project JSON Save/Open remain under the package-local `Data/`
+contract.
+
 ## SketchUp
 
 The matching SketchUp extension is in `SketchUp_Extension/STAAD_Prep_Bridge_<VERSION>.rbz`. See `SketchUp_Extension/INSTALL_RBZ.md` for one-time installation instructions.

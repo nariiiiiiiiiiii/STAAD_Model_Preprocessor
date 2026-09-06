@@ -86,3 +86,19 @@ Post-cleanup standalone verification: `tests/integration/test_packaged_paths.py:
 passed **1/1 in 6.54 seconds** after the T26 moves. The test used the current portable package, a
 different temporary CWD, and a sanitized PATH without Python. Its generated basetemp and pytest
 cache were moved into `DEL/t26-storage-cleanup-20260901/post-move-standalone-test/` afterward.
+
+## T27 old-release archive
+
+On 2026-09-06 the previous accepted release/build inputs were moved before the new path-selection
+package was created:
+
+| Old item | Quarantine path |
+|---|---|
+| Previous accepted portable folder/ZIP | `DEL/t27-free-path-selection-20260906/old-release/dist/post-t22-refresh-save-final/` |
+| Previous Nuitka final build/evidence | `DEL/t27-free-path-selection-20260906/old-release/build/windows/final/` |
+| Previous SketchUp RBZ build/stage | `DEL/t27-free-path-selection-20260906/old-release/build/sketchup/` |
+| First T27 assembly before documentation sync | `DEL/t27-free-path-selection-20260906/pre-doc-sync-package/` |
+
+These are recoverable historical artifacts and were not deleted. The current release is under
+`dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/`; the current RBZ is under
+`build/sketchup/STAAD_Prep_Bridge_0.1.0.rbz`.

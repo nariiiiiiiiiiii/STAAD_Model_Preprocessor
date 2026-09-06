@@ -7,6 +7,9 @@ creation are complete under `dist/post-t22-refresh-save-final/`. Package-only ve
 **7/7 PASS**; real package acceptance is **PASS** (2026-08-31), and T23 acceptance is **PASS by user report** (2026-09-01). T24 inventory, reference/evidence mapping, manifest review, the approved Step 4 move, post-move reference scan, targeted verification, and final documentation synchronization are complete. T25 storage audit approved moves are complete; the post-T24/T25 map is `docs/WORKTREE_MINDMAP.md` and storage evidence is `artifacts/cleanup/storage-audit-20260901.md`.
 T26 then moved regenerable `.tmp`/`.cache` contents and 22 historical clean worktrees into
 `DEL/t26-storage-cleanup-20260901/`; deletion remains user-controlled.
+T27 allows explicit user-selected SketchUp input/output locations and STD export destinations outside
+the project; implicit runtime paths and Project JSON remain project-local. The updated package is
+assembled under `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/`.
 
 ```text
 1. Open project

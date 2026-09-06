@@ -188,3 +188,16 @@ does not start T23.
 - Quarantine contents are recoverable until the user separately deletes them. No deletion was performed.
 - Post-cleanup standalone recheck passed **1/1 in 6.54 seconds** with Python removed from PATH and a
   different CWD; its newly generated test output was moved into the T26 quarantine afterward.
+
+## 2026-09-06 T27 free user-selected paths checkpoint
+
+- SketchUp Bridge JSON import now accepts a valid file selected from any location; the default inbox
+  remains the initial chooser location.
+- SketchUp RBZ `Choose Inbox...` now accepts any existing selected directory and persists it.
+- STD export now accepts any selected destination and writes the sibling validation report beside it.
+- Project JSON Save/Open and application-managed runtime paths remain project-local.
+- Source evidence: focused path/import/export/RBZ regressions **24/24 PASS**, unit+integration
+  **336/336 PASS**, Ruff PASS, strict mypy PASS, and `git diff --check` PASS.
+- Nuitka standalone compile completed (`mode=standalone`, `completion=yes`); package gates **9/9 PASS**.
+- Previous accepted package/build/RBZ were moved to `DEL/t27-free-path-selection-20260906/old-release/`;
+  no old artifact was deleted.

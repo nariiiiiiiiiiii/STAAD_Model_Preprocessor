@@ -24,41 +24,41 @@
 
 **Files:** `src/staadprep/paths.py`, `tests/unit/test_paths.py`
 
-- [ ] Add `ProjectPaths.resolve_user_selected_path(path: Path) -> Path` and a regression proving a
+- [x] Add `ProjectPaths.resolve_user_selected_path(path: Path) -> Path` and a regression proving a
   path outside the project resolves successfully.
-- [ ] Run `tests/unit/test_paths.py` and retain the existing project-boundary rejection tests.
+- [x] Run `tests/unit/test_paths.py` and retain the existing project-boundary rejection tests.
 
 ### Task 2: External SketchUp Bridge JSON import
 
 **Files:** `src/staadprep/importers/neutral_reader.py`, `tests/unit/test_neutral_reader.py`,
 `tests/ui/test_import_routes.py`
 
-- [ ] Change only the selected-file containment rule; retain inbox as the default dialog location
+- [x] Change only the selected-file containment rule; retain inbox as the default dialog location
   and retain all protocol/schema validation.
-- [ ] Add a valid external JSON regression and run the neutral-reader/import-route tests.
+- [x] Add a valid external JSON regression and run the neutral-reader/import-route tests.
 
 ### Task 3: External STD export
 
 **Files:** `src/staadprep/ui/main_window.py`, `tests/ui/test_export_ui.py`
 
-- [ ] Use the explicit resolver only in `export_current_std()`.
-- [ ] Add a regression proving external `.std` and sibling `.validation.json` are written.
-- [ ] Run export and validation-report regressions; leave Project JSON restrictions unchanged.
+- [x] Use the explicit resolver only in `export_current_std()`.
+- [x] Add a regression proving external `.std` and sibling `.validation.json` are written.
+- [x] Run export and validation-report regressions; leave Project JSON restrictions unchanged.
 
 ### Task 4: Arbitrary SketchUp RBZ output folder
 
 **Files:** `extensions/sketchup_staadprep/staadprep/exporter.rb`,
 `tests/unit/test_sketchup_ruby_contract.py`
 
-- [ ] Replace the suffix-only directory allow-list with `File.directory?` on the selected directory.
-- [ ] Run the Ruby contract test and preserve the atomic writer/protocol contract.
+- [x] Replace the suffix-only directory allow-list with `File.directory?` on the selected directory.
+- [x] Run the Ruby contract test and preserve the atomic writer/protocol contract.
 
 ### Task 5: Source verification, package rebuild, and archival
 
 **Files:** affected source/tests and current status documents.
 
-- [ ] Run focused source tests, Ruff, strict mypy, and `git diff --check`.
-- [ ] Update the current handoff/task/index documents with the new path scope.
-- [ ] Move the old accepted portable package and old RBZ to dated `DEL/` quarantine.
-- [ ] Compile/assemble the new standalone package and updated RBZ, then run package verification.
-- [ ] Record hashes and final package paths; do not delete the archived release.
+- [x] Run focused source tests, Ruff, strict mypy, and `git diff --check`.
+- [x] Update the current handoff/task/index documents with the new path scope.
+- [x] Move the old accepted portable package and old RBZ to dated `DEL/` quarantine.
+- [x] Compile/assemble the new standalone package and updated RBZ, then run package verification.
+- [x] Record hashes and final package paths; do not delete the archived release.

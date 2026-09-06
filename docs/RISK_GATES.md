@@ -14,6 +14,10 @@ mindmap is recorded at `docs/WORKTREE_MINDMAP.md`; T25 storage audit approved mo
 in `DEL/UNUSED_FILES_MANIFEST.md`; T26 generated-output/worktree moves are complete and remain
 recoverable until user deletion; no new implementation task is started by the cleanup.
 
+T27 path-selection scope is STANDARD: it changes only explicit file/folder selection and destination
+resolution; it does not change structural calculations, topology, validation, ReadyGate, numbering,
+or `.STD` serialization. Source and package verification are recorded in `docs/HANDOFF.md`.
+
 The Project Explorer entity inventory/select-one/select-all increment is STANDARD because it only
 changes UI selection/highlighting and does not execute a repair or mutate the analytical model.
 The UUID-free engineering Properties increment is also STANDARD because it formats existing model

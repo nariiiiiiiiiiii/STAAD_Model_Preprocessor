@@ -650,3 +650,37 @@ and no deletion or compile was performed. The user may delete the quarantine sep
 The post-cleanup standalone recheck also passed **1/1 in 6.54 seconds** using the no-Python,
 different-CWD packaged launch test. Its generated basetemp/cache were moved into the same T26
 quarantine, leaving only the standard empty pytest skeletons in the active `.tmp/` and `.cache/` paths.
+
+## 2026-09-06 T27 free user-selected paths and package checkpoint
+
+The user reported two real-use path restrictions. The source fix separates explicit user-selected
+paths from application-managed runtime paths:
+
+- SketchUp Bridge JSON selected in the desktop app may come from any location; the configured inbox
+  remains the default chooser location.
+- SketchUp RBZ `Choose Inbox...` accepts any existing directory and persists the selection.
+- `Export STD` accepts any selected destination and writes the sibling `.validation.json` beside it.
+- Project JSON Save/Open, cache, temp, logs, reports, and other implicit runtime writes retain their
+  project/portable-local contracts.
+
+Source checkpoint `58dbc3a fix: allow user-selected import and export paths` passed focused regressions
+**24/24**, unit+integration **336/336**, Ruff, strict mypy on 3 affected source files, and diff check.
+The prior full UI run remains non-authoritative because the existing PyVista/VTK renderer test caused
+a native Python access violation; no path-test failure was observed.
+
+The user authorized a fresh package. The previous accepted folder, Nuitka final build, and RBZ were
+moved to `DEL/t27-free-path-selection-20260906/old-release/`. Nuitka then completed with
+`mode="standalone"` and `completion="yes"`; the new portable folder/ZIP and RBZ were assembled.
+Package verification is **9/9 PASS**, including manifest/hash checks, RBZ archive checks, no-Python
+different-CWD launch, relocation/reopen, and packaged READY/STD workflow. The new final artifacts are:
+
+- folder: `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/` — 812 files / 708,474,179 bytes;
+- ZIP: `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable.zip` — 225,277,088 bytes;
+- executable SHA-256: `41346B2BEDBA637EBDCA43E390B59E257B19397700F95FAFDB346203A7E2E850`;
+- ZIP SHA-256: `7A163315FD01E42A98D63F6728AB7DCFCA0FF6C05549B91ECBE2396C789A4E11`;
+- RBZ SHA-256: `C67349CBE3CB0315926FB69606287835AF981245344DDD48ED5B3FB9D4306701`.
+
+The release was built using PowerShell 7 because Windows PowerShell 5.1 does not define the script's
+`$IsWindows` variable. Dependency Walker was downloaded into the project-local Nuitka cache after
+the earlier cleanup had removed the old cache. No installer/MSI/NSIS, updater, or one-file build was
+created.
