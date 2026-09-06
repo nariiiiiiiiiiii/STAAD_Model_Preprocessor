@@ -85,3 +85,7 @@ class ProjectPaths:
         if not resolved.is_relative_to(self.root):
             raise ValueError(f"Path escapes project root: {path}")
         return resolved
+
+    def resolve_user_selected_path(self, path: Path) -> Path:
+        """Resolve a path deliberately selected by the user in a file dialog."""
+        return path.expanduser().resolve()

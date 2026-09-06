@@ -41,7 +41,7 @@ module StaadPrepBridge
 
     expanded = File.expand_path(selected)
     unless valid_inbox_path?(expanded)
-      UI.messagebox('Select either Data/Inbox/SketchUp or artifacts/sketchup_bridge/inbox.')
+      UI.messagebox('The selected output folder is not available.')
       return nil
     end
 
@@ -50,8 +50,7 @@ module StaadPrepBridge
   end
 
   def valid_inbox_path?(path)
-    normalized = File.expand_path(path).tr('\\', '/')
-    INBOX_SUFFIXES.any? { |suffix| normalized.end_with?(suffix) }
+    File.directory?(File.expand_path(path))
   end
 
   def bridge_html

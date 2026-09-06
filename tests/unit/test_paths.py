@@ -27,6 +27,15 @@ def test_rejects_path_outside_project(tmp_path: Path) -> None:
         paths.assert_inside_project(tmp_path / "outside.log")
 
 
+def test_user_selected_path_may_be_outside_project(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    root.mkdir()
+    external = tmp_path / "exports" / "model.std"
+    paths = ProjectPaths.from_root(root)
+
+    assert paths.resolve_user_selected_path(external) == external.resolve()
+
+
 def test_relative_path_is_resolved_under_project(tmp_path: Path) -> None:
     root = tmp_path / "STAAD_Model_Preprocessor"
     root.mkdir()

@@ -44,7 +44,7 @@ def _vec3(value: Any, field_name: str) -> Vec3:
 
 
 class NeutralReader:
-    """Read protocol-v1 neutral envelopes from the project-local SketchUp inbox."""
+    """Read protocol-v1 neutral envelopes from the configured default inbox or a selected file."""
 
     def __init__(
         self,
@@ -66,15 +66,12 @@ class NeutralReader:
         self.inbox = self.paths.assert_inside_project(inbox or default_inbox)
         self.inbox.mkdir(parents=True, exist_ok=True)
 
-    def _assert_inbox_file(self, path: Path) -> Path:
-        candidate: Path = self.paths.assert_inside_project(path)
-        inbox = self.inbox.resolve()
-        if not candidate.is_relative_to(inbox):
-            raise ValueError(f"Neutral JSON must be inside SketchUp inbox: {inbox}")
-        return candidate
+    def _resolve_selected_file(self, path: Path) -> Path:
+        """Resolve a neutral JSON file explicitly selected by the user."""
+        return self.paths.resolve_user_selected_path(path)
 
     def read(self, path: Path) -> ImportBatch:
-        neutral_file = self._assert_inbox_file(path)
+        neutral_file = self._resolve_selected_file(path)
         if not neutral_file.is_file():
             raise NeutralReaderError(f"neutral JSON does not exist: {neutral_file}")
         try:

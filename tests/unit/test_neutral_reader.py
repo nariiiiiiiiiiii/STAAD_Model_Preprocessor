@@ -83,15 +83,17 @@ def test_rejects_protocol_mismatch(tmp_path: Path) -> None:
         reader.read(path)
 
 
-def test_rejects_neutral_file_outside_inbox(tmp_path: Path) -> None:
+def test_reads_valid_neutral_file_outside_default_inbox(tmp_path: Path) -> None:
     root = tmp_path / "project"
     reader = NeutralReader(root)
-    outside = root / "artifacts" / "not-inbox.json"
+    outside = tmp_path / "incoming" / "frame.json"
     outside.parent.mkdir(parents=True, exist_ok=True)
     outside.write_text(json.dumps(_valid_payload()), encoding="utf-8")
 
-    with pytest.raises(ValueError, match="SketchUp inbox"):
-        reader.read(outside)
+    batch = reader.read(outside)
+
+    assert batch.source_format == "skp"
+    assert batch.metadata["neutral_file"] == str(outside.resolve())
 
 
 def test_rejects_string_or_non_finite_coordinates(tmp_path: Path) -> None:

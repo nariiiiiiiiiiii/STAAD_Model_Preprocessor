@@ -1430,7 +1430,7 @@ class MainWindow(QMainWindow):
         if not status.ready:
             blockers = ", ".join(status.blockers)
             raise StaadExportError(f"model is not READY FOR STAAD: {blockers}")
-        safe_path = self._project_paths.assert_inside_project(path)
+        safe_path = self._project_paths.resolve_user_selected_path(path)
         report = export_staad_std(self.current_model, safe_path)
         audit_entries = () if self.repair_history is None else self.repair_history.audit.entries
         write_validation_report(

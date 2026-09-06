@@ -27,13 +27,15 @@ def test_ruby_extension_uses_public_sketchup_api_and_neutral_source_space_contra
     assert "source_unit" in exporter and '"in"' in exporter
     assert "Z-UP" in exporter
     assert "File.rename" in exporter
-    assert "artifacts/sketchup_bridge/inbox" in exporter
-    assert "Data/Inbox/SketchUp" in exporter
+    assert "LEGACY_INBOX_SUFFIX" in exporter
+    assert "PORTABLE_INBOX_SUFFIX" in exporter
     assert "Select STAAD Prep inbox" in exporter
     assert "UI::HtmlDialog.new" in exporter
     assert "STAAD Prep Bridge" in exporter
     assert "Export Geometry" in exporter
     assert "Choose Inbox" in exporter
+    assert "File.directory?(File.expand_path(path))" in exporter
+    assert "Select either Data/Inbox/SketchUp or artifacts/sketchup_bridge/inbox." not in exporter
     assert "dialog_ready" in exporter
     assert "DOMContentLoaded" in exporter
     assert "SP_#{now.strftime('%Y%m%d_%H%M%S')}" in exporter

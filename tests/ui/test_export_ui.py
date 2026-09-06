@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 from uuid import UUID
 
-import pytest
 from PySide6.QtWidgets import QWidget
 
 from staadprep.model.entities import Member, Node
@@ -102,13 +101,14 @@ def test_export_action_stays_disabled_for_empty_canonical_model(qtbot) -> None:
     assert not window.export_std_action.isEnabled()
 
 
-def test_export_current_std_rejects_path_outside_project_root(qtbot) -> None:
+def test_export_current_std_allows_selected_path_outside_project(qtbot, tmp_path: Path) -> None:
     window = MainWindow(viewport_factory=RecordingViewport)
     qtbot.addWidget(window)
     window.set_canonical_model(_clean_numbered_model())
-    outside = Path.cwd().parent / "must-not-create.std"
+    outside = tmp_path / "deliverables" / "frame.std"
 
-    with pytest.raises(ValueError, match="escapes project root"):
-        window.export_current_std(outside)
+    report = window.export_current_std(outside)
 
-    assert not outside.exists()
+    assert report.path == outside.resolve()
+    assert outside.is_file()
+    assert outside.with_suffix(".validation.json").is_file()
