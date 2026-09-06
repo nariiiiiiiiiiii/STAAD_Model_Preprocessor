@@ -684,3 +684,6 @@ The release was built using PowerShell 7 because Windows PowerShell 5.1 does not
 `$IsWindows` variable. Dependency Walker was downloaded into the project-local Nuitka cache after
 the earlier cleanup had removed the old cache. No installer/MSI/NSIS, updater, or one-file build was
 created.
+Temporary output created during source/package verification was moved to
+`DEL/t27-free-path-selection-20260906/test-output/`; the active `.tmp/` retains only its standard
+`.gitkeep` and empty pytest skeleton.

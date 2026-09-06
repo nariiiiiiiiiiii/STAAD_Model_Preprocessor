@@ -98,6 +98,7 @@ package was created:
 | Previous Nuitka final build/evidence | `DEL/t27-free-path-selection-20260906/old-release/build/windows/final/` |
 | Previous SketchUp RBZ build/stage | `DEL/t27-free-path-selection-20260906/old-release/build/sketchup/` |
 | First T27 assembly before documentation sync | `DEL/t27-free-path-selection-20260906/pre-doc-sync-package/` |
+| T27 source/package test output | `DEL/t27-free-path-selection-20260906/test-output/` |
 
 These are recoverable historical artifacts and were not deleted. The current release is under
 `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/`; the current RBZ is under
