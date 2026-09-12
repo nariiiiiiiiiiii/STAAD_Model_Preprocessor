@@ -16,19 +16,20 @@
 - Preserve atomic sibling-temp Project JSON replacement and never silently redirect a user-selected path.
 - Keep automatic runtime outputs project-local; only explicit user-selected source/output dialogs may use external paths.
 - The 2026-09-13 owner screenshot confirms that the first-save UI chooser returns an external target
-  but `MainWindow._assert_project_json_path()` blocks it before the serializer is called.
-- This is classified HIGH-RISK for data-loss potential. STRICT / Full TDD was historically approved
-  on 2026-09-12; the owner has now requested a refreshed plan and a new approval checkpoint. Do not
-  implement until the owner explicitly approves this refreshed plan.
+  but `MainWindow._assert_project_json_path()` blocked it before the serializer was called.
+- This is classified HIGH-RISK for data-loss potential. The owner approved the refreshed STRICT /
+  Full TDD plan on 2026-09-13; implementation is authorized only within this documented scope.
 - No compile, RBZ build, portable assembly, ZIP, or release replacement is part of this source plan.
 
 ## Current checkpoint (2026-09-13)
 
 The owner manually tested the Crop to Select / Zoom in Select viewport change and reports it works
-well; only Save remains blocked. The exact dialog message is produced by the first-save guard in
-`main_window.py`. The existing focused UI test `test_first_save_rejects_destination_outside_projects`
-currently encodes the unwanted behavior and must be inverted as a STRICT red/green regression. No
-Save-path source changes have been made. Wait for approval before Task 1.
+well; only Save remained blocked. The exact dialog message was produced by the first-save guard in
+`main_window.py`. The owner approved this refreshed plan on 2026-09-13. Strict TDD RED evidence:
+the new external First Save test returned `False`, while the new Save As checks failed because the
+action/method did not exist (**4 failed, 1 passed** in the focused red run). Implementation is now
+in place; the final relevant regression evidence is recorded below. Stop after source verification
+and owner app acceptance; do not compile.
 
 ---
 
@@ -56,7 +57,7 @@ Save-path source changes have been made. Wait for approval before Task 1.
 - Keep the existing regular Save confirmation. Save As uses the file dialog's native overwrite
   confirmation rather than adding a second generic “Save project?” prompt.
 
-- [ ] **Step 1: Add failing UI tests.** Replace `test_first_save_rejects_destination_outside_projects`
+- [x] **Step 1: Add failing UI tests.** Replace `test_first_save_rejects_destination_outside_projects`
   with an assertion that First Save to an external folder succeeds, associates that exact resolved
   file, marks the model saved, and round-trips through `load_project()`. Add tests that Save As
   appears beside Save, is enabled only with a model, saves to a second external folder, and changes
@@ -64,20 +65,27 @@ Save-path source changes have been made. Wait for approval before Task 1.
   path unchanged), extension normalization, and regular Save writing subsequent edits back only to
   the newly associated path.
 
-- [ ] **Step 2: Run those tests and verify they fail specifically on the first-save Projects guard
+- [x] **Step 2: Run those tests and verify they fail specifically on the first-save Projects guard
   or absent Save As action, not on unrelated Qt setup.**
 
-- [ ] **Step 3: Implement only the path-policy change and Save As action.** Route First Save and Save
+Observed RED: **4 failed, 1 passed**. The First Save test returned `False` at the old guard; action
+and Save As tests reported the missing `save_project_as_action` / `save_project_as` members.
+
+- [x] **Step 3: Implement only the path-policy change and Save As action.** Route First Save and Save
   As targets through `resolve_user_selected_path()` and `save_project_atomic()`. Keep regular Save
   pointed at its current associated file. Update `_current_project_path`, `_saved_revision`, title,
   and saved-state UI only after `save_project_atomic()` succeeds; leave all of them unchanged on
   Cancel or failure. Do not change the runtime path resolver or other project-local output rules.
 
-- [ ] **Step 4: Add independent serializer safety tests.** Patch the serializer's `os.replace` to
+- [x] **Step 4: Add independent serializer safety tests.** Patch the serializer's `os.replace` to
   raise after the sibling temp is written. Assert an existing selected external file remains
   byte-identical, the `.staadprep-*.tmp` sibling is removed, and the UI does not associate the failed
   path or mark the model saved. Separately verify a successful external write round-trips through
   `load_project()`.
+
+Observed GREEN/safety: the repository already had the independent atomic-replace failure regression;
+it was retained and run. UI failure cases were added for both First Save and Save As. Core Save UI +
+serializer checks: **14/14 PASS**.
 
 ### Task 2: Verify the complete desktop file-dialog/write inventory
 
@@ -88,23 +96,32 @@ Save-path source changes have been made. Wait for approval before Task 1.
 - Review: `src/staadprep/ui/main_window.py`, `src/staadprep/importers/neutral_reader.py`,
   `src/staadprep/repair/audit.py`
 
-- [ ] **Step 1: Verify import dialogs accept user-selected files outside the project** for Project
+- [x] **Step 1: Verify import dialogs accept user-selected files outside the project** for Project
   JSON, SketchUp Neutral JSON, and DXF; canceling each dialog must preserve the current model.
-- [ ] **Step 2: Verify Export STD accepts an external path and its validation report lands in the
+- [x] **Step 2: Verify Export STD accepts an external path and its validation report lands in the
   same selected directory with the matching basename.**
-- [ ] **Step 3: Search all desktop source for file dialogs and write calls; record every user-facing
+- [x] **Step 3: Search all desktop source for file dialogs and write calls; record every user-facing
   output, its chooser, and any intentionally project-local runtime output in HANDOFF/INDEX.
-- [ ] **Step 4: Run focused save/import/export/path tests, relevant UI tests, Ruff, strict mypy, and
+- [x] **Step 4: Run focused save/import/export/path tests, relevant UI tests, Ruff, strict mypy, and
   `git diff --check`; include failure/cancel/overwrite-preservation cases and stop before compile for
   owner testing. Manual acceptance: First Save to an external folder; Save As to another folder;
   regular Save after editing; cancel; and overwrite an existing file only after the native dialog
   confirms. Reopen both saved JSON files to confirm contents. Verify export STD and its validation
   JSON remain together in the chosen external folder.
 
+Observed: **58/58 relevant UI/unit regression tests PASS** (Save, serialization, Open/Import, Export,
+project/portable paths, toolbar, and exit confirmation); Ruff PASS; strict mypy **0 issues** in
+`main_window.py`; `git diff --check` PASS. No compile was run. Owner manual acceptance of external
+First Save and Save As is still pending.
+
 ### Task 3: STRICT independent regression, docs, and commit
 
-- [ ] Compare the path/action inventory against the spec line by line.
-- [ ] Run the full relevant unit/UI regression subset, including failure, cancel, and external-file
+- [x] Compare the path/action inventory against the spec line by line.
+- [x] Run the full relevant unit/UI regression subset, including failure, cancel, and external-file
   overwrite-preservation cases.
-- [ ] Update README, HANDOFF, INDEX, TASK_BOARD, CHECKLIST, and this plan with exact evidence.
-- [ ] Commit only after the STRICT verification gate is green; stop for owner manual acceptance.
+- [x] Update README, HANDOFF, INDEX, TASK_BOARD, CHECKLIST, and this plan with exact evidence.
+- [x] Commit only after the STRICT verification gate is green; stop for owner manual acceptance.
+
+Checkpoint note: the source/docs commit is the final automated step for this task. Owner manual
+acceptance of the uncompiled external Save paths remains pending; do not start a compile/package
+task until that test is reported and separately authorized.

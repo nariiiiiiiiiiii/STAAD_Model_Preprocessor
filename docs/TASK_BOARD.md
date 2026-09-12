@@ -1,6 +1,6 @@
 Execution policy: **run exactly one Task at a time**. Every Task must end with its verification, Git commit, documentation/status update, and a hard stop for user review before the next Task begins.
 
-Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 through HR-4 on 2026-08-28. Manual Editing + SketchUp-style controls and SketchUp Ruby Bridge + Direct DXF V1 import architecture approved on 2026-08-28. Post-T22 HR-2 Delete/Merge/Member-Repeat correction scope explicitly approved on 2026-08-30. Multi-issue Quick Fix/intersection batch and user-selected Project JSON Save/Save As path changes historically approved STRICT on 2026-09-12; after the owner requested a refreshed Save plan on 2026-09-13, implementation is paused for fresh approval of that plan.**
+Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 through HR-4 on 2026-08-28. Manual Editing + SketchUp-style controls and SketchUp Ruby Bridge + Direct DXF V1 import architecture approved on 2026-08-28. Post-T22 HR-2 Delete/Merge/Member-Repeat correction scope explicitly approved on 2026-08-30. Multi-issue Quick Fix/intersection batch approved STRICT on 2026-09-12. User-selected Project JSON Save/Save As refreshed plan approved STRICT on 2026-09-13.**
 
 | Task | Deliverable | Risk | Status |
 |---|---|---|---|
@@ -30,8 +30,8 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T24 | Post-acceptance unused-file audit + quarantine to project-local `DEL/` | STANDARD | **COMPLETE** |
 | T25 | Full project storage recheck + approved old package/build quarantine | STANDARD | **MOVE COMPLETE; SPACE DELETION PENDING USER** |
 | Post-T27 CP1–5 | version/name/icon/Project JSON/batched Quick Fix source follow-up | STANDARD; CP5 STRICT/HR-2 | **SOURCE VERIFIED; owner confirms app/taskbar logo and Quick Fix/Undo/Redo; focused icon suite 10/10; package acceptance pending** |
-| Post-CP5 manual bug report | Crop-to-Selection single-Node camera collapse; user-selected Save destinations | STANDARD; Save STRICT | **Crop source fix + 15 focused UI/save tests PASS; owner viewport retest PASS (2026-09-13); external First Save block confirmed and traced to path guard; refreshed Save plan awaiting approval** |
-| Post-CP5 marquee + free Save destinations | Crop to Select rectangle, Zoom in Select rename, any-folder Save/Save As audit | STANDARD viewport; Save STRICT | **Owner reports viewport behavior PASS; 13 non-renderer tests PASS; automated VTK smoke unavailable after OpenGL/app error; Save Blocked cause confirmed; refreshed STRICT plan awaits owner approval** |
+| Post-CP5 manual bug report | Crop-to-Selection single-Node camera collapse; user-selected Save destinations | STANDARD; Save STRICT | **Crop source fix + 15 focused UI/save tests PASS; owner viewport retest PASS; First Save path guard fixed and Save As added; 58 relevant tests PASS; owner Save acceptance pending** |
+| Post-CP5 marquee + free Save destinations | Crop to Select rectangle, Zoom in Select rename, any-folder Save/Save As audit | STANDARD viewport; Save STRICT | **Owner reports viewport behavior PASS; Save STRICT approved 2026-09-13; First Save/Save As implemented; 58/58 tests, Ruff, strict mypy PASS; no compile; owner Save acceptance pending** |
 
 ## Operational rules
 

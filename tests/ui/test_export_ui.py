@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from uuid import UUID
 
-from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import QFileDialog, QWidget
 
 from staadprep.model.entities import Member, Node
 from staadprep.model.geometry import Vec3
@@ -112,3 +112,23 @@ def test_export_current_std_allows_selected_path_outside_project(qtbot, tmp_path
     assert report.path == outside.resolve()
     assert outside.is_file()
     assert outside.with_suffix(".validation.json").is_file()
+
+
+def test_export_dialog_accepts_external_folder_and_keeps_report_beside_std(
+    qtbot, tmp_path: Path, monkeypatch
+) -> None:
+    window = MainWindow(viewport_factory=RecordingViewport)
+    qtbot.addWidget(window)
+    window.set_canonical_model(_clean_numbered_model())
+    outside = tmp_path / "handoff" / "frame.std"
+    monkeypatch.setattr(
+        QFileDialog,
+        "getSaveFileName",
+        lambda *_args: (str(outside), "STAAD Model (*.std)"),
+    )
+
+    window._choose_export_std()
+
+    assert outside.is_file()
+    assert outside.with_suffix(".validation.json").is_file()
+    assert not (window._project_paths.artifacts / outside.name).exists()

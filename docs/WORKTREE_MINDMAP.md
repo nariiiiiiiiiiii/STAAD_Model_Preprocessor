@@ -1,6 +1,6 @@
 # STAAD Model Preprocessor — Worktree Mindmap
 
-Status: **ACTIVE T22 WORKTREE — CP1–CP5 SOURCE VERIFIED; OWNER ACCEPTED MARQUEE; SAVE BLOCK CONFIRMED / REFRESHED STRICT PLAN AWAITING APPROVAL**
+Status: **ACTIVE T22 WORKTREE — CP1–CP5 SOURCE VERIFIED; OWNER ACCEPTED MARQUEE; SAVE STRICT SOURCE IMPLEMENTED / OWNER ACCEPTANCE PENDING**
 Generated: 2026-09-12
 Branch: `task/22-portable-packaging`
 T24 checkpoint: `chore: quarantine unused project files for review`
@@ -24,7 +24,7 @@ group rules and T25/T26 audit counts.
 | T26 storage cleanup | Move + standalone smoke verified; space deletion pending user | `DEL/t26-storage-cleanup-20260901/` |
 | T27 free user-selected paths | Source + package gates complete; user package acceptance pending | `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/`, `docs/HANDOFF.md` |
 | Post-T27 CP1–5 | Version/name/icon/Open/Save/Quick Fix source verified; package remains 0.1.0 | `docs/HANDOFF.md`, `docs/INDEX.md`; no 0.2.0 release artifacts |
-| Post-CP5 Crop/Save follow-up | Owner reports marquee works; 13 non-renderer tests PASS; external First Save block traced to path guard; refreshed STRICT Save plan awaits approval | `docs/HANDOFF.md`; automated VTK smoke remains unavailable after Win32 OpenGL pixel-format error |
+| Post-CP5 Crop/Save follow-up | Owner reports marquee works; 13 non-renderer tests PASS; First Save/Save As implemented; 58 relevant tests PASS; owner Save acceptance pending | `docs/HANDOFF.md`; automated VTK smoke remains unavailable after Win32 OpenGL pixel-format error |
 | Post-T26 mindmap | Active/current | this document |
 
 T24 performed one recoverable move only:
@@ -635,8 +635,8 @@ outputs are documented separately in Section 10.
 - docs/superpowers/specs/2026-09-12-sketchup-naming-logo-json-open-batched-quick-fix.md — version, naming, icon, Open/Save, and STRICT batch contracts.
 - docs/superpowers/plans/2026-09-12-marquee-selection.md — Crop to Select drag selection and Zoom in Select rename; VTK smoke pending.
 - docs/superpowers/specs/2026-09-12-marquee-selection.md — filter, Ctrl-additive, no-mutation, and camera-command behavior.
-- docs/superpowers/plans/2026-09-12-user-selected-save-destinations.md — confirmed First Save guard, Save As and full path audit; awaiting refreshed-plan approval.
-- docs/superpowers/specs/2026-09-12-user-selected-save-destinations.md — confirmed user-visible cause, user-selected save scope, data-loss risk controls, and approval gate.
+- docs/superpowers/plans/2026-09-12-user-selected-save-destinations.md — STRICT-approved First Save/Save As implementation; 58-test evidence and owner acceptance gate.
+- docs/superpowers/specs/2026-09-12-user-selected-save-destinations.md — confirmed root cause, implemented user-selected save scope, data-loss risk controls, and acceptance status.
 
 ### 9.4 Bridge, native boundary, packaging, and scripts
 
@@ -881,15 +881,14 @@ Post-T27 CP1–CP5 source follow-up is **SOURCE VERIFIED / USER ACCEPTANCE PENDI
   **26/26 affected UI PASS**, Ruff PASS, strict mypy **0 issues** in four source files;
 - the accepted package remains `0.1.0`; no `0.2.0` exe/RBZ/portable archive is retained.
 
-Post-CP5 viewport/save request (2026-09-12; owner recheck 2026-09-13): source exposes Crop to Select
-and Zoom in Select; **13 non-renderer event/action/geometry tests PASS**, Ruff PASS, strict mypy
-**0 issues** in two affected source files. The owner reports the viewport flow passes manually. Real
-VTK smoke could not complete in the offscreen test process: Win32 OpenGL initialization reported
-`failed to get valid pixel format`, followed by a Python Application Error. The owner confirms
-Project JSON Save still blocks an external folder; source inspection identifies the First Save
-`_assert_project_json_path()` guard before atomic serialization. A historical STRICT approval exists,
-but the owner requested this refreshed plan and will approve before implementation. No save-path code
-has changed and no compile was performed.
+Post-CP5 viewport/save request (2026-09-12; owner recheck and Save implementation 2026-09-13): the
+owner reports Crop to Select / Zoom in Select passes. **13 non-renderer viewport tests PASS** and the
+Save/import/export/path regression is **58/58 PASS**, Ruff PASS, strict mypy **0 issues** in
+`main_window.py`. The Save guard was removed only from explicitly user-selected Project JSON First
+Save/Save As paths; atomic serialization and runtime path containment remain. The owner approved the
+refreshed STRICT plan on 2026-09-13. Manual external Save acceptance is pending. Automated offscreen
+VTK smoke remains unverified after Win32 OpenGL initialization reported `failed to get valid pixel
+format`, followed by a Python Application Error. No compile was performed.
 
 Build-test side effect: an initial integration run created a transient `0.2.0` RBZ via a legacy
 test; it was removed. Existing ignored `build/sketchup/stage/` files were refreshed by that

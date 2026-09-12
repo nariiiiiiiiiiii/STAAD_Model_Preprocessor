@@ -31,10 +31,10 @@ Primary workflow:
 - The 2026-09-12 marquee request now has separate **Crop to Select** and **Zoom in Select** controls;
   13 non-renderer event/action/geometry tests pass, Ruff and strict mypy pass. The isolated VTK smoke was
   not verified because this runtime reported an OpenGL pixel-format error followed by a Python
-  Application Error. The owner reports the viewport behavior passes; Project JSON Save still shows
-  Save Blocked for an external folder. Source traces this to `_assert_project_json_path()` in the
-  First Save branch, before the atomic serializer. A refreshed STRICT plan is awaiting the owner's
-  approval; no save-path code or package has changed.
+  Application Error. The owner reports the viewport behavior passes. The approved Save-path fix now
+  allows external Project JSON First Save and Save As while retaining atomic writes and project-local
+  runtime path guards. Focused relevant regressions are **58/58 PASS**, Ruff PASS, strict mypy has
+  **0 issues**, and no compile/package build was run. Owner manual Save acceptance is pending.
 - A legacy integration test briefly generated a transient `0.2.0` RBZ during the first full-suite
   run; that file was removed. Its test fixtures now stay under `.tmp/tests`, and the existing
   ignored `build/sketchup/stage/` source copies were refreshed by that run and left in place.

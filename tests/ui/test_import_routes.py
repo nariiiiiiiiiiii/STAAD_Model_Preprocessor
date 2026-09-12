@@ -3,8 +3,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from PySide6.QtWidgets import QWidget
+import pytest
+from PySide6.QtWidgets import QFileDialog, QWidget
 
+from staadprep.model.project import ProjectModel
+from staadprep.model.serialization import save_project_atomic
 from staadprep.paths import ProjectPaths
 from staadprep.ui.main_window import MainWindow
 
@@ -80,3 +83,84 @@ def test_direct_dxf_route_builds_canonical_model_and_remains_enabled(qtbot, tmp_
     assert window.current_model is model
     assert window.import_dxf_action.isEnabled()
     assert "DIRECT DXF" in window.statusBar().currentMessage()
+
+
+def test_project_json_open_dialog_accepts_external_folder(
+    qtbot, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    paths = ProjectPaths.from_root(tmp_path / "app")
+    window = MainWindow(viewport_factory=RecordingViewport, project_paths=paths)
+    qtbot.addWidget(window)
+    external = tmp_path / "client files" / "sample.staadprep.json"
+    model = ProjectModel()
+    save_project_atomic(model, external)
+    monkeypatch.setattr(
+        QFileDialog,
+        "getOpenFileName",
+        lambda *_args: (str(external), "Project JSON (*.staadprep.json *.json)"),
+    )
+
+    window._choose_project_json()
+
+    assert window.current_model == model
+    assert window._current_project_path == external.resolve()
+
+
+def test_sketchup_json_open_dialog_accepts_external_folder(
+    qtbot, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    window = MainWindow(viewport_factory=RecordingViewport, project_root=tmp_path / "app")
+    qtbot.addWidget(window)
+    bundle = json.loads(GOLDEN.read_text(encoding="utf-8"))
+    external = tmp_path / "sketchup export" / "frame.json"
+    external.parent.mkdir(parents=True)
+    external.write_text(json.dumps(bundle["neutral"]), encoding="utf-8")
+    monkeypatch.setattr(
+        QFileDialog,
+        "getOpenFileName",
+        lambda *_args: (str(external), "Neutral JSON (*.json)"),
+    )
+
+    window._choose_sketchup_neutral()
+
+    assert window.current_model is not None
+    assert len(window.current_model.nodes) == 4
+    assert len(window.current_model.members) == 3
+
+
+def test_dxf_open_dialog_accepts_external_folder(
+    qtbot, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    window = MainWindow(viewport_factory=RecordingViewport, project_root=tmp_path / "app")
+    qtbot.addWidget(window)
+    external = tmp_path / "external dxf" / "frame.dxf"
+    external.parent.mkdir(parents=True)
+    external.write_bytes(DXF_FIXTURE.read_bytes())
+    monkeypatch.setattr(
+        QFileDialog,
+        "getOpenFileName",
+        lambda *_args: (str(external), "DXF Files (*.dxf)"),
+    )
+
+    window._choose_dxf()
+
+    assert window.current_model is not None
+    assert len(window.current_model.members) == 3
+
+
+def test_import_dialog_cancellation_preserves_current_model(
+    qtbot, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    window = MainWindow(viewport_factory=RecordingViewport, project_root=tmp_path / "app")
+    qtbot.addWidget(window)
+    model = ProjectModel()
+    window.set_canonical_model(model)
+    monkeypatch.setattr(QFileDialog, "getOpenFileName", lambda *_args: ("", ""))
+
+    for choose_action in (
+        window._choose_project_json,
+        window._choose_sketchup_neutral,
+        window._choose_dxf,
+    ):
+        choose_action()
+        assert window.current_model is model

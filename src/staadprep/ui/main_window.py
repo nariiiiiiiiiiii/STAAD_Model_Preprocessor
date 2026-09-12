@@ -246,6 +246,10 @@ class MainWindow(QMainWindow):
         self.save_project_action.setEnabled(False)
         self.save_project_action.setToolTip("Save the canonical project JSON atomically")
         self.save_project_action.triggered.connect(self._confirm_and_save_current_project)
+        self.save_project_as_action = QAction("Save As…", self)
+        self.save_project_as_action.setEnabled(False)
+        self.save_project_as_action.setToolTip("Save the canonical project JSON to another path")
+        self.save_project_as_action.triggered.connect(lambda: self.save_project_as())
         self.export_std_action = QAction("Export STD", self)
         self.export_std_action.setEnabled(False)
         self.export_std_action.setToolTip(
@@ -447,6 +451,7 @@ class MainWindow(QMainWindow):
             self.renumber_action,
             self.validate_action,
             self.save_project_action,
+            self.save_project_as_action,
             self.export_std_action,
         ):
             toolbar.addAction(action)
@@ -1305,17 +1310,25 @@ class MainWindow(QMainWindow):
 
     def _refresh_project_persistence_state(self) -> None:
         self.save_project_action.setEnabled(self.current_model is not None)
+        self.save_project_as_action.setEnabled(self.current_model is not None)
         self._update_project_title()
 
-    def _assert_project_json_path(self, path: Path) -> Path:
-        projects = self._project_paths.projects.resolve()
-        try:
-            resolved = self._project_paths.assert_inside_project(path)
-        except ValueError as exc:
-            raise ValueError(f"Project JSON must be inside Projects directory: {projects}") from exc
-        if not resolved.is_relative_to(projects):
-            raise ValueError(f"Project JSON must be inside Projects directory: {projects}")
-        return resolved
+    def _default_project_json_path(self) -> Path:
+        return self._project_paths.projects / f"{self._project_display_name()}.staadprep.json"
+
+    def _choose_project_json_destination(self, title: str, initial: Path) -> Path | None:
+        file_name, _ = QFileDialog.getSaveFileName(
+            self,
+            title,
+            str(initial),
+            "Project JSON (*.staadprep.json)",
+        )
+        if not file_name:
+            return None
+        target = Path(file_name)
+        if not str(target).lower().endswith(".staadprep.json"):
+            target = Path(f"{target}.staadprep.json")
+        return target
 
     def _confirm_and_save_current_project(self) -> bool:
         answer = QMessageBox.question(
@@ -1333,35 +1346,37 @@ class MainWindow(QMainWindow):
         if self.current_model is None:
             return False
         target = self._current_project_path
-        is_first_save = target is None
-        if is_first_save:
-            default_name = f"{self._project_display_name()}.staadprep.json"
-            initial = self._project_paths.projects / default_name
-            file_name, _ = QFileDialog.getSaveFileName(
-                self,
+        if target is None:
+            target = self._choose_project_json_destination(
                 "Save Project JSON",
-                str(initial),
-                "Project JSON (*.staadprep.json)",
+                self._default_project_json_path(),
             )
-            if not file_name:
+            if target is None:
                 return False
-            target = Path(file_name)
-            if not str(target).lower().endswith(".staadprep.json"):
-                target = Path(f"{target}.staadprep.json")
+        return self._save_project_to_path(target)
+
+    def save_project_as(self) -> bool:
+        if self.current_model is None:
+            return False
+        initial = self._current_project_path or self._default_project_json_path()
+        target = self._choose_project_json_destination("Save Project JSON As", initial)
         if target is None:
             return False
+        return self._save_project_to_path(target)
+
+    def _save_project_to_path(self, target: Path) -> bool:
+        model = self.current_model
+        if model is None:
+            return False
         try:
-            if is_first_save:
-                safe_path = self._assert_project_json_path(target)
-            else:
-                safe_path = self._project_paths.resolve_user_selected_path(target)
-            save_project_atomic(self.current_model, safe_path)
+            safe_path = self._project_paths.resolve_user_selected_path(target)
+            save_project_atomic(model, safe_path)
         except (OSError, ValueError) as exc:
             self.statusBar().showMessage(f"Save Blocked: {exc}")
             QMessageBox.warning(self, "Save Blocked", str(exc))
             return False
         self._current_project_path = safe_path
-        self._saved_revision = self.current_model.revision
+        self._saved_revision = model.revision
         self._refresh_project_persistence_state()
         self.statusBar().showMessage(f"PROJECT SAVED | {safe_path.name}")
         return True

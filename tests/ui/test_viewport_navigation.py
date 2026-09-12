@@ -176,6 +176,7 @@ def test_toolbars_follow_workflow_order_and_force_second_row(qtbot) -> None:
         "Numbering",
         "Validate",
         "Save Project JSON",
+        "Save As…",
         "Export STD",
     ]
     assert [action.text() for action in edit_view.actions() if not action.isSeparator()] == [

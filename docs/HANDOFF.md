@@ -1,4 +1,4 @@
-Status: **T21 is complete; T22's accepted portable release is `0.1.0`; T23 acceptance is PASS by user report; T24 is complete with no files deleted. The active CP1–CP5 source follow-up is source-verified on `task/22-portable-packaging`. Owner smoke on 2026-09-12 confirms the app/taskbar logo and Quick Fix/Undo/Redo. The Crop-to-Selection camera-collapse fix and Crop to Select / Zoom in Select source changes are committed; the owner reports the current viewport flow works on 2026-09-13. Automated offscreen VTK smoke remains unverified after a Win32 OpenGL/Python Application Error. Project JSON Save outside Projects still shows Save Blocked; source traces it to the First Save `_assert_project_json_path()` guard. A refreshed STRICT plan is awaiting the owner's approval before implementation. No `0.2.0` executable/RBZ/ZIP has been built or accepted.**
+Status: **T21 is complete; T22's accepted portable release is `0.1.0`; T23 acceptance is PASS by user report; T24 is complete with no files deleted. The active CP1–CP5 source follow-up is source-verified on `task/22-portable-packaging`. Owner smoke on 2026-09-12 confirms the app/taskbar logo and Quick Fix/Undo/Redo. The owner reports Crop to Select / Zoom in Select works on 2026-09-13. External Project JSON First Save/Save As is now source-implemented under explicit STRICT approval: 58/58 relevant tests, Ruff, strict mypy, and diff check pass. Owner manual Save acceptance is pending; no compile/package build was run. Automated offscreen VTK smoke remains unverified after the Win32 OpenGL/Python Application Error. No `0.2.0` executable/RBZ/ZIP has been built or accepted.**
 
 ## Current source follow-up — 2026-09-12
 
@@ -8,7 +8,7 @@ Checkpoint 2 is now source-complete with the owner-confirmed `<safe-SKP-stem>_<D
 
 Checkpoint 3 is source-complete: the selected logo is copied byte-for-byte into `assets/branding`, used by the Qt app, and wired into the future Windows build; a 7-size ICO was generated and verified under `build/windows/icon-checkpoint-20260912/`. Focused icon/build/UI checks are **12/12 PASS**, Ruff and strict mypy pass. After the owner reported the old/Python-looking taskbar icon, the source now assigns a stable Windows AppUserModelID before QApplication creation and explicitly applies the app icon to the main window. The additional focused check is **10/10 PASS**, Ruff passes, and strict mypy reports **0 issues** in the two affected source files. The owner confirmed the logo now appears correctly on the source-run app taskbar (2026-09-12). This does not verify the old compiled executable; no Windows executable or RBZ was rebuilt, and the accepted package remains version `0.1.0`.
 
-Checkpoint 4 is source-complete: Project JSON can be opened from any folder and Save writes back to that selected file. First Save for a new model remains restricted to `Data/Projects/`. Atomic save now stages a hidden unique temp sibling beside the destination; failure tests confirm the old file remains intact and temp files are cleaned. Focused serialization/UI checks are **10/10 PASS**, Ruff and strict mypy pass. No executable, RBZ, or portable package was rebuilt.
+Checkpoint 4 status at the time (2026-09-12): Project JSON could be opened from any folder and Save wrote back to that selected file; First Save for a new model was then restricted to `Data/Projects/`. That historical restriction was removed in the approved 2026-09-13 Save-path follow-up below. Atomic save stages a hidden unique temp sibling beside the destination; failure tests confirm the old file remains intact and temp files are cleaned. Checkpoint-4 focused serialization/UI checks were **10/10 PASS**. No executable, RBZ, or portable package was rebuilt.
 
 Checkpoint 5 is source-complete after explicit STRICT / Full TDD approval on 2026-09-12. Quick Fix supports multi-row selection and preflights fresh issues/typed mutation footprints; it rejects unsupported, stale, or overlapping batches. `CROSSING_WITHOUT_NODE` routes to the existing intersection splitter. Accepted batches run as one `CompositeRepair` with one confirmation/audit/history item and exact Undo/Redo.
 
@@ -32,8 +32,9 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 ..\..\.venv\Scripts\python.exe -m staadprep.app
 ```
 
-Remaining manual checks: Open a Project JSON outside the project and Save it back; verify first Save
-for a new model stays in the default Projects area; and exercise
+Remaining manual checks: Open a Project JSON outside the project and Save it back; verify First Save
+opens in the default Projects folder but accepts a chosen external folder; test Save As to a second
+external folder, regular Save-back, and cancel; and exercise
 multi-issue Apply once with Undo/Redo plus the intersection case. The user has reported Quick Fix and
 Undo/Redo working, but did not specify which batch/intersection scenarios were tested. Real SketchUp
 export testing needs a later explicit RBZ/package build; no compile should be started yet.
@@ -46,18 +47,16 @@ padding was replaced by a scale-aware 8% selected-span margin with a 2% full-sce
 1.0 world unit only when the scene itself has zero span). Regression assertions now verify the
 single-Node focal target, non-degenerate zoom, and unchanged model revision. The toolbar action's
 selection enable/forward/disable contract is also tested. Combined focused tests: **15/15 PASS**;
-Ruff PASS; strict mypy reports **0 issues** in `viewer/widget.py`. Owner must restart the source app
-and retest Crop before any compile.
+Ruff PASS; strict mypy reports **0 issues** in `viewer/widget.py`. The owner later manually tested
+Crop to Select / Zoom in Select and reported it works on 2026-09-13.
 
-**Save Blocked, owner recheck (2026-09-13):** The owner reports viewport behavior passed, but Save
-still blocks a folder outside Projects. The dialog message exactly matches the `ValueError` raised
-by `_assert_project_json_path()`. In current source that guard is called only when
-`_current_project_path is None`, after `QFileDialog.getSaveFileName()` returns and before
-`save_project_atomic()`; it is not a QFileDialog folder restriction. Open Project JSON associates
-its external path and regular Save uses `resolve_user_selected_path()`, so that route is distinct.
-There is no Save As action today. A historical STRICT / Full TDD approval for the same scope was
-recorded on 2026-09-12; the owner now asks to review this refreshed plan and approve before execution.
-No Save-path source code has changed. Exact analysis and tests are in
+**Save Blocked diagnosis (before fix):** The owner reported that viewport behavior passed but an
+external Project JSON destination still showed Save Blocked. The dialog matched the `ValueError`
+raised by `_assert_project_json_path()`, which was called only when `_current_project_path is None`,
+after the chooser and before `save_project_atomic()`; it was not a QFileDialog restriction. External
+Open→regular Save already used `resolve_user_selected_path()`, while no Save As action existed. The
+owner approved the refreshed STRICT plan on 2026-09-13; implementation and evidence are recorded
+below. Exact analysis is retained in
 `docs/superpowers/specs/2026-09-12-user-selected-save-destinations.md` and
 `docs/superpowers/plans/2026-09-12-user-selected-save-destinations.md`.
 
@@ -81,9 +80,25 @@ been run.
 **Save destination audit:** Source inventory found three unrestricted open-file dialogs (Project
 JSON, SketchUp Neutral JSON, DXF); Export STD already lets the user choose any path and writes its
 validation report beside the `.STD`. The remaining explicit save restriction is Project JSON First
-Save outside `ProjectPaths.projects`; the screenshot matches this branch. The older STRICT approval
-is recorded, but no implementation will start until the owner approves the refreshed plan requested
-on 2026-09-13. Save As and external-path/failure tests are included in that plan.
+Save outside `ProjectPaths.projects`; that guard has now been removed only from the explicitly
+user-selected Project JSON flow. Runtime containment remains unchanged. Save As and external-path/
+failure tests pass as recorded below.
+
+## 2026-09-13 Save-path STRICT implementation
+
+- First Save and Save As pass the user-selected path through `ProjectPaths.resolve_user_selected_path()`
+  and retain the atomic `save_project_atomic()` write.
+- Added **Save As…** immediately after **Save Project JSON** in the main toolbar. It starts in the
+  current associated file's directory, or the Projects default for a new model.
+- The saved path/revision/title state updates only after the atomic write succeeds. Cancel or a save
+  error leaves the existing association and dirty state unchanged. `ProjectPaths.assert_inside_project()`
+  and all project-local runtime destinations remain intact.
+- External Open Project JSON, SketchUp JSON, DXF, and Export STD dialog paths were verified; the STD
+  validation report remains beside the selected `.STD`.
+- Verification: **58/58 relevant UI/unit tests PASS**, Ruff PASS, strict mypy **0 issues** in
+  `main_window.py`, `git diff --check` PASS. No compile or package build was run.
+- Owner manual test is now the gate: test First Save to an external folder, Save As to another folder,
+  regular Save-back, cancellation, and reopen the saved JSON before authorizing any compile.
 
 ## Historical post-T22 editing correction checkpoint — 2026-08-31
 

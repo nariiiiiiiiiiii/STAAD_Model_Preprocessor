@@ -9,26 +9,27 @@ shows **Save Blocked**.
 
 ## Confirmed Save Blocked cause (2026-09-13)
 
-The dialog text matches the `ValueError` raised by `MainWindow._assert_project_json_path()` in
-`src/staadprep/ui/main_window.py`. `save_current_project()` opens `QFileDialog.getSaveFileName()`;
-after the user chooses a file, the first-save branch calls that guard, which restricts the target to
-`ProjectPaths.projects`. Thus the chooser can return the external path; the application rejects it
-after selection and before `save_project_atomic()` is called. Saving an already-open external JSON
-works because `open_project_json()` associates its resolved path and the regular Save path uses
-`resolve_user_selected_path()` instead. There is currently no Save As action.
+Before the fix, the dialog text matched the `ValueError` raised by
+`MainWindow._assert_project_json_path()` in `src/staadprep/ui/main_window.py`.
+`save_current_project()` opened `QFileDialog.getSaveFileName()`; after the user chose a file, the
+first-save branch called that guard, restricting the target to `ProjectPaths.projects`. The chooser
+could return an external path; the application rejected it after selection and before
+`save_project_atomic()` was called. Saving an already-open external JSON worked because
+`open_project_json()` associated its resolved path and regular Save used
+`resolve_user_selected_path()` instead. No Save As action existed.
 
-The fix should bypass/remove only this user-selected Project JSON containment guard. Do not weaken
+The fix bypasses/removes only this user-selected Project JSON containment guard. Do not weaken
 `ProjectPaths.assert_inside_project()` or redirect/churn the paths used for automatic runtime data.
 
-## Read-only source inventory (2026-09-12)
+## Read-only source inventory before the fix (2026-09-12)
 
 - `Open Project JSON`, `Import SketchUp Bridge JSON`, and `Import DXF` each use an open-file dialog;
   the starting folder is only a default and `resolve_user_selected_path()` does not restrict their
   selected path.
 - `Export STD` uses a save-file dialog and `export_current_std()` accepts any explicitly selected
   path. Its validation/audit JSON is automatically written beside the selected `.STD` file.
-- `Save Project JSON` is the only explicit save-file dialog. On first save, it calls
-  `_assert_project_json_path()` and rejects destinations outside `ProjectPaths.projects`. After a
+- Before implementation, `Save Project JSON` was the only explicit save-file dialog. On first save, it called
+  `_assert_project_json_path()` and rejected destinations outside `ProjectPaths.projects`. After a
   Project JSON has been opened, Save writes atomically back to that selected path.
 - No other `QFileDialog` save destinations were found in the desktop UI source. Runtime logs,
   caches, temp files, portable `Data/`, and internal build artifacts are not user-selected exports.
@@ -44,10 +45,23 @@ The fix should bypass/remove only this user-selected Project JSON containment gu
 - Cancel leaves the model dirty and does not create or replace a file; failures preserve the old
   target file and display an actionable error.
 
+## Implementation result (2026-09-13)
+
+- First Save and Save As now pass explicitly chosen targets through
+  `ProjectPaths.resolve_user_selected_path()` and continue writing via `save_project_atomic()`.
+- Added **Save As…** next to **Save Project JSON** in the main toolbar. It starts in the currently
+  associated file's folder, or the normal Projects default for a new model.
+- The application associates the new path and marks the current revision saved only after the atomic
+  write succeeds. Cancel and save errors leave path association and dirty state unchanged.
+- Runtime path containment and the `.STD`/validation-report co-location contract are unchanged.
+- Relevant regression: **58/58 UI/unit tests PASS**, Ruff PASS, strict mypy **0 issues** in
+  `main_window.py`, `git diff --check` PASS. Owner manual acceptance of external First Save/Save As
+  remains pending; no compile/package build was run.
+
 ## Risk gate and approval state
 
 This scope changes where existing user files can be overwritten. The owner explicitly approved
 STRICT / Full TDD on 2026-09-12 after the risk and proposed verification were explained. The owner
-manually accepted the viewport checkpoint on 2026-09-13, then requested this plan/root-cause refresh
-and said they would approve before work starts. Respect that latest instruction: implementation is
-currently awaiting the owner's approval of the refreshed plan, despite the historical approval.
+requested a refreshed plan on 2026-09-13 and explicitly approved that plan before implementation
+started. The source task is complete under the approved scope; the owner must manually test the
+uncompiled app before any compile/package task.

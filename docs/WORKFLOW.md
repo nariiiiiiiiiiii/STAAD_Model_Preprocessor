@@ -28,10 +28,10 @@ fixtures have since been changed so ordinary full-suite runs do not write build 
 Post-CP5 viewport feedback added Crop to Select marquee mode and renamed the previous camera action
 to Zoom in Select. The non-renderer tests are **13/13 PASS**; the owner manually reports the viewport
 flow works (2026-09-13), while the automated real-VTK smoke remains unverified after a Win32 OpenGL /
-Python Application Error. The owner still reproduces Save Blocked for an external Project JSON
-destination. Source inspection identifies the First Save `_assert_project_json_path()` guard as the
-cause. Although STRICT approval was recorded on 2026-09-12, the owner requested a refreshed plan and
-will approve before implementation. No Save-path code or compile has started.
+Python Application Error. The owner reproduced Save Blocked for an external Project JSON destination;
+after explicit refreshed-plan approval, First Save/Save As now use user-selected paths with atomic
+serialization. The focused Save/import/export/path regression is **58/58 PASS**, Ruff PASS, and strict
+mypy reports **0 issues**. Manual external Save acceptance is pending; no compile has started.
 
 
 ```text
