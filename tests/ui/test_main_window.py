@@ -69,6 +69,7 @@ def test_application_and_window_use_the_selected_brand_icon(qtbot) -> None:
     window = MainWindow(viewport_factory=ViewportPlaceholder)
     qtbot.addWidget(window)
     assert window.windowIcon().isNull() is False
+    assert window.windowIcon().cacheKey() == app.windowIcon().cacheKey()
 
 
 def test_application_icon_resolver_prefers_packaged_asset(tmp_path, monkeypatch) -> None:

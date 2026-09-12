@@ -18,8 +18,11 @@ Primary workflow:
   awaits an explicitly built package), **3 portable-executable gates deselected** (the `0.2.0`
   executable is not built), and **26/26 affected UI tests passed**; Ruff and strict mypy pass.
 - The accepted portable release remains `0.1.0`; no `0.2.0` executable/RBZ/ZIP is available or
-  accepted. Real SketchUp export and development-app manual acceptance remain pending. Compile and
-  release packaging require a separate explicit user instruction.
+  accepted. The owner partially smoke-tested the development app on 2026-09-12: the app-window icon
+  changed, and Quick Fix/Undo/Redo work. A source-level Windows taskbar identity/window-icon fix is
+  now implemented and focused-tested; owner visual retest and full app acceptance remain pending.
+  The existing executable is still version `0.1.0.0` (last modified 2026-09-06). Compile and release
+  packaging require a separate explicit user instruction.
 - A legacy integration test briefly generated a transient `0.2.0` RBZ during the first full-suite
   run; that file was removed. Its test fixtures now stay under `.tmp/tests`, and the existing
   ignored `build/sketchup/stage/` source copies were refreshed by that run and left in place.

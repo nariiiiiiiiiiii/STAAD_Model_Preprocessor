@@ -41,3 +41,41 @@ def test_windows_build_generates_and_embeds_the_selected_brand_icon() -> None:
     assert '"--windows-icon-from-ico=$IconPath"' in text
     assert '"--include-data-files=$BrandingAsset=branding/staad-model-preprocessor.png"' in text
     assert text.index("& $Python $IconBuilder") < text.index("& $Python @NuitkaArgs")
+
+
+def test_windows_taskbar_identity_uses_a_stable_app_user_model_id(monkeypatch) -> None:
+    from types import SimpleNamespace
+
+    from staadprep import app as app_module
+
+    calls: list[str] = []
+
+    def set_app_user_model_id(app_id: str) -> int:
+        calls.append(app_id)
+        return 0
+
+    shell32 = SimpleNamespace(SetCurrentProcessExplicitAppUserModelID=set_app_user_model_id)
+
+    def load_windows_library(name: str, *, use_last_error: bool) -> SimpleNamespace:
+        assert name == "shell32"
+        assert use_last_error is True
+        return shell32
+
+    monkeypatch.setattr(app_module.sys, "platform", "win32")
+    monkeypatch.setattr(
+        app_module.ctypes,
+        "WinDLL",
+        load_windows_library,
+        raising=False,
+    )
+
+    assert app_module.configure_windows_taskbar_identity() is True
+    assert calls == ["Dizayn59.STAADModelPreprocessor"]
+
+
+def test_windows_taskbar_identity_is_a_noop_on_other_platforms(monkeypatch) -> None:
+    from staadprep import app as app_module
+
+    monkeypatch.setattr(app_module.sys, "platform", "linux")
+
+    assert app_module.configure_windows_taskbar_identity() is False

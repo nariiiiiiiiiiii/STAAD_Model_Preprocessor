@@ -112,6 +112,17 @@ Acceptance example: `13-DIZ-SD11-09-69.skp` exported on 12 September 2026 become
 
 **Checkpoint 3 boundary:** the development Qt window and build-script contract are verified; no Windows executable was rebuilt, so the compiled executable icon remains to be confirmed after separately authorized packaging.
 
+**Owner smoke update (2026-09-12):** the app-window icon changed, but the taskbar still shows the
+old/Python-looking icon. Existing `build/windows/final/app.dist/STAAD Model Preprocessor.exe` is
+still version `0.1.0.0`, last modified 2026-09-06; its icon predates this source change and has not
+been rebuilt or verified. Taskbar identity remains an open manual check.
+
+**Taskbar source follow-up (2026-09-12):** configure the stable Windows AppUserModelID before
+QApplication creation and explicitly assign the selected application icon to the main window. The
+focused icon/window/build-contract regression is **10/10 PASS**; Ruff passes; strict mypy reports
+**0 issues** in both affected source files. The live taskbar is not accessible to this session, so
+owner visual retest after a fresh development launch is still required; no compile was performed.
+
 ## Checkpoint 4 — Allow Project JSON Open from any folder
 
 **Risk:** STANDARD. **Model:** Luna Max.
@@ -156,6 +167,10 @@ After approval:
 - [x] Pause for owner acceptance before any release build.
 
 **Checkpoint 5 evidence:** focused planner/repair/UI STRICT suite **61/61 PASS**; full unit/integration **345 passed**, **1 skipped** (archive-level RBZ check requires an explicitly built `0.2.0` RBZ), **3 deselected** (portable launch gates require the `0.2.0` executable/package); affected UI suite **26/26 PASS**; Ruff PASS; strict mypy **0 issues** across four affected source files; diff check PASS. No Nuitka or portable release build was run. A legacy integration test briefly produced a transient `0.2.0` RBZ; it was removed; fixture tests now remain under `.tmp/tests`, and existing stage copies were refreshed and left in place.
+
+**Owner smoke update (2026-09-12):** user reports Quick Fix and Undo/Redo work. The specific
+multi-issue/intersection scenarios were not identified, so this report does not mark those manual
+cases accepted.
 
 ## Checkpoint 6 — Synchronize documents and stop before compile
 

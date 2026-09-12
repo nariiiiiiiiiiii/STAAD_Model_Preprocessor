@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import ctypes
+import logging
 import os
 import sys
 from pathlib import Path
@@ -19,6 +21,9 @@ from staadprep.ui.theme import APP_STYLESHEET
 from staadprep.version import __version__
 from staadprep.viewer.demo import build_demo_frame
 from staadprep.viewer.widget import StructuralViewport
+
+WINDOWS_APP_USER_MODEL_ID = "Dizayn59.STAADModelPreprocessor"
+logger = logging.getLogger(__name__)
 
 
 def resolve_application_icon() -> Path | None:
@@ -38,10 +43,38 @@ def resolve_application_icon() -> Path | None:
     return None
 
 
+def configure_windows_taskbar_identity() -> bool:
+    """Give the app a stable taskbar group identity, including in Python development runs."""
+    if sys.platform != "win32":
+        return False
+
+    try:
+        shell32 = ctypes.WinDLL("shell32", use_last_error=True)
+        set_app_user_model_id = shell32.SetCurrentProcessExplicitAppUserModelID
+        set_app_user_model_id.argtypes = [ctypes.c_wchar_p]
+        set_app_user_model_id.restype = ctypes.c_long
+        result = set_app_user_model_id(WINDOWS_APP_USER_MODEL_ID)
+    except (AttributeError, OSError) as exc:
+        logger.warning("Could not set the Windows taskbar app identity: %s", exc)
+        return False
+
+    if result != 0:
+        logger.warning(
+            "Could not set the Windows taskbar app identity (HRESULT 0x%08X)",
+            result & 0xFFFFFFFF,
+        )
+        return False
+    return True
+
+
 def create_application() -> QApplication:
     """Return the process QApplication, creating and styling it when needed."""
     existing = QApplication.instance()
-    app = QApplication(sys.argv) if existing is None else cast(QApplication, existing)
+    if existing is None:
+        configure_windows_taskbar_identity()
+        app = QApplication(sys.argv)
+    else:
+        app = cast(QApplication, existing)
 
     app.setApplicationName("STAAD Model Preprocessor")
     app.setApplicationVersion(__version__)

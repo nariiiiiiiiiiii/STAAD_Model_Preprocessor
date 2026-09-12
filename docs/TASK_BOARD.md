@@ -29,7 +29,7 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T23 | Real-project acceptance + target STAAD.Pro verification | **STRICT acceptance** | **COMPLETE / PASS** (user-tested 2026-09-01) |
 | T24 | Post-acceptance unused-file audit + quarantine to project-local `DEL/` | STANDARD | **COMPLETE** |
 | T25 | Full project storage recheck + approved old package/build quarantine | STANDARD | **MOVE COMPLETE; SPACE DELETION PENDING USER** |
-| Post-T27 CP1–5 | version/name/icon/Project JSON/batched Quick Fix source follow-up | STANDARD; CP5 STRICT/HR-2 | **SOURCE VERIFIED; app/package acceptance pending** |
+| Post-T27 CP1–5 | version/name/icon/Project JSON/batched Quick Fix source follow-up | STANDARD; CP5 STRICT/HR-2 | **SOURCE VERIFIED; Quick Fix/Undo/Redo and window icon user-reported working; taskbar source fix tested 10/10; owner visual and package acceptance pending** |
 
 ## Operational rules
 

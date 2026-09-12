@@ -395,6 +395,9 @@ Create/complete at minimum:
 - [x] Obtain explicit STRICT / Full TDD approval for multi-issue Quick Fix/intersection.
 - [x] Add conflict-checked batch planning, extended selection, existing intersection splitter route, CompositeRepair audit/history, and exact Undo/Redo coverage.
 - [x] Verify **345 unit+integration PASS**, **1 skipped** (RBZ archive acceptance requires an explicit RBZ build), **3 deselected** (portable-executable gates require an explicit `0.2.0` package), and **26/26 affected UI PASS**; Ruff and strict mypy pass.
+- [x] Record owner-reported partial development smoke (2026-09-12): app-window icon changed; Quick Fix and Undo/Redo work.
+- [x] Add stable Windows AppUserModelID before QApplication creation and explicitly set the selected app icon on the main window; focused regression **10/10 PASS**, Ruff PASS, strict mypy **0 issues**.
+- [ ] Owner verifies the taskbar icon in a fresh development-app launch; the current executable predates the icon change, and this session could not access a live Windows app window.
 - [x] Update the RBZ/portable fixture tests so ordinary integration testing does not build an RBZ or release package in `build/` or `dist/`.
 - [ ] User manually accepts the uncompiled development app and SketchUp handoff after an authorized RBZ build.
 - [ ] User separately authorizes Nuitka/RBZ/portable package build and then package acceptance.

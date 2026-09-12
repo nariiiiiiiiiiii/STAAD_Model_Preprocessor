@@ -130,6 +130,11 @@ class MainWindow(QMainWindow):
         sketchup_inbox: Path | None = None,
     ) -> None:
         super().__init__()
+        application = QApplication.instance()
+        if isinstance(application, QApplication):
+            application_icon = application.windowIcon()
+            if not application_icon.isNull():
+                self.setWindowIcon(application_icon)
         if project_root is not None and project_paths is not None:
             raise ValueError("Pass either project_root or project_paths, not both")
         if project_paths is None:
