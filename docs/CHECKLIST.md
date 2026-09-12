@@ -402,6 +402,16 @@ Create/complete at minimum:
 - [ ] User manually accepts the uncompiled development app and SketchUp handoff after an authorized RBZ build.
 - [ ] User separately authorizes Nuitka/RBZ/portable package build and then package acceptance.
 
+## 2026-09-12 post-CP5 manual bug report
+
+- [x] Reproduce single-Node Crop zoom collapse in real PyVista: camera distance `40.291960753` to `0.000006692`.
+- [x] Add isolated camera/focal/revision smoke assertion and Crop toolbar selection-forwarding coverage.
+- [x] Apply scale-aware crop padding and verify **15 focused viewport/Project-save tests PASS**.
+- [x] Ruff PASS; strict mypy **0 issues** for `src/staadprep/viewer/widget.py`; `git diff --check` PASS.
+- [ ] Owner retests Crop to Selection after restarting the source app; no compile before this gate.
+- [x] Confirm external Project JSON Open→Save-back regression passes in source tests.
+- [ ] Clarify whether Save Blocked appeared after Open Project JSON or after importing a new model; do not alter first-save Projects restriction before that is clear.
+
 Incident record: an earlier full-suite run invoked the legacy RBZ builder test and created a transient
 `0.2.0` RBZ. That single file was removed; the existing `0.1.0` RBZ/package was retained. The builder
 also refreshed pre-existing ignored `build/sketchup/stage/` copies; those files were left in place.

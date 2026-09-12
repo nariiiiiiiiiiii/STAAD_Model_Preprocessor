@@ -1030,7 +1030,10 @@ class StructuralViewport(QWidget):
         coordinates = np.asarray(points, dtype=float)
         minimum = np.min(coordinates, axis=0)
         maximum = np.max(coordinates, axis=0)
-        pad = max(float(np.max(maximum - minimum)) * 0.08, 1e-6)
+        selected_span = float(np.max(maximum - minimum))
+        scene_span = float(np.max(np.ptp(self.scene.points, axis=0)))
+        reference_span = scene_span if scene_span > 0.0 else 1.0
+        pad = max(selected_span * 0.08, reference_span * 0.02)
         bounds = (
             float(minimum[0] - pad),
             float(maximum[0] + pad),

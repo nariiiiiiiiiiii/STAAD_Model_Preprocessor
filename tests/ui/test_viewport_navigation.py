@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+from uuid import UUID
+
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QToolBar, QWidget
 
+from staadprep.model.entities import Node
+from staadprep.model.geometry import Vec3
+from staadprep.model.project import ProjectModel
 from staadprep.ui.main_window import MainWindow
 from staadprep.ui.theme import APP_STYLESHEET
 from staadprep.viewer.interaction import EditMode, LabelVisibility, SelectionFilter
@@ -10,6 +15,7 @@ from staadprep.viewer.interaction import EditMode, LabelVisibility, SelectionFil
 
 class NavigationViewport(QWidget):
     selection_filter_requested = Signal(object)
+    selection_changed = Signal(object, object)
 
     def __init__(self) -> None:
         super().__init__()
@@ -18,6 +24,7 @@ class NavigationViewport(QWidget):
         self.labels = LabelVisibility()
         self.fit_calls = 0
         self.reset_calls = 0
+        self.crop_calls = 0
 
     def set_edit_mode(self, mode: EditMode) -> None:
         self.mode = mode
@@ -33,6 +40,9 @@ class NavigationViewport(QWidget):
 
     def reset_view(self) -> None:
         self.reset_calls += 1
+
+    def crop_to_selection(self) -> None:
+        self.crop_calls += 1
 
 
 def test_navigation_selection_toolbar_defaults_to_safe_select(qtbot) -> None:
@@ -85,6 +95,24 @@ def test_reset_action_is_non_editing_view_command(qtbot) -> None:
 
     assert viewport.reset_calls == 1
     assert viewport.mode is EditMode.SELECT
+
+
+def test_crop_action_tracks_selection_and_forwards_to_viewport(qtbot) -> None:
+    viewport = NavigationViewport()
+    window = MainWindow(viewport_factory=lambda: viewport)
+    qtbot.addWidget(window)
+    node_key = UUID(int=1)
+    window.current_model = ProjectModel(nodes={node_key: Node(node_key, Vec3(0.0, 0.0, 0.0))})
+
+    assert not window.crop_selection_action.isEnabled()
+
+    viewport.selection_changed.emit((node_key,), ())
+    assert window.crop_selection_action.isEnabled()
+    window.crop_selection_action.trigger()
+    assert viewport.crop_calls == 1
+
+    viewport.selection_changed.emit((), ())
+    assert not window.crop_selection_action.isEnabled()
 
 
 def test_context_selection_filter_synchronizes_toolbar_and_safe_mode(qtbot) -> None:

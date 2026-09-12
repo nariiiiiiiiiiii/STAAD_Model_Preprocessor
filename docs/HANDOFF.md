@@ -1,4 +1,4 @@
-Status: **T21 is complete; T22's accepted portable release is `0.1.0`; T23 acceptance is PASS by user report; T24 is complete with no files deleted. The active CP1–CP5 source follow-up is source-verified on `task/22-portable-packaging`. Owner smoke on 2026-09-12 reports the app-window and source-run taskbar icons now show the selected logo, and Quick Fix/Undo/Redo work. The taskbar source fix is focused-tested and owner-confirmed; remaining development-app and packaged-executable acceptance are pending. No `0.2.0` executable/RBZ/ZIP has been built or accepted.**
+Status: **T21 is complete; T22's accepted portable release is `0.1.0`; T23 acceptance is PASS by user report; T24 is complete with no files deleted. The active CP1–CP5 source follow-up is source-verified on `task/22-portable-packaging`. Owner smoke on 2026-09-12 reports the app-window and source-run taskbar icons now show the selected logo, and Quick Fix/Undo/Redo work. The taskbar source fix is focused-tested and owner-confirmed. A reported single-Node Crop-to-Selection camera-collapse bug is now reproduced, source-fixed, and regression-tested; owner retest is pending. The Save Blocked screenshot's action sequence is unclear and no save-path policy has been changed. No `0.2.0` executable/RBZ/ZIP has been built or accepted.**
 
 ## Current source follow-up — 2026-09-12
 
@@ -37,6 +37,25 @@ for a new model stays in the default Projects area; and exercise
 multi-issue Apply once with Undo/Redo plus the intersection case. The user has reported Quick Fix and
 Undo/Redo working, but did not specify which batch/intersection scenarios were tested. Real SketchUp
 export testing needs a later explicit RBZ/package build; no compile should be started yet.
+
+## 2026-09-12 manual bug follow-up — Crop and Save Blocked
+
+**Crop to Selection:** Real PyVista repro showed a single-Node selection shrinking camera distance
+from `40.291960753` to `0.000006692`; selected-Member framing worked. The fixed absolute `1e-6`
+padding was replaced by a scale-aware 8% selected-span margin with a 2% full-scene minimum (using
+1.0 world unit only when the scene itself has zero span). Regression assertions now verify the
+single-Node focal target, non-degenerate zoom, and unchanged model revision. The toolbar action's
+selection enable/forward/disable contract is also tested. Combined focused tests: **15/15 PASS**;
+Ruff PASS; strict mypy reports **0 issues** in `viewer/widget.py`. Owner must restart the source app
+and retest Crop before any compile.
+
+**Save Blocked screenshot:** Source inspection shows `_assert_project_json_path()` is used only when
+`_current_project_path` is `None` (first Save for a newly imported model). `open_project_json()`
+records the external selected path, and its Open→Save-back UI regression passes. Therefore the
+screenshot is consistent with First Save outside `Data/Projects/` being intentionally blocked; if
+it appeared after the owner used **Open Project JSON** on an existing external file, it is a separate
+reproducible defect. No save-path behavior was changed. Await the owner’s confirmation of which
+open/import action immediately preceded the popup.
 
 ## Historical post-T22 editing correction checkpoint — 2026-08-31
 

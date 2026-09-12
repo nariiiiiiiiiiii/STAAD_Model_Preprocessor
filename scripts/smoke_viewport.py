@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import os
 
 os.environ.setdefault("QT_API", "pyside6")
@@ -45,6 +46,36 @@ def main() -> int:
         raise RuntimeError("Node highlight state did not update")
     if emitted != [first_member]:
         raise RuntimeError("Member selection signal did not emit the selected UUID")
+
+    viewport.fit_model()
+    viewport.highlight_members(())
+    viewport.highlight_nodes((first_node,))
+    app.processEvents()
+    camera = viewport.plotter.camera
+    before_focal = tuple(float(value) for value in camera.GetFocalPoint())
+    before_position = tuple(float(value) for value in camera.GetPosition())
+    before_distance = math.dist(before_focal, before_position)
+    selected_index = viewport.scene.point_index_by_key[first_node]
+    selected_position = tuple(float(value) for value in viewport.scene.points[selected_index])
+    bounds = viewport._scene_bounds()
+    if bounds is None:
+        raise RuntimeError("Viewport scene bounds are unavailable for Crop smoke check")
+    scene_span = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
+    model_revision = model.revision
+    viewport.crop_to_selection()
+    app.processEvents()
+    after_focal = tuple(float(value) for value in camera.GetFocalPoint())
+    after_position = tuple(float(value) for value in camera.GetPosition())
+    after_distance = math.dist(after_focal, after_position)
+    if math.dist(after_focal, selected_position) > max(scene_span * 0.01, 1e-4):
+        raise RuntimeError("Crop to Selection did not center the selected Node")
+    if after_distance <= max(scene_span * 0.005, 1e-4):
+        raise RuntimeError("Crop to Selection collapsed the camera onto a single Node")
+    if after_distance >= before_distance * 0.5:
+        raise RuntimeError("Crop to Selection did not zoom from the full model to the Node")
+    if model.revision != model_revision:
+        raise RuntimeError("Crop to Selection mutated the canonical model")
+    print("crop=pass")
 
     def qt_point_for_world(point: tuple[float, float, float]) -> QPoint:
         viewport.plotter.renderer.SetWorldPoint(*point, 1.0)

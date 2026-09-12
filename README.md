@@ -24,6 +24,11 @@ Primary workflow:
   on 2026-09-12. Full app and packaged-executable acceptance remain pending.
   The existing executable is still version `0.1.0.0` (last modified 2026-09-06). Compile and release
   packaging require a separate explicit user instruction.
+- The follow-up Crop-to-Selection report reproduced an extreme single-Node zoom and is source-fixed;
+  the isolated real-PyVista smoke and 15 focused viewport/Project-save UI tests pass. Owner retest
+  after restarting the source app is pending. The Save Blocked screenshot matches the intentional
+  First Save restriction unless it followed Open Project JSON; that action sequence needs
+  confirmation before changing save-path behavior.
 - A legacy integration test briefly generated a transient `0.2.0` RBZ during the first full-suite
   run; that file was removed. Its test fixtures now stay under `.tmp/tests`, and the existing
   ignored `build/sketchup/stage/` source copies were refreshed by that run and left in place.

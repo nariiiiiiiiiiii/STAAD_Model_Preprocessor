@@ -30,6 +30,7 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T24 | Post-acceptance unused-file audit + quarantine to project-local `DEL/` | STANDARD | **COMPLETE** |
 | T25 | Full project storage recheck + approved old package/build quarantine | STANDARD | **MOVE COMPLETE; SPACE DELETION PENDING USER** |
 | Post-T27 CP1–5 | version/name/icon/Project JSON/batched Quick Fix source follow-up | STANDARD; CP5 STRICT/HR-2 | **SOURCE VERIFIED; owner confirms app/taskbar logo and Quick Fix/Undo/Redo; focused icon suite 10/10; package acceptance pending** |
+| Post-CP5 manual bug report | Crop-to-Selection single-Node camera collapse; Save Blocked path workflow | STANDARD | **Crop source fix + 15 focused UI/save tests PASS; owner Crop retest pending; Save workflow clarification pending** |
 
 ## Operational rules
 
