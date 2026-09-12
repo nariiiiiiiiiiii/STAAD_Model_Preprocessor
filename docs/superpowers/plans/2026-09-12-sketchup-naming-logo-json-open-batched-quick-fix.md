@@ -120,8 +120,9 @@ been rebuilt or verified. Taskbar identity remains an open manual check.
 **Taskbar source follow-up (2026-09-12):** configure the stable Windows AppUserModelID before
 QApplication creation and explicitly assign the selected application icon to the main window. The
 focused icon/window/build-contract regression is **10/10 PASS**; Ruff passes; strict mypy reports
-**0 issues** in both affected source files. The live taskbar is not accessible to this session, so
-owner visual retest after a fresh development launch is still required; no compile was performed.
+**0 issues** in both affected source files. Owner confirmed the selected logo now appears on the
+source-run app taskbar (2026-09-12). The compiled executable remains unverified; no compile was
+performed.
 
 ## Checkpoint 4 — Allow Project JSON Open from any folder
 

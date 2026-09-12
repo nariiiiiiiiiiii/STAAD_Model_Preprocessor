@@ -1,4 +1,4 @@
-Status: **T21 is complete; T22's accepted portable release is `0.1.0`; T23 acceptance is PASS by user report; T24 is complete with no files deleted. The active CP1–CP5 source follow-up is source-verified on `task/22-portable-packaging`. Owner smoke on 2026-09-12 reports the app-window icon changed and Quick Fix/Undo/Redo work. A source-level taskbar identity/window-icon fix is implemented and focused-tested; owner visual retest and full development-app/package acceptance remain pending. No `0.2.0` executable/RBZ/ZIP has been built or accepted.**
+Status: **T21 is complete; T22's accepted portable release is `0.1.0`; T23 acceptance is PASS by user report; T24 is complete with no files deleted. The active CP1–CP5 source follow-up is source-verified on `task/22-portable-packaging`. Owner smoke on 2026-09-12 reports the app-window and source-run taskbar icons now show the selected logo, and Quick Fix/Undo/Redo work. The taskbar source fix is focused-tested and owner-confirmed; remaining development-app and packaged-executable acceptance are pending. No `0.2.0` executable/RBZ/ZIP has been built or accepted.**
 
 ## Current source follow-up — 2026-09-12
 
@@ -6,7 +6,7 @@ The owner approved version `0.2.0`. Checkpoint 1 is complete in the active T22 w
 
 Checkpoint 2 is now source-complete with the owner-confirmed `<safe-SKP-stem>_<DDMMYYYY>.json` rule, collision suffixes, safe basename handling, and unchanged `source_file` metadata. Static source-contract verification is **1/1 PASS** (the combined version and naming tests are **7/7 PASS**); no Ruby executable is available, so RBZ-content and real SketchUp checks remain pending. No RBZ or Windows package was rebuilt.
 
-Checkpoint 3 is source-complete: the selected logo is copied byte-for-byte into `assets/branding`, used by the Qt app, and wired into the future Windows build; a 7-size ICO was generated and verified under `build/windows/icon-checkpoint-20260912/`. Focused icon/build/UI checks are **12/12 PASS**, Ruff and strict mypy pass. After the owner reported the old/Python-looking taskbar icon, the source now assigns a stable Windows AppUserModelID before QApplication creation and explicitly applies the app icon to the main window. The additional focused check is **10/10 PASS**, Ruff passes, and strict mypy reports **0 issues** in the two affected source files. Live taskbar confirmation is still pending; no Windows executable or RBZ was rebuilt, and the accepted package remains version `0.1.0`.
+Checkpoint 3 is source-complete: the selected logo is copied byte-for-byte into `assets/branding`, used by the Qt app, and wired into the future Windows build; a 7-size ICO was generated and verified under `build/windows/icon-checkpoint-20260912/`. Focused icon/build/UI checks are **12/12 PASS**, Ruff and strict mypy pass. After the owner reported the old/Python-looking taskbar icon, the source now assigns a stable Windows AppUserModelID before QApplication creation and explicitly applies the app icon to the main window. The additional focused check is **10/10 PASS**, Ruff passes, and strict mypy reports **0 issues** in the two affected source files. The owner confirmed the logo now appears correctly on the source-run app taskbar (2026-09-12). This does not verify the old compiled executable; no Windows executable or RBZ was rebuilt, and the accepted package remains version `0.1.0`.
 
 Checkpoint 4 is source-complete: Project JSON can be opened from any folder and Save writes back to that selected file. First Save for a new model remains restricted to `Data/Projects/`. Atomic save now stages a hidden unique temp sibling beside the destination; failure tests confirm the old file remains intact and temp files are cleaned. Focused serialization/UI checks are **10/10 PASS**, Ruff and strict mypy pass. No executable, RBZ, or portable package was rebuilt.
 
@@ -16,11 +16,13 @@ Final evidence: focused planner/repair/UI STRICT suite **61/61 PASS**; full unit
 
 Incident: the first full suite invoked a legacy RBZ builder and generated a transient `0.2.0` RBZ; the file was removed. Its old test also refreshed ignored `build/sketchup/stage/` copies, which remain in place. The integration fixtures were changed to remain under `.tmp/tests`; a subsequent full suite run produced no build artifact. Existing accepted package remains `0.1.0`.
 
-Owner smoke report (2026-09-12): **Quick Fix works; Undo and Redo work; app-window icon changed; taskbar icon remains unresolved.** This is partial manual acceptance, not confirmation of every CP1–CP5 scenario or of a packaged executable. The currently present executable is still `0.1.0.0`, last modified 2026-09-06, size 160,240,128 bytes, SHA-256 `41346B2BEDBA637EBDCA43E390B59E257B19397700F95FAFDB346203A7E2E850`; it predates the 0.2.0 source/icon changes. Therefore its embedded icon has **not** been updated or verified. The development launch uses `python.exe`, which may explain the taskbar's Python-looking identity, but the screenshot alone does not establish the cause.
+Initial owner smoke report (2026-09-12, before the taskbar source fix): **Quick Fix works; Undo and Redo work; app-window icon changed; taskbar icon still showed the old/Python-looking image.** This was partial manual acceptance, not confirmation of every CP1–CP5 scenario or of a packaged executable. The currently present executable is still `0.1.0.0`, last modified 2026-09-06, size 160,240,128 bytes, SHA-256 `41346B2BEDBA637EBDCA43E390B59E257B19397700F95FAFDB346203A7E2E850`; it predates the 0.2.0 source/icon changes. Therefore its embedded icon has **not** been updated or verified. The development launch uses `python.exe`, which may explain the original taskbar image, but that initial screenshot alone did not establish the cause.
 
 Taskbar source follow-up (2026-09-12): `configure_windows_taskbar_identity()` assigns `Dizayn59.STAADModelPreprocessor` before the first QApplication is created; the main window explicitly receives the selected application icon before showing. This targets both Windows taskbar grouping under the Python development host and the window-system icon. Focused tests, Ruff, and strict mypy pass. The computer-use runtime exposed no Windows app window in this session, so a live taskbar screenshot could not be verified here.
 
-Next: close any old development-app instance, relaunch from the active worktree using the command below, and have the owner confirm the taskbar now uses the selected logo. Then finish remaining manual checks. No `0.2.0` RBZ/executable/portable package has been built or accepted; wait for a separate explicit compile/package instruction before any build.
+Owner retest result (2026-09-12): the selected logo now appears correctly on the source-run app's taskbar. This is owner-confirmed development-app behavior; the compiled `.exe` remains the old `0.1.0.0` and was not rebuilt or tested.
+
+Next: finish the remaining manual checks. No `0.2.0` RBZ/executable/portable package has been built or accepted; wait for a separate explicit compile/package instruction before any build.
 
 Development launch for manual source acceptance (PowerShell, from the active worktree):
 
@@ -30,8 +32,8 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 ..\..\.venv\Scripts\python.exe -m staadprep.app
 ```
 
-Remaining manual checks: confirm the taskbar icon behavior after a fresh development launch; Open a Project JSON outside the project
-and Save it back; verify first Save for a new model stays in the default Projects area; and exercise
+Remaining manual checks: Open a Project JSON outside the project and Save it back; verify first Save
+for a new model stays in the default Projects area; and exercise
 multi-issue Apply once with Undo/Redo plus the intersection case. The user has reported Quick Fix and
 Undo/Redo working, but did not specify which batch/intersection scenarios were tested. Real SketchUp
 export testing needs a later explicit RBZ/package build; no compile should be started yet.
