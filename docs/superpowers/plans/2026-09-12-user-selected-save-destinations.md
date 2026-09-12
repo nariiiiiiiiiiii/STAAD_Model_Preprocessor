@@ -15,9 +15,20 @@
 - Do not change engineering calculations, canonical model data, geometry, ReadyGate semantics, `.STD` serialization, or SketchUp import format.
 - Preserve atomic sibling-temp Project JSON replacement and never silently redirect a user-selected path.
 - Keep automatic runtime outputs project-local; only explicit user-selected source/output dialogs may use external paths.
-- This is classified HIGH-RISK for data-loss potential. The owner approved STRICT / Full TDD on
-  2026-09-12; do not start implementation until the current viewport checkpoint is owner-reviewed.
+- The 2026-09-13 owner screenshot confirms that the first-save UI chooser returns an external target
+  but `MainWindow._assert_project_json_path()` blocks it before the serializer is called.
+- This is classified HIGH-RISK for data-loss potential. STRICT / Full TDD was historically approved
+  on 2026-09-12; the owner has now requested a refreshed plan and a new approval checkpoint. Do not
+  implement until the owner explicitly approves this refreshed plan.
 - No compile, RBZ build, portable assembly, ZIP, or release replacement is part of this source plan.
+
+## Current checkpoint (2026-09-13)
+
+The owner manually tested the Crop to Select / Zoom in Select viewport change and reports it works
+well; only Save remains blocked. The exact dialog message is produced by the first-save guard in
+`main_window.py`. The existing focused UI test `test_first_save_rejects_destination_outside_projects`
+currently encodes the unwanted behavior and must be inverted as a STRICT red/green regression. No
+Save-path source changes have been made. Wait for approval before Task 1.
 
 ---
 
@@ -33,25 +44,40 @@
 - `save_current_project() -> bool` saves to the current associated path; for a project with no
   associated path, it opens a destination dialog that can select any directory.
 - Add a `save_project_as_action` labeled **Save As…** that opens a destination dialog for any
-  selected directory, atomically writes there, then associates the project with the new path.
+  selected directory. Place it immediately after **Save Project JSON** on the existing main toolbar;
+  atomically write there, then associate the project with the new path only after success.
+- Add `save_project_as() -> bool`; it always opens the chooser. The chooser starts in the current
+  associated file's parent when one exists, otherwise in `ProjectPaths.projects` with the current
+  project display name. Keep the `.staadprep.json` suffix normalization.
+- First Save and Save As resolve explicit selections with `ProjectPaths.resolve_user_selected_path()`;
+  do not call `_assert_project_json_path()`. Remove that private guard if no callers remain, but keep
+  `ProjectPaths.assert_inside_project()` for automatic/runtime-owned paths.
 - Keep `open_project_json(path)` associating the exact resolved user-selected file.
+- Keep the existing regular Save confirmation. Save As uses the file dialog's native overwrite
+  confirmation rather than adding a second generic “Save project?” prompt.
 
-- [ ] **Step 1: Add failing UI tests.** Test first Save to an external directory and re-open the
-  written file; Save As from an internally or externally opened JSON to a second external
-  destination; cancellation preserves dirty state and creates no file; regular Save after Save As
-  writes only to the newly associated path; and extension normalization remains `.staadprep.json`.
+- [ ] **Step 1: Add failing UI tests.** Replace `test_first_save_rejects_destination_outside_projects`
+  with an assertion that First Save to an external folder succeeds, associates that exact resolved
+  file, marks the model saved, and round-trips through `load_project()`. Add tests that Save As
+  appears beside Save, is enabled only with a model, saves to a second external folder, and changes
+  the associated path only after success. Cover cancellation (no new file, dirty state and previous
+  path unchanged), extension normalization, and regular Save writing subsequent edits back only to
+  the newly associated path.
 
 - [ ] **Step 2: Run those tests and verify they fail specifically on the first-save Projects guard
   or absent Save As action, not on unrelated Qt setup.**
 
-- [ ] **Step 3: Implement only the path-policy change and Save As action.** For selected targets,
-  call `resolve_user_selected_path`; keep `save_project_atomic`, update `_current_project_path` and
-  `_saved_revision` only after a successful replace, and leave current state unchanged on Cancel or
-  failure.
+- [ ] **Step 3: Implement only the path-policy change and Save As action.** Route First Save and Save
+  As targets through `resolve_user_selected_path()` and `save_project_atomic()`. Keep regular Save
+  pointed at its current associated file. Update `_current_project_path`, `_saved_revision`, title,
+  and saved-state UI only after `save_project_atomic()` succeeds; leave all of them unchanged on
+  Cancel or failure. Do not change the runtime path resolver or other project-local output rules.
 
-- [ ] **Step 4: Add independent serializer safety tests.** Force serialization/replace failure and
-  assert an existing selected external file remains byte-identical and the temporary sibling is
-  cleaned; verify successful external writes round-trip through `load_project`.
+- [ ] **Step 4: Add independent serializer safety tests.** Patch the serializer's `os.replace` to
+  raise after the sibling temp is written. Assert an existing selected external file remains
+  byte-identical, the `.staadprep-*.tmp` sibling is removed, and the UI does not associate the failed
+  path or mark the model saved. Separately verify a successful external write round-trips through
+  `load_project()`.
 
 ### Task 2: Verify the complete desktop file-dialog/write inventory
 
@@ -69,7 +95,11 @@
 - [ ] **Step 3: Search all desktop source for file dialogs and write calls; record every user-facing
   output, its chooser, and any intentionally project-local runtime output in HANDOFF/INDEX.
 - [ ] **Step 4: Run focused save/import/export/path tests, relevant UI tests, Ruff, strict mypy, and
-  `git diff --check`; stop before compile for owner testing.**
+  `git diff --check`; include failure/cancel/overwrite-preservation cases and stop before compile for
+  owner testing. Manual acceptance: First Save to an external folder; Save As to another folder;
+  regular Save after editing; cancel; and overwrite an existing file only after the native dialog
+  confirms. Reopen both saved JSON files to confirm contents. Verify export STD and its validation
+  JSON remain together in the chosen external folder.
 
 ### Task 3: STRICT independent regression, docs, and commit
 

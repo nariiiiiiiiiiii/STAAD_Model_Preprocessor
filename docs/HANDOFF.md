@@ -1,4 +1,4 @@
-Status: **T21 is complete; T22's accepted portable release is `0.1.0`; T23 acceptance is PASS by user report; T24 is complete with no files deleted. The active CP1–CP5 source follow-up is source-verified on `task/22-portable-packaging`. Owner smoke on 2026-09-12 confirms the app/taskbar logo and Quick Fix/Undo/Redo. The Crop-to-Selection camera-collapse source fix is committed; the latest Crop to Select marquee / Zoom in Select change is source-implemented with 13 non-renderer tests passing, but its VTK smoke and owner review are pending after a Win32 OpenGL/Python Application Error. The owner approved STRICT / Full TDD for user-selected Save destinations; that implementation is queued until the viewport checkpoint is reviewed. No `0.2.0` executable/RBZ/ZIP has been built or accepted.**
+Status: **T21 is complete; T22's accepted portable release is `0.1.0`; T23 acceptance is PASS by user report; T24 is complete with no files deleted. The active CP1–CP5 source follow-up is source-verified on `task/22-portable-packaging`. Owner smoke on 2026-09-12 confirms the app/taskbar logo and Quick Fix/Undo/Redo. The Crop-to-Selection camera-collapse fix and Crop to Select / Zoom in Select source changes are committed; the owner reports the current viewport flow works on 2026-09-13. Automated offscreen VTK smoke remains unverified after a Win32 OpenGL/Python Application Error. Project JSON Save outside Projects still shows Save Blocked; source traces it to the First Save `_assert_project_json_path()` guard. A refreshed STRICT plan is awaiting the owner's approval before implementation. No `0.2.0` executable/RBZ/ZIP has been built or accepted.**
 
 ## Current source follow-up — 2026-09-12
 
@@ -49,15 +49,17 @@ selection enable/forward/disable contract is also tested. Combined focused tests
 Ruff PASS; strict mypy reports **0 issues** in `viewer/widget.py`. Owner must restart the source app
 and retest Crop before any compile.
 
-**Save Blocked screenshot:** Source inspection shows `_assert_project_json_path()` is used only when
-`_current_project_path` is `None` (first Save for a newly imported model). `open_project_json()`
-records the external selected path, and its Open→Save-back UI regression passes. Therefore the
-screenshot is consistent with First Save outside `Data/Projects/` being intentionally blocked; if
-it appeared after the owner used **Open Project JSON** on an existing external file, it is a separate
-reproducible defect. The owner then explicitly requested any-folder First Save/Save As and all
-user-facing save destinations, and approved STRICT / Full TDD on 2026-09-12. The guard will be
-addressed in that approved task; no save-path code has changed yet, and implementation is queued
-until the current viewport checkpoint is accepted.
+**Save Blocked, owner recheck (2026-09-13):** The owner reports viewport behavior passed, but Save
+still blocks a folder outside Projects. The dialog message exactly matches the `ValueError` raised
+by `_assert_project_json_path()`. In current source that guard is called only when
+`_current_project_path is None`, after `QFileDialog.getSaveFileName()` returns and before
+`save_project_atomic()`; it is not a QFileDialog folder restriction. Open Project JSON associates
+its external path and regular Save uses `resolve_user_selected_path()`, so that route is distinct.
+There is no Save As action today. A historical STRICT / Full TDD approval for the same scope was
+recorded on 2026-09-12; the owner now asks to review this refreshed plan and approve before execution.
+No Save-path source code has changed. Exact analysis and tests are in
+`docs/superpowers/specs/2026-09-12-user-selected-save-destinations.md` and
+`docs/superpowers/plans/2026-09-12-user-selected-save-destinations.md`.
 
 ## 2026-09-12 marquee selection and Save destination follow-up
 
@@ -68,21 +70,20 @@ coordinates, Ctrl-drag adds, a normal drag replaces, and the operation only upda
 highlights. The non-renderer event/action/geometry subset is **13/13 PASS**, Ruff PASS, and strict mypy
 reports **0 issues** in `main_window.py` and `widget.py`.
 
-The real VTK smoke was not verified: an offscreen attempt reported
+The real VTK smoke was not verified in the agent test process: an offscreen attempt reported
 `vtkWin32OpenGLRenderWindow: failed to get valid pixel format`, followed by a Python Application
-Error. A prior combined same-process UI test also triggered a native VTK access violation; the
-gesture checks were moved to the existing isolated smoke script rather than repeating that test
-pattern. Both runs used only synthetic in-memory model data; no user Project JSON was opened or
-written. The owner must dismiss the Python error dialog, restart the source app, and manually verify
-Node-only, Member-only, both filters, and Ctrl-additive marquee before this viewport checkpoint is
-accepted. No compile has been run.
+Error. A prior combined same-process UI test also triggered a native VTK access violation; both
+attempts used only synthetic in-memory model data and did not open or write user Project JSON. The
+owner manually tested the viewport flow and reports it works well on 2026-09-13, so manual viewport
+acceptance is complete; only automated offscreen VTK evidence remains unavailable. No compile has
+been run.
 
 **Save destination audit:** Source inventory found three unrestricted open-file dialogs (Project
 JSON, SketchUp Neutral JSON, DXF); Export STD already lets the user choose any path and writes its
-validation report beside the `.STD`. The only explicit save-path restriction is Project JSON First
-Save outside `ProjectPaths.projects`; an already-open JSON saves atomically back to its chosen path.
-The owner approved STRICT / Full TDD for allowing First Save/Save As anywhere and auditing all
-save/export paths on 2026-09-12. Save code is not changed yet and is queued after the viewport review.
+validation report beside the `.STD`. The remaining explicit save restriction is Project JSON First
+Save outside `ProjectPaths.projects`; the screenshot matches this branch. The older STRICT approval
+is recorded, but no implementation will start until the owner approves the refreshed plan requested
+on 2026-09-13. Save As and external-path/failure tests are included in that plan.
 
 ## Historical post-T22 editing correction checkpoint — 2026-08-31
 

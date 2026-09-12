@@ -26,10 +26,12 @@ refreshed pre-existing ignored `build/sketchup/stage/` copies, which remain in p
 fixtures have since been changed so ordinary full-suite runs do not write build artifacts.
 
 Post-CP5 viewport feedback added Crop to Select marquee mode and renamed the previous camera action
-to Zoom in Select. Source code and non-renderer tests are present (**13/13 PASS**); real VTK smoke
-and owner manual acceptance are pending after a Win32 OpenGL/Python Application Error. STRICT / Full
-TDD for free Project JSON First Save/Save As destinations was approved on 2026-09-12; that change is
-queued until the viewport checkpoint is reviewed. No Save-path code or compile has started.
+to Zoom in Select. The non-renderer tests are **13/13 PASS**; the owner manually reports the viewport
+flow works (2026-09-13), while the automated real-VTK smoke remains unverified after a Win32 OpenGL /
+Python Application Error. The owner still reproduces Save Blocked for an external Project JSON
+destination. Source inspection identifies the First Save `_assert_project_json_path()` guard as the
+cause. Although STRICT approval was recorded on 2026-09-12, the owner requested a refreshed plan and
+will approve before implementation. No Save-path code or compile has started.
 
 
 ```text

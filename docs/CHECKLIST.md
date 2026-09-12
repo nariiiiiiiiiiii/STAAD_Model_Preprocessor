@@ -408,10 +408,12 @@ Create/complete at minimum:
 - [x] Add a checkable **Crop to Select** mode wired to the existing Nodes/Members selection filters.
 - [x] Implement projected Node/Member rectangle selection, Ctrl-additive selection, rubber-band cleanup, and no model mutation.
 - [x] Verify non-renderer event/action/geometry coverage: **13/13 PASS**; Ruff PASS; strict mypy **0 issues** for `main_window.py` and `widget.py`.
-- [ ] Verify the real VTK drag smoke and owner manual marquee behavior; current isolated offscreen attempt failed at Win32 OpenGL pixel-format initialization and raised a Python Application Error.
+- [x] Owner manually accepts Crop to Select / Zoom in Select behavior (2026-09-13); owner reports the viewport functions work well.
+- [ ] Automated isolated real-VTK smoke remains unverified; the offscreen attempt failed at Win32 OpenGL pixel-format initialization and raised a Python Application Error.
 - [x] Inventory all desktop file dialogs: import JSON/DXF paths and Export STD are user-selectable; Project JSON First Save is the only remaining Projects-folder guard; STD validation report follows the selected STD path.
 - [x] Obtain owner STRICT / Full TDD approval for user-selected Project JSON First Save/Save As and complete save/export-path audit (2026-09-12).
-- [ ] Implement Save destination changes only after the viewport checkpoint is reviewed; run the approved STRICT plan then.
+- [ ] Receive owner's approval of the refreshed Save plan before implementation (requested 2026-09-13; historical STRICT approval remains recorded).
+- [ ] Implement Save destination changes only after that approval; preserve atomic writes and STD/report co-location.
 - [ ] Do not compile until owner accepts the uncompiled source behavior and separately authorizes packaging.
 
 ## 2026-09-12 post-CP5 manual bug report
@@ -420,10 +422,11 @@ Create/complete at minimum:
 - [x] Add isolated camera/focal/revision smoke assertion and Crop toolbar selection-forwarding coverage.
 - [x] Apply scale-aware crop padding and verify **15 focused viewport/Project-save tests PASS**.
 - [x] Ruff PASS; strict mypy **0 issues** for `src/staadprep/viewer/widget.py`; `git diff --check` PASS.
-- [ ] Owner retests Crop to Selection after restarting the source app; no compile before this gate.
+- [x] Owner retests the viewport controls in the source app; Crop to Select / Zoom in Select reported working (2026-09-13).
 - [x] Confirm external Project JSON Open→Save-back regression passes in source tests.
 - [x] Owner requests any-folder Project JSON First Save/Save As and all user-facing save destinations; STRICT / Full TDD approved (2026-09-12).
-- [ ] Implement the approved Save-path scope after the current viewport checkpoint is accepted; preserve atomic writes and STD/report co-location.
+- [x] Confirm the remaining Save Blocked popup matches `_assert_project_json_path()` in the First Save branch (2026-09-13 source review).
+- [ ] Start the refreshed STRICT Save-path plan only after the owner approves it; preserve atomic writes and STD/report co-location.
 
 Incident record: an earlier full-suite run invoked the legacy RBZ builder test and created a transient
 `0.2.0` RBZ. That single file was removed; the existing `0.1.0` RBZ/package was retained. The builder

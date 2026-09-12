@@ -25,15 +25,16 @@ Primary workflow:
   The existing executable is still version `0.1.0.0` (last modified 2026-09-06). Compile and release
   packaging require a separate explicit user instruction.
 - The follow-up Crop-to-Selection report reproduced an extreme single-Node zoom and is source-fixed;
-  the isolated real-PyVista smoke and 15 focused viewport/Project-save UI tests pass. Owner retest
-  after restarting the source app is pending. The owner now explicitly requests any-folder Project
-  JSON First Save/Save As and free destinations for user-facing save actions; STRICT/Full TDD is
-  approved, and implementation is queued until the viewport checkpoint is reviewed.
+  its isolated real-PyVista smoke and 15 focused viewport/Project-save UI tests passed. The owner
+  manually tested the newer Crop to Select / Zoom in Select flow on 2026-09-13 and reports it works
+  well. Automated offscreen VTK smoke remains unverified after a Win32 OpenGL initialization error.
 - The 2026-09-12 marquee request now has separate **Crop to Select** and **Zoom in Select** controls;
   13 non-renderer event/action/geometry tests pass, Ruff and strict mypy pass. The isolated VTK smoke was
   not verified because this runtime reported an OpenGL pixel-format error followed by a Python
-  Application Error. Save-path changes are STRICT-approved but are queued until the viewport
-  checkpoint is accepted; no save behavior or package was changed.
+  Application Error. The owner reports the viewport behavior passes; Project JSON Save still shows
+  Save Blocked for an external folder. Source traces this to `_assert_project_json_path()` in the
+  First Save branch, before the atomic serializer. A refreshed STRICT plan is awaiting the owner's
+  approval; no save-path code or package has changed.
 - A legacy integration test briefly generated a transient `0.2.0` RBZ during the first full-suite
   run; that file was removed. Its test fixtures now stay under `.tmp/tests`, and the existing
   ignored `build/sketchup/stage/` source copies were refreshed by that run and left in place.

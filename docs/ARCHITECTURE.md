@@ -33,9 +33,10 @@ acceptance remain pending.
 
 The post-CP5 viewport follow-up adds a checkable Crop to Select mode that projects scene Nodes and
 Member segments into a screen rectangle and updates only `SelectionState`/highlights. The former
-camera-framing action is named Zoom in Select and remains view-only. The owner-approved Save
-destination expansion is specified separately and remains queued behind the viewport review; it
-does not alter runtime-managed path roots.
+camera-framing action is named Zoom in Select and remains view-only; the owner manually reports this
+flow working on 2026-09-13. The remaining Project JSON First Save block is isolated to the
+user-selected path guard in `MainWindow`; any approved fix must leave project-local runtime path
+guards intact. The refreshed Save plan is awaiting owner approval before implementation.
 
 ## Layers
 
