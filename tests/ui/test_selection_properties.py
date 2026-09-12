@@ -63,7 +63,7 @@ def test_selected_node_and_member_populate_properties(qtbot) -> None:
 
     viewport.selection_changed.emit((_key(1),), ())
     node_text = window.properties_panel.content.text()
-    assert window.crop_selection_action.isEnabled()
+    assert window.zoom_in_select_action.isEnabled()
     assert node_text == (
         "Selected entity\n\n"
         "Type Node\n"
@@ -114,4 +114,4 @@ def test_cleared_and_mixed_selection_have_explicit_properties_state(qtbot) -> No
 
     viewport.selection_changed.emit((), ())
     assert "Type —" in window.properties_panel.content.text()
-    assert not window.crop_selection_action.isEnabled()
+    assert not window.zoom_in_select_action.isEnabled()

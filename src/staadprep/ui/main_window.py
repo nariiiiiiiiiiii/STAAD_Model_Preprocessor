@@ -410,13 +410,21 @@ class MainWindow(QMainWindow):
         )
         self.reset_view_action.triggered.connect(lambda: self._call_viewport("reset_view"))
 
-        self.crop_selection_action = QAction("Crop to Selection", self)
-        self.crop_selection_action.setEnabled(False)
-        self.crop_selection_action.setToolTip(
+        self.crop_to_select_action = QAction("Crop to Select", self)
+        self.crop_to_select_action.setCheckable(True)
+        self.crop_to_select_action.setEnabled(False)
+        self.crop_to_select_action.setToolTip(
+            "Drag a rectangle to select configured Nodes/Members in the viewport"
+        )
+        self.crop_to_select_action.toggled.connect(self._toggle_crop_to_select)
+
+        self.zoom_in_select_action = QAction("Zoom in Select", self)
+        self.zoom_in_select_action.setEnabled(False)
+        self.zoom_in_select_action.setToolTip(
             "Frame selected Nodes/Members without hiding model data"
         )
-        self.crop_selection_action.triggered.connect(
-            lambda: self._call_viewport("crop_to_selection")
+        self.zoom_in_select_action.triggered.connect(
+            lambda: self._call_viewport("zoom_in_select")
         )
 
     def _disabled_action(self, text: str, reason: str) -> QAction:
@@ -476,6 +484,7 @@ class MainWindow(QMainWindow):
         for action in (
             self.select_nodes_action,
             self.select_members_action,
+            self.crop_to_select_action,
         ):
             view_toolbar.addAction(action)
         view_toolbar.addSeparator()
@@ -489,7 +498,7 @@ class MainWindow(QMainWindow):
         view_toolbar.addSeparator()
         view_toolbar.addAction(self.fit_model_action)
         view_toolbar.addAction(self.reset_view_action)
-        view_toolbar.addAction(self.crop_selection_action)
+        view_toolbar.addAction(self.zoom_in_select_action)
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, view_toolbar)
 
     def _create_workspace(self) -> None:
@@ -579,7 +588,21 @@ class MainWindow(QMainWindow):
         self.select_mode_action.setChecked(True)
         self._activate_edit_mode(EditMode.SELECT)
 
+    def _toggle_crop_to_select(self, enabled: bool) -> None:
+        if enabled:
+            if self.current_model is None:
+                self.crop_to_select_action.setChecked(False)
+                return
+            self._activate_select_mode()
+        self._call_viewport("set_crop_to_select_enabled", enabled)
+        if enabled:
+            self.statusBar().showMessage(
+                "Crop to Select: drag a rectangle; Nodes/Members filters apply; Ctrl-drag adds"
+            )
+
     def _activate_edit_mode(self, mode: EditMode) -> None:
+        if mode is not EditMode.SELECT and self.crop_to_select_action.isChecked():
+            self.crop_to_select_action.setChecked(False)
         action_by_mode = {
             EditMode.SELECT: self.select_mode_action,
             EditMode.CREATE_NODE: self.create_node_mode_action,
@@ -638,7 +661,10 @@ class MainWindow(QMainWindow):
             and not resolved_nodes
             and len(resolved_members) == 2
         )
-        self.crop_selection_action.setEnabled(
+        if self.current_model is None and self.crop_to_select_action.isChecked():
+            self.crop_to_select_action.setChecked(False)
+        self.crop_to_select_action.setEnabled(self.current_model is not None)
+        self.zoom_in_select_action.setEnabled(
             self.current_model is not None
             and bool(resolved_nodes or resolved_members)
         )

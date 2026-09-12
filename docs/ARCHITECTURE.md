@@ -31,6 +31,12 @@ one `CompositeRepair` to `RepairHistory`. Conflicting/stale/unsupported batches 
 behavior was approved for STRICT / Full TDD and source-verified; release build and manual user
 acceptance remain pending.
 
+The post-CP5 viewport follow-up adds a checkable Crop to Select mode that projects scene Nodes and
+Member segments into a screen rectangle and updates only `SelectionState`/highlights. The former
+camera-framing action is named Zoom in Select and remains view-only. The owner-approved Save
+destination expansion is specified separately and remains queued behind the viewport review; it
+does not alter runtime-managed path roots.
+
 ## Layers
 
 ### 1. UI layer

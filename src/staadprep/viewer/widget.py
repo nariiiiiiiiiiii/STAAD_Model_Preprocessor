@@ -8,9 +8,9 @@ from uuid import UUID
 
 import numpy as np
 import pyvista as pv
-from PySide6.QtCore import QEvent, QObject, Qt, Signal
+from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, QRect, QRectF, Qt, Signal
 from PySide6.QtGui import QCloseEvent
-from PySide6.QtWidgets import QMenu, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QMenu, QRubberBand, QVBoxLayout, QWidget
 from pyvistaqt import QtInteractor
 from vtkmodules.vtkRenderingCore import vtkCellPicker
 
@@ -84,6 +84,8 @@ class StructuralViewport(QWidget):
         self._navigation_mode: str | None = None
         self._last_mouse_pos: tuple[float, float] | None = None
         self._left_press_pos: tuple[float, float] | None = None
+        self._crop_drag_additive = False
+        self._crop_select_enabled = False
         self._last_overlap_candidates: tuple[SelectionCandidate, ...] = ()
         self._last_overlap_choice: SelectionCandidate | None = None
         self._draw_start_node: UUID | None = None
@@ -102,6 +104,11 @@ class StructuralViewport(QWidget):
         self._off_screen = os.getenv("QT_QPA_PLATFORM", "").lower() == "offscreen"
         self.plotter: Any = QtInteractor(self, off_screen=self._off_screen)
         layout.addWidget(self.plotter.interactor)
+        self._crop_select_rubber_band = QRubberBand(
+            QRubberBand.Shape.Rectangle,
+            self.plotter.interactor,
+        )
+        self._crop_select_rubber_band.hide()
         self.plotter.interactor.installEventFilter(self)
         self.plotter.interactor.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.plotter.interactor.setMouseTracking(True)
@@ -134,6 +141,7 @@ class StructuralViewport(QWidget):
     def set_model(self, model: ProjectModel) -> None:
         self._model = model
         self.scene = SceneData.from_model(model)
+        self._cancel_crop_select_drag()
         self.selection.clear()
         self._last_overlap_candidates = ()
         self._last_overlap_choice = None
@@ -203,6 +211,8 @@ class StructuralViewport(QWidget):
 
     def set_edit_mode(self, mode: EditMode) -> None:
         resolved = EditMode(mode)
+        if resolved is not EditMode.SELECT:
+            self.set_crop_to_select_enabled(False)
         if resolved is not EditMode.SET_DIRECTION:
             self._direction_member_key = None
         self.interaction_state = replace(self.interaction_state, mode=resolved)
@@ -595,6 +605,118 @@ class StructuralViewport(QWidget):
             self.highlight_nodes((), _notify=False)
         if not selection_filter.members:
             self.highlight_members((), _notify=False)
+        self._emit_selection_changed()
+
+    def set_crop_to_select_enabled(self, enabled: bool) -> None:
+        """Enable filtered left-drag rectangle selection in safe Select mode."""
+        self._crop_select_enabled = bool(enabled) and self.interaction_state.mode is EditMode.SELECT
+        if not self._crop_select_enabled:
+            self._cancel_crop_select_drag()
+
+    def _cancel_crop_select_drag(self) -> None:
+        self._left_press_pos = None
+        self._crop_drag_additive = False
+        self._crop_select_rubber_band.hide()
+
+    def _project_world_point(self, point: np.ndarray) -> tuple[float, float, float] | None:
+        """Project a world-space Node to interactor-local coordinates and depth."""
+        renderer = self.plotter.renderer
+        renderer.SetWorldPoint(float(point[0]), float(point[1]), float(point[2]), 1.0)
+        renderer.WorldToDisplay()
+        display_x, display_y, display_depth = renderer.GetDisplayPoint()
+        render_width, render_height = self.plotter.render_window.GetSize()
+        widget = self.plotter.interactor
+        if render_width <= 0 or render_height <= 0 or widget.width() <= 0 or widget.height() <= 0:
+            return None
+        local_x = float(display_x) * float(widget.width()) / float(render_width)
+        local_y = float(widget.height()) - (
+            float(display_y) * float(widget.height()) / float(render_height)
+        )
+        depth = float(display_depth)
+        if depth < 0.0 or depth > 1.0:
+            return None
+        return local_x, local_y, depth
+
+    @staticmethod
+    def _segment_intersects_rectangle(
+        start: tuple[float, float],
+        end: tuple[float, float],
+        rectangle: QRectF,
+    ) -> bool:
+        """Return whether a projected Member segment intersects a selection rectangle."""
+        x0, y0 = start
+        dx, dy = end[0] - x0, end[1] - y0
+        t_min, t_max = 0.0, 1.0
+        limits = (
+            (-dx, x0 - rectangle.left()),
+            (dx, rectangle.right() - x0),
+            (-dy, y0 - rectangle.top()),
+            (dy, rectangle.bottom() - y0),
+        )
+        for direction, distance in limits:
+            if direction == 0.0:
+                if distance < 0.0:
+                    return False
+                continue
+            ratio = distance / direction
+            if direction < 0.0:
+                t_min = max(t_min, ratio)
+            else:
+                t_max = min(t_max, ratio)
+            if t_min > t_max:
+                return False
+        return True
+
+    def _select_screen_rectangle(
+        self,
+        start: tuple[float, float],
+        end: tuple[float, float],
+        *,
+        additive: bool,
+    ) -> None:
+        """Select filtered scene entities whose projected geometry intersects a drag rectangle."""
+        if self.scene is None:
+            return
+        rectangle = QRectF(QPointF(*start), QPointF(*end)).normalized().adjusted(
+            -1.0, -1.0, 1.0, 1.0
+        )
+        selection_filter = self.interaction_state.selection_filter
+        node_hits: list[UUID] = []
+        member_hits: list[UUID] = []
+
+        if selection_filter.nodes:
+            for index, key in enumerate(self.scene.point_keys):
+                projected = self._project_world_point(self.scene.points[index])
+                if projected is not None and rectangle.contains(
+                    QPointF(projected[0], projected[1])
+                ):
+                    node_hits.append(key)
+
+        if selection_filter.members:
+            for index, key in enumerate(self.scene.member_keys):
+                row = self.scene.lines[index]
+                start_projection = self._project_world_point(
+                    self.scene.points[int(row[1])]
+                )
+                end_projection = self._project_world_point(
+                    self.scene.points[int(row[2])]
+                )
+                if start_projection is None or end_projection is None:
+                    continue
+                if self._segment_intersects_rectangle(
+                    (start_projection[0], start_projection[1]),
+                    (end_projection[0], end_projection[1]),
+                    rectangle,
+                ):
+                    member_hits.append(key)
+
+        selected_nodes = list(self.selection.selected_nodes) if additive else []
+        selected_members = list(self.selection.selected_members) if additive else []
+        selected_nodes.extend(key for key in node_hits if key not in selected_nodes)
+        selected_members.extend(key for key in member_hits if key not in selected_members)
+        self.selection.set_nodes(tuple(selected_nodes))
+        self.selection.set_members(tuple(selected_members))
+        self._render_selection_highlights()
         self._emit_selection_changed()
 
     def set_label_visibility(self, visibility: LabelVisibility) -> None:
@@ -1010,7 +1132,7 @@ class StructuralViewport(QWidget):
         self.plotter.renderer.ResetCameraClippingRange()
         self.plotter.render()
 
-    def crop_to_selection(self) -> None:
+    def zoom_in_select(self) -> None:
         if self.scene is None:
             return
         points: list[np.ndarray] = []
@@ -1268,15 +1390,15 @@ class StructuralViewport(QWidget):
         else:
             focus_text = "Focus Selected"
         focus_action = menu.addAction(focus_text)
-        crop_action = menu.addAction("Crop to Selection")
+        zoom_action = menu.addAction("Zoom in Select")
         clear_action = menu.addAction("Clear Selection")
         delete_action = menu.addAction("Delete Selected")
         focus_action.setEnabled(has_nodes or has_members)
-        crop_action.setEnabled(has_nodes or has_members)
+        zoom_action.setEnabled(has_nodes or has_members)
         clear_action.setEnabled(has_nodes or has_members)
         delete_action.setEnabled(has_nodes or has_members)
         focus_action.triggered.connect(self.focus_selection)
-        crop_action.triggered.connect(self.crop_to_selection)
+        zoom_action.triggered.connect(self.zoom_in_select)
         clear_action.triggered.connect(self.clear_selection)
         delete_action.triggered.connect(self.delete_selection_requested.emit)
 
@@ -1314,6 +1436,9 @@ class StructuralViewport(QWidget):
             if event.button() == Qt.MouseButton.LeftButton:
                 if self.interaction_state.mode is EditMode.SELECT:
                     self._left_press_pos = point
+                    self._crop_drag_additive = bool(
+                        event.modifiers() & Qt.KeyboardModifier.ControlModifier
+                    )
                     return True
                 if self.interaction_state.mode in {
                     EditMode.CREATE_NODE,
@@ -1358,6 +1483,21 @@ class StructuralViewport(QWidget):
             and self.interaction_state.mode is EditMode.SELECT
             and event.buttons() & Qt.MouseButton.LeftButton
         ):
+            if self._crop_select_enabled and self._left_press_pos is not None:
+                position = event.position()
+                point = (float(position.x()), float(position.y()))
+                distance = (
+                    (point[0] - self._left_press_pos[0]) ** 2
+                    + (point[1] - self._left_press_pos[1]) ** 2
+                ) ** 0.5
+                if distance > 4.0:
+                    self._crop_select_rubber_band.setGeometry(
+                        QRect(
+                            QPoint(round(self._left_press_pos[0]), round(self._left_press_pos[1])),
+                            QPoint(round(point[0]), round(point[1])),
+                        ).normalized()
+                    )
+                    self._crop_select_rubber_band.show()
             return True
 
         if event_type == QEvent.Type.MouseButtonRelease:
@@ -1471,13 +1611,21 @@ class StructuralViewport(QWidget):
                 self._left_press_pos = None
                 if pressed is not None:
                     distance = ((point[0] - pressed[0]) ** 2 + (point[1] - pressed[1]) ** 2) ** 0.5
-                    if distance <= 4.0:
+                    if self._crop_select_enabled and distance > 4.0:
+                        self._crop_select_rubber_band.hide()
+                        self._select_screen_rectangle(
+                            pressed,
+                            point,
+                            additive=self._crop_drag_additive,
+                        )
+                    elif distance <= 4.0:
                         candidates = self._pick_candidates_at(*point)
                         additive = bool(event.modifiers() & Qt.KeyboardModifier.ControlModifier)
                         if candidates:
                             self.select_overlap_candidates(candidates, additive=additive)
                         elif not additive:
                             self.clear_selection()
+                self._crop_drag_additive = False
                 return True
 
         if event_type == QEvent.Type.MouseButtonDblClick:
@@ -1493,6 +1641,9 @@ class StructuralViewport(QWidget):
             return True
 
         if event_type == QEvent.Type.KeyPress:
+            if event.key() == Qt.Key.Key_Escape and self._left_press_pos is not None:
+                self._cancel_crop_select_drag()
+                return True
             if event.key() == Qt.Key.Key_Delete:
                 self.request_delete_selection()
                 return True

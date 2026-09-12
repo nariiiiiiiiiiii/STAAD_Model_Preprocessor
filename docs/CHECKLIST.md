@@ -402,6 +402,18 @@ Create/complete at minimum:
 - [ ] User manually accepts the uncompiled development app and SketchUp handoff after an authorized RBZ build.
 - [ ] User separately authorizes Nuitka/RBZ/portable package build and then package acceptance.
 
+## 2026-09-12 marquee and Save destination follow-up
+
+- [x] Rename the existing selected-camera framing command to **Zoom in Select** in the toolbar and viewport context menu.
+- [x] Add a checkable **Crop to Select** mode wired to the existing Nodes/Members selection filters.
+- [x] Implement projected Node/Member rectangle selection, Ctrl-additive selection, rubber-band cleanup, and no model mutation.
+- [x] Verify non-renderer event/action/geometry coverage: **13/13 PASS**; Ruff PASS; strict mypy **0 issues** for `main_window.py` and `widget.py`.
+- [ ] Verify the real VTK drag smoke and owner manual marquee behavior; current isolated offscreen attempt failed at Win32 OpenGL pixel-format initialization and raised a Python Application Error.
+- [x] Inventory all desktop file dialogs: import JSON/DXF paths and Export STD are user-selectable; Project JSON First Save is the only remaining Projects-folder guard; STD validation report follows the selected STD path.
+- [x] Obtain owner STRICT / Full TDD approval for user-selected Project JSON First Save/Save As and complete save/export-path audit (2026-09-12).
+- [ ] Implement Save destination changes only after the viewport checkpoint is reviewed; run the approved STRICT plan then.
+- [ ] Do not compile until owner accepts the uncompiled source behavior and separately authorizes packaging.
+
 ## 2026-09-12 post-CP5 manual bug report
 
 - [x] Reproduce single-Node Crop zoom collapse in real PyVista: camera distance `40.291960753` to `0.000006692`.
@@ -410,7 +422,8 @@ Create/complete at minimum:
 - [x] Ruff PASS; strict mypy **0 issues** for `src/staadprep/viewer/widget.py`; `git diff --check` PASS.
 - [ ] Owner retests Crop to Selection after restarting the source app; no compile before this gate.
 - [x] Confirm external Project JSON Open→Save-back regression passes in source tests.
-- [ ] Clarify whether Save Blocked appeared after Open Project JSON or after importing a new model; do not alter first-save Projects restriction before that is clear.
+- [x] Owner requests any-folder Project JSON First Save/Save As and all user-facing save destinations; STRICT / Full TDD approved (2026-09-12).
+- [ ] Implement the approved Save-path scope after the current viewport checkpoint is accepted; preserve atomic writes and STD/report co-location.
 
 Incident record: an earlier full-suite run invoked the legacy RBZ builder test and created a transient
 `0.2.0` RBZ. That single file was removed; the existing `0.1.0` RBZ/package was retained. The builder

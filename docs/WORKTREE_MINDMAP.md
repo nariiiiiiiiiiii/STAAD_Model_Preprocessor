@@ -1,6 +1,6 @@
 # STAAD Model Preprocessor — Worktree Mindmap
 
-Status: **ACTIVE T22 WORKTREE — CP1–CP5 SOURCE VERIFIED; USER/PACKAGE ACCEPTANCE PENDING**
+Status: **ACTIVE T22 WORKTREE — CP1–CP5 SOURCE VERIFIED; MARQUEE SOURCE IMPLEMENTED (VTK/OWNER ACCEPTANCE PENDING); SAVE STRICT APPROVED AND QUEUED**
 Generated: 2026-09-12
 Branch: `task/22-portable-packaging`
 T24 checkpoint: `chore: quarantine unused project files for review`
@@ -24,6 +24,7 @@ group rules and T25/T26 audit counts.
 | T26 storage cleanup | Move + standalone smoke verified; space deletion pending user | `DEL/t26-storage-cleanup-20260901/` |
 | T27 free user-selected paths | Source + package gates complete; user package acceptance pending | `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/`, `docs/HANDOFF.md` |
 | Post-T27 CP1–5 | Version/name/icon/Open/Save/Quick Fix source verified; package remains 0.1.0 | `docs/HANDOFF.md`, `docs/INDEX.md`; no 0.2.0 release artifacts |
+| Post-CP5 Crop/Save follow-up | Marquee source implemented; 13 non-renderer tests PASS; STRICT Save destination change approved but not started | `docs/HANDOFF.md`; VTK smoke blocked by Win32 OpenGL pixel-format error; wait for viewport review |
 | Post-T26 mindmap | Active/current | this document |
 
 T24 performed one recoverable move only:
@@ -474,6 +475,7 @@ flowchart TD
 - tests/ui/test_manual_edit_real_smoke.py — real manual-edit smoke.
 - tests/ui/test_manual_edit_smoke.py — manual-edit smoke.
 - tests/ui/test_manual_edit_ui.py — manual-edit UI actions.
+- tests/ui/test_crop_to_select_events.py — non-renderer drag rectangle and filtered selection events.
 - tests/ui/test_model_controls.py — model control behavior.
 - tests/ui/test_orientation_smoke.py — orientation smoke.
 - tests/ui/test_orientation_ui.py — orientation UI.
@@ -514,6 +516,7 @@ flowchart TD
 - tests/unit/test_inference_independent_check.py — independent inference check.
 - tests/unit/test_interaction_state.py — interaction state machine.
 - tests/unit/test_manual_edit_commands.py — manual edit commands.
+- tests/unit/test_marquee_selection_geometry.py — projected segment/rectangle intersection geometry.
 - tests/unit/test_manual_edit_roundtrip.py — edit roundtrip.
 - tests/unit/test_manual_split_ops.py — split operations.
 - tests/unit/test_quick_fix_batch.py — strict planner, intersection, footprints, conflict rejection, and rollback.
@@ -630,6 +633,10 @@ outputs are documented separately in Section 10.
 - docs/superpowers/specs/2026-08-31-project-explorer-entity-selection-design.md — explorer selection design.
 - docs/superpowers/plans/2026-09-12-sketchup-naming-logo-json-open-batched-quick-fix.md — CP1–CP5 source follow-up plan and pre-compile gate.
 - docs/superpowers/specs/2026-09-12-sketchup-naming-logo-json-open-batched-quick-fix.md — version, naming, icon, Open/Save, and STRICT batch contracts.
+- docs/superpowers/plans/2026-09-12-marquee-selection.md — Crop to Select drag selection and Zoom in Select rename; VTK smoke pending.
+- docs/superpowers/specs/2026-09-12-marquee-selection.md — filter, Ctrl-additive, no-mutation, and camera-command behavior.
+- docs/superpowers/plans/2026-09-12-user-selected-save-destinations.md — STRICT-approved First Save/Save As and full path audit; queued behind viewport review.
+- docs/superpowers/specs/2026-09-12-user-selected-save-destinations.md — user-selected save scope and data-loss risk controls.
 
 ### 9.4 Bridge, native boundary, packaging, and scripts
 
@@ -873,6 +880,14 @@ Post-T27 CP1–CP5 source follow-up is **SOURCE VERIFIED / USER ACCEPTANCE PENDI
 - verification: **345 unit+integration PASS**, **1 skipped**, **3 portable-package gates deselected**,
   **26/26 affected UI PASS**, Ruff PASS, strict mypy **0 issues** in four source files;
 - the accepted package remains `0.1.0`; no `0.2.0` exe/RBZ/portable archive is retained.
+
+Post-CP5 viewport/save request (2026-09-12): source now exposes Crop to Select and Zoom in Select;
+**13 non-renderer event/action/geometry tests PASS**, Ruff PASS, strict mypy **0 issues** in two
+affected source files. Real VTK smoke could not complete: offscreen startup reported
+`vtkWin32OpenGLRenderWindow: failed to get valid pixel format`, followed by a Python Application
+Error. The owner approved STRICT / Full TDD for arbitrary Project JSON First Save/Save As and all
+save/export path verification; no save-path code has been changed and implementation waits until
+the viewport checkpoint is reviewed. No compile was performed.
 
 Build-test side effect: an initial integration run created a transient `0.2.0` RBZ via a legacy
 test; it was removed. Existing ignored `build/sketchup/stage/` files were refreshed by that

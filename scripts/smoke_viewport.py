@@ -7,7 +7,8 @@ import os
 
 os.environ.setdefault("QT_API", "pyside6")
 
-from PySide6.QtCore import QPoint, Qt
+from PySide6.QtCore import QEvent, QPoint, QPointF, Qt
+from PySide6.QtGui import QMouseEvent
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
@@ -62,20 +63,20 @@ def main() -> int:
         raise RuntimeError("Viewport scene bounds are unavailable for Crop smoke check")
     scene_span = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
     model_revision = model.revision
-    viewport.crop_to_selection()
+    viewport.zoom_in_select()
     app.processEvents()
     after_focal = tuple(float(value) for value in camera.GetFocalPoint())
     after_position = tuple(float(value) for value in camera.GetPosition())
     after_distance = math.dist(after_focal, after_position)
     if math.dist(after_focal, selected_position) > max(scene_span * 0.01, 1e-4):
-        raise RuntimeError("Crop to Selection did not center the selected Node")
+        raise RuntimeError("Zoom in Select did not center the selected Node")
     if after_distance <= max(scene_span * 0.005, 1e-4):
-        raise RuntimeError("Crop to Selection collapsed the camera onto a single Node")
+        raise RuntimeError("Zoom in Select collapsed the camera onto a single Node")
     if after_distance >= before_distance * 0.5:
-        raise RuntimeError("Crop to Selection did not zoom from the full model to the Node")
+        raise RuntimeError("Zoom in Select did not zoom from the full model to the Node")
     if model.revision != model_revision:
-        raise RuntimeError("Crop to Selection mutated the canonical model")
-    print("crop=pass")
+        raise RuntimeError("Zoom in Select mutated the canonical model")
+    print("zoom_in_select=pass")
 
     def qt_point_for_world(point: tuple[float, float, float]) -> QPoint:
         viewport.plotter.renderer.SetWorldPoint(*point, 1.0)
@@ -91,6 +92,52 @@ def main() -> int:
                 - float(display_y) * float(widget_height) / float(render_height)
             ),
         )
+
+    def send_left_drag(
+        start: QPoint,
+        end: QPoint,
+        modifiers: Qt.KeyboardModifier = Qt.KeyboardModifier.NoModifier,
+    ) -> None:
+        start_point = QPointF(start)
+        end_point = QPointF(end)
+        QApplication.sendEvent(
+            viewport.plotter.interactor,
+            QMouseEvent(
+                QEvent.Type.MouseButtonPress,
+                start_point,
+                start_point,
+                Qt.MouseButton.LeftButton,
+                Qt.MouseButton.LeftButton,
+                modifiers,
+            ),
+        )
+        QApplication.sendEvent(
+            viewport.plotter.interactor,
+            QMouseEvent(
+                QEvent.Type.MouseMove,
+                end_point,
+                end_point,
+                Qt.MouseButton.NoButton,
+                Qt.MouseButton.LeftButton,
+                modifiers,
+            ),
+        )
+        if not viewport._crop_select_rubber_band.isVisible():
+            raise RuntimeError("Crop to Select did not display its drag rectangle")
+        QApplication.sendEvent(
+            viewport.plotter.interactor,
+            QMouseEvent(
+                QEvent.Type.MouseButtonRelease,
+                end_point,
+                end_point,
+                Qt.MouseButton.LeftButton,
+                Qt.MouseButton.NoButton,
+                modifiers,
+            ),
+        )
+        app.processEvents()
+        if viewport._crop_select_rubber_band.isVisible():
+            raise RuntimeError("Crop to Select did not hide its drag rectangle on release")
 
     viewport.clear_selection()
     viewport.set_selection_filter(SelectionFilter(nodes=True, members=False))
@@ -113,6 +160,78 @@ def main() -> int:
         raise RuntimeError("Real Qt/VTK click did not select the expected Member")
     if viewport._member_highlight_actor is None:
         raise RuntimeError("Real Member click did not create the highlight actor")
+
+    viewport.set_crop_to_select_enabled(True)
+    initial_revision = model.revision
+    viewport.set_selection_filter(SelectionFilter(nodes=True, members=False))
+    node_point = qt_point_for_world(tuple(float(value) for value in viewport.scene.points[0]))
+    send_left_drag(
+        QPoint(node_point.x() - 8, node_point.y() - 8),
+        QPoint(node_point.x() + 8, node_point.y() + 8),
+    )
+    if first_node not in viewport.selection.selected_nodes or viewport.selection.selected_members:
+        raise RuntimeError("Nodes-only marquee selected the wrong entity types")
+
+    viewport.set_selection_filter(SelectionFilter(nodes=False, members=True))
+    member_midpoint = qt_point_for_world(
+        tuple(float(value) for value in viewport.scene.member_midpoints[0])
+    )
+    send_left_drag(
+        QPoint(member_midpoint.x() - 12, member_midpoint.y() - 12),
+        QPoint(member_midpoint.x() + 12, member_midpoint.y() + 12),
+    )
+    if first_member not in viewport.selection.selected_members or viewport.selection.selected_nodes:
+        raise RuntimeError("Members-only marquee selected the wrong entity types")
+
+    viewport.set_selection_filter(SelectionFilter())
+    member_row = viewport.scene.lines[0]
+    start_node = viewport.scene.point_keys[int(member_row[1])]
+    end_node = viewport.scene.point_keys[int(member_row[2])]
+    start_point = qt_point_for_world(
+        tuple(float(value) for value in viewport.scene.points[int(member_row[1])])
+    )
+    end_point = qt_point_for_world(
+        tuple(float(value) for value in viewport.scene.points[int(member_row[2])])
+    )
+    send_left_drag(
+        QPoint(min(start_point.x(), end_point.x()) - 8, min(start_point.y(), end_point.y()) - 8),
+        QPoint(max(start_point.x(), end_point.x()) + 8, max(start_point.y(), end_point.y()) + 8),
+    )
+    if first_member not in viewport.selection.selected_members:
+        raise RuntimeError("Nodes+Members marquee did not select the Member")
+    if (
+        start_node not in viewport.selection.selected_nodes
+        or end_node not in viewport.selection.selected_nodes
+    ):
+        raise RuntimeError("Nodes+Members marquee did not select both endpoint Nodes")
+
+    viewport.clear_selection()
+    viewport.set_selection_filter(SelectionFilter(nodes=True, members=False))
+    first_node_point = qt_point_for_world(tuple(float(value) for value in viewport.scene.points[0]))
+    other_node = viewport.scene.point_keys[-1]
+    other_node_index = viewport.scene.point_index_by_key[other_node]
+    other_node_point = qt_point_for_world(
+        tuple(float(value) for value in viewport.scene.points[other_node_index])
+    )
+    send_left_drag(
+        QPoint(first_node_point.x() - 8, first_node_point.y() - 8),
+        QPoint(first_node_point.x() + 8, first_node_point.y() + 8),
+    )
+    send_left_drag(
+        QPoint(other_node_point.x() - 8, other_node_point.y() - 8),
+        QPoint(other_node_point.x() + 8, other_node_point.y() + 8),
+        Qt.KeyboardModifier.ControlModifier,
+    )
+    if (
+        first_node not in viewport.selection.selected_nodes
+        or other_node not in viewport.selection.selected_nodes
+    ):
+        raise RuntimeError("Ctrl-drag did not add the second Node to the marquee selection")
+    if model.revision != initial_revision:
+        raise RuntimeError("Crop to Select mutated the canonical model")
+    viewport.set_crop_to_select_enabled(False)
+    print("crop_to_select=pass")
+
     viewport.set_selection_filter(SelectionFilter())
 
     viewport.isolate_entities((first_node, first_member))
@@ -142,7 +261,7 @@ def main() -> int:
     viewport.end_navigation()
     viewport.zoom_by_steps(1.0, viewport._selection_center())
     viewport.focus_selection()
-    viewport.crop_to_selection()
+    viewport.zoom_in_select()
     viewport.fit_model()
     viewport.reset_view()
     app.processEvents()
@@ -234,7 +353,8 @@ def main() -> int:
         f"nodes={len(viewport.scene.point_keys)}",
         f"members={len(viewport.scene.member_keys)}",
         "focus=pass",
-        "crop=pass",
+        "zoom_in_select=pass",
+        "crop_to_select=pass",
         "isolate=pass",
         "navigation=pass",
         "selection=pass",

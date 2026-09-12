@@ -1,4 +1,4 @@
-Status: **T21 is complete; T22's accepted portable release is `0.1.0`; T23 acceptance is PASS by user report; T24 is complete with no files deleted. The active CP1–CP5 source follow-up is source-verified on `task/22-portable-packaging`. Owner smoke on 2026-09-12 reports the app-window and source-run taskbar icons now show the selected logo, and Quick Fix/Undo/Redo work. The taskbar source fix is focused-tested and owner-confirmed. A reported single-Node Crop-to-Selection camera-collapse bug is now reproduced, source-fixed, and regression-tested; owner retest is pending. The Save Blocked screenshot's action sequence is unclear and no save-path policy has been changed. No `0.2.0` executable/RBZ/ZIP has been built or accepted.**
+Status: **T21 is complete; T22's accepted portable release is `0.1.0`; T23 acceptance is PASS by user report; T24 is complete with no files deleted. The active CP1–CP5 source follow-up is source-verified on `task/22-portable-packaging`. Owner smoke on 2026-09-12 confirms the app/taskbar logo and Quick Fix/Undo/Redo. The Crop-to-Selection camera-collapse source fix is committed; the latest Crop to Select marquee / Zoom in Select change is source-implemented with 13 non-renderer tests passing, but its VTK smoke and owner review are pending after a Win32 OpenGL/Python Application Error. The owner approved STRICT / Full TDD for user-selected Save destinations; that implementation is queued until the viewport checkpoint is reviewed. No `0.2.0` executable/RBZ/ZIP has been built or accepted.**
 
 ## Current source follow-up — 2026-09-12
 
@@ -54,8 +54,35 @@ and retest Crop before any compile.
 records the external selected path, and its Open→Save-back UI regression passes. Therefore the
 screenshot is consistent with First Save outside `Data/Projects/` being intentionally blocked; if
 it appeared after the owner used **Open Project JSON** on an existing external file, it is a separate
-reproducible defect. No save-path behavior was changed. Await the owner’s confirmation of which
-open/import action immediately preceded the popup.
+reproducible defect. The owner then explicitly requested any-folder First Save/Save As and all
+user-facing save destinations, and approved STRICT / Full TDD on 2026-09-12. The guard will be
+addressed in that approved task; no save-path code has changed yet, and implementation is queued
+until the current viewport checkpoint is accepted.
+
+## 2026-09-12 marquee selection and Save destination follow-up
+
+**Marquee / Zoom in Select:** The former camera-framing button and context-menu action are now named
+**Zoom in Select**; the new checkable **Crop to Select** action reuses the Nodes/Members filters and
+enables a left-drag rectangle. The rectangle projects Nodes and Member segments into viewport
+coordinates, Ctrl-drag adds, a normal drag replaces, and the operation only updates selection and
+highlights. The non-renderer event/action/geometry subset is **13/13 PASS**, Ruff PASS, and strict mypy
+reports **0 issues** in `main_window.py` and `widget.py`.
+
+The real VTK smoke was not verified: an offscreen attempt reported
+`vtkWin32OpenGLRenderWindow: failed to get valid pixel format`, followed by a Python Application
+Error. A prior combined same-process UI test also triggered a native VTK access violation; the
+gesture checks were moved to the existing isolated smoke script rather than repeating that test
+pattern. Both runs used only synthetic in-memory model data; no user Project JSON was opened or
+written. The owner must dismiss the Python error dialog, restart the source app, and manually verify
+Node-only, Member-only, both filters, and Ctrl-additive marquee before this viewport checkpoint is
+accepted. No compile has been run.
+
+**Save destination audit:** Source inventory found three unrestricted open-file dialogs (Project
+JSON, SketchUp Neutral JSON, DXF); Export STD already lets the user choose any path and writes its
+validation report beside the `.STD`. The only explicit save-path restriction is Project JSON First
+Save outside `ProjectPaths.projects`; an already-open JSON saves atomically back to its chosen path.
+The owner approved STRICT / Full TDD for allowing First Save/Save As anywhere and auditing all
+save/export paths on 2026-09-12. Save code is not changed yet and is queued after the viewport review.
 
 ## Historical post-T22 editing correction checkpoint — 2026-08-31
 

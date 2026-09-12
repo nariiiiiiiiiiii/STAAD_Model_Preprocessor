@@ -24,7 +24,8 @@ class NavigationViewport(QWidget):
         self.labels = LabelVisibility()
         self.fit_calls = 0
         self.reset_calls = 0
-        self.crop_calls = 0
+        self.marquee_enabled = False
+        self.zoom_calls = 0
 
     def set_edit_mode(self, mode: EditMode) -> None:
         self.mode = mode
@@ -41,8 +42,11 @@ class NavigationViewport(QWidget):
     def reset_view(self) -> None:
         self.reset_calls += 1
 
-    def crop_to_selection(self) -> None:
-        self.crop_calls += 1
+    def set_crop_to_select_enabled(self, enabled: bool) -> None:
+        self.marquee_enabled = enabled
+
+    def zoom_in_select(self) -> None:
+        self.zoom_calls += 1
 
 
 def test_navigation_selection_toolbar_defaults_to_safe_select(qtbot) -> None:
@@ -97,22 +101,43 @@ def test_reset_action_is_non_editing_view_command(qtbot) -> None:
     assert viewport.mode is EditMode.SELECT
 
 
-def test_crop_action_tracks_selection_and_forwards_to_viewport(qtbot) -> None:
+def test_zoom_in_select_action_tracks_selection_and_forwards_to_viewport(qtbot) -> None:
     viewport = NavigationViewport()
     window = MainWindow(viewport_factory=lambda: viewport)
     qtbot.addWidget(window)
     node_key = UUID(int=1)
     window.current_model = ProjectModel(nodes={node_key: Node(node_key, Vec3(0.0, 0.0, 0.0))})
 
-    assert not window.crop_selection_action.isEnabled()
+    assert not window.zoom_in_select_action.isEnabled()
 
     viewport.selection_changed.emit((node_key,), ())
-    assert window.crop_selection_action.isEnabled()
-    window.crop_selection_action.trigger()
-    assert viewport.crop_calls == 1
+    assert window.zoom_in_select_action.isEnabled()
+    window.zoom_in_select_action.trigger()
+    assert viewport.zoom_calls == 1
 
     viewport.selection_changed.emit((), ())
-    assert not window.crop_selection_action.isEnabled()
+    assert not window.zoom_in_select_action.isEnabled()
+
+
+def test_crop_to_select_action_toggles_marquee_and_stops_for_edit_tools(qtbot) -> None:
+    viewport = NavigationViewport()
+    window = MainWindow(viewport_factory=lambda: viewport)
+    qtbot.addWidget(window)
+    window.current_model = ProjectModel()
+    window._on_viewport_selection_changed((), ())
+
+    assert window.crop_to_select_action.text() == "Crop to Select"
+    assert window.crop_to_select_action.isCheckable()
+    assert window.crop_to_select_action.isEnabled()
+
+    window.crop_to_select_action.trigger()
+    assert viewport.marquee_enabled
+    assert window.crop_to_select_action.isChecked()
+    assert window.select_mode_action.isChecked()
+
+    window.draw_member_action.trigger()
+    assert not viewport.marquee_enabled
+    assert not window.crop_to_select_action.isChecked()
 
 
 def test_context_selection_filter_synchronizes_toolbar_and_safe_mode(qtbot) -> None:
@@ -170,13 +195,14 @@ def test_toolbars_follow_workflow_order_and_force_second_row(qtbot) -> None:
     assert [action.text() for action in view.actions() if not action.isSeparator()] == [
         "Nodes",
         "Members",
+        "Crop to Select",
         "Node No.",
         "Member No.",
         "Local Axes",
         "Coordinates",
         "Fit Model",
         "Reset View",
-        "Crop to Selection",
+        "Zoom in Select",
     ]
     assert window.toolBarBreak(edit_view)
     assert window.toolBarBreak(view)

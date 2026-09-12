@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from uuid import UUID
+
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QMenu
 
@@ -28,14 +30,14 @@ def test_empty_space_context_menu_exposes_selection_and_view_commands(qtbot) -> 
         "Select Members",
         "Select Nodes + Members",
         "Focus Selected",
-        "Crop to Selection",
+        "Zoom in Select",
         "Clear Selection",
         "Delete Selected",
         "Fit Model",
         "Reset View",
     ]
     assert not _action(menu, "Focus Selected").isEnabled()
-    assert not _action(menu, "Crop to Selection").isEnabled()
+    assert not _action(menu, "Zoom in Select").isEnabled()
     assert not _action(menu, "Clear Selection").isEnabled()
     assert not _action(menu, "Delete Selected").isEnabled()
 
@@ -68,12 +70,15 @@ def test_context_selection_actions_apply_safe_mode_and_emit_filter(qtbot, monkey
 def test_context_view_actions_call_fit_and_reset(qtbot, monkeypatch) -> None:
     viewport = StructuralViewport()
     qtbot.addWidget(viewport)
+    viewport.selection.set_nodes((UUID(int=1),))
     calls: list[str] = []
+    monkeypatch.setattr(viewport, "zoom_in_select", lambda: calls.append("zoom"))
     monkeypatch.setattr(viewport, "fit_model", lambda: calls.append("fit"))
     monkeypatch.setattr(viewport, "reset_view", lambda: calls.append("reset"))
     menu = viewport._build_context_menu()
 
+    _action(menu, "Zoom in Select").trigger()
     _action(menu, "Fit Model").trigger()
     _action(menu, "Reset View").trigger()
 
-    assert calls == ["fit", "reset"]
+    assert calls == ["zoom", "fit", "reset"]

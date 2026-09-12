@@ -26,9 +26,14 @@ Primary workflow:
   packaging require a separate explicit user instruction.
 - The follow-up Crop-to-Selection report reproduced an extreme single-Node zoom and is source-fixed;
   the isolated real-PyVista smoke and 15 focused viewport/Project-save UI tests pass. Owner retest
-  after restarting the source app is pending. The Save Blocked screenshot matches the intentional
-  First Save restriction unless it followed Open Project JSON; that action sequence needs
-  confirmation before changing save-path behavior.
+  after restarting the source app is pending. The owner now explicitly requests any-folder Project
+  JSON First Save/Save As and free destinations for user-facing save actions; STRICT/Full TDD is
+  approved, and implementation is queued until the viewport checkpoint is reviewed.
+- The 2026-09-12 marquee request now has separate **Crop to Select** and **Zoom in Select** controls;
+  13 non-renderer event/action/geometry tests pass, Ruff and strict mypy pass. The isolated VTK smoke was
+  not verified because this runtime reported an OpenGL pixel-format error followed by a Python
+  Application Error. Save-path changes are STRICT-approved but are queued until the viewport
+  checkpoint is accepted; no save behavior or package was changed.
 - A legacy integration test briefly generated a transient `0.2.0` RBZ during the first full-suite
   run; that file was removed. Its test fixtures now stay under `.tmp/tests`, and the existing
   ignored `build/sketchup/stage/` source copies were refreshed by that run and left in place.
