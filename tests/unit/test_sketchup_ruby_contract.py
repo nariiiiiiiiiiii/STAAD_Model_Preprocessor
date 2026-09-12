@@ -38,8 +38,23 @@ def test_ruby_extension_uses_public_sketchup_api_and_neutral_source_space_contra
     assert "Select either Data/Inbox/SketchUp or artifacts/sketchup_bridge/inbox." not in exporter
     assert "dialog_ready" in exporter
     assert "DOMContentLoaded" in exporter
-    assert "SP_#{now.strftime('%Y%m%d_%H%M%S')}" in exporter
+    assert "source_file = model.path.to_s" in exporter
+    assert "source_file = model.title.to_s.empty? ? 'Untitled.skp' : model.title.to_s" in exporter
+    assert "'source_file' => source_file" in exporter
+    assert "next_output_path(inbox, payload['source_file'])" in exporter
+    assert "def safe_source_stem(source_file)" in exporter
+    assert r"source_file.to_s.tr('\\\\', '/')" in exporter
+    assert "filename = File.basename(normalized_path)" in exporter
+    assert "extension = File.extname(filename)" in exporter
+    assert "stem = File.basename(filename, extension)" in exporter
+    assert r'''stem.gsub(/[<>:"\/\\|?*\x00-\x1F]/, '_')''' in exporter
+    assert "stem.strip.gsub(/[. ]+\\z/, '')" in exporter
+    assert "COM[1-9]|LPT[1-9]" in exporter
+    assert "return 'Untitled' if stem.empty?" in exporter
+    assert 'base = "#{safe_source_stem(source_file)}_#{now.strftime(\'%d%m%Y\')}"' in exporter
     assert "File.exist?(candidate)" in exporter
+    assert "format('%s_%02d.json', base, index)" in exporter
+    assert "SP_#{now.strftime('%Y%m%d_%H%M%S')}" not in exporter
     assert "SecureRandom" not in exporter
 
     forbidden = ("sketchup_z_up_to_staad_y_up", "STAAD(", "http://", "https://", "SketchUpAPI")

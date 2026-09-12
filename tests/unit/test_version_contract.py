@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from staadprep import __version__ as package_version
 from staadprep.version import __version__, validate_release_version
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -23,7 +24,8 @@ def _ruby_extension_version() -> str:
 def test_canonical_version_drives_project_metadata_and_sketchup_extension() -> None:
     pyproject = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
 
-    assert __version__ == "0.1.0"
+    assert __version__ == "0.2.0"
+    assert package_version == __version__
     assert pyproject["project"]["dynamic"] == ["version"]
     assert "version" not in pyproject["project"]
     assert pyproject["tool"]["setuptools"]["dynamic"]["version"] == {
@@ -39,4 +41,4 @@ def test_release_version_rejects_blank_or_path_separators(value: str) -> None:
 
 
 def test_release_version_accepts_semantic_version() -> None:
-    assert validate_release_version("0.1.0") == "0.1.0"
+    assert validate_release_version("0.2.0") == "0.2.0"

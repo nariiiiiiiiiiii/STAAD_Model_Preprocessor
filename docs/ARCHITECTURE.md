@@ -2,7 +2,7 @@
 
 Keep the application fast to develop, safe to edit, and easy to patch without coupling file formats, viewport interaction, canonical topology, or STAAD export logic together.
 
-Current implementation checkpoint (2026-09-01): all agreed post-T22 source behavior, the latest
+Accepted package checkpoint (historical, 2026-09-01): agreed post-T22 source behavior, the latest
 portable package, and T23 target acceptance are user accepted. T24 cleanup is complete, including
 the recoverable DEL quarantine and post-move verification. The canonical post-T24 file and RBZ
 relationship map is docs/WORKTREE_MINDMAP.md; this document remains the subsystem-boundary view.
@@ -20,6 +20,17 @@ Future optional: `.skp` -> T14 native C-SDK helper -> Neutral JSON v1 -> same sh
 
 The 3D viewer never becomes the source of truth. It emits interaction intent and previews; commands mutate the canonical model only on commit.
 
+## Active source follow-up — 2026-09-12
+
+The source contract is at `0.2.0`; the accepted portable artifact remains `0.1.0`. Project JSON
+Open is path-unrestricted after explicit user selection, and Save targets the opened file while a
+new project's first Save stays in its Projects directory. Issue Console can emit multiple selected
+issues; `quick_fix_batch.py` validates the selection and typed mutation footprints before returning
+one `CompositeRepair` to `RepairHistory`. Conflicting/stale/unsupported batches fail closed.
+`CROSSING_WITHOUT_NODE` reuses the existing split-at-intersection command. The batch topology
+behavior was approved for STRICT / Full TDD and source-verified; release build and manual user
+acceptance remain pending.
+
 ## Layers
 
 ### 1. UI layer
@@ -31,7 +42,8 @@ Responsibilities:
 - Properties panel,
 - Validation panel,
 - Quick Fix panel,
-- Issue Console,
+- Issue Console with extended multi-row selection,
+- multi-issue Quick Fix preflight and summary,
 - status/model summary,
 - Create Node / Repeat / numbering preview dialogs,
 - edit-mode controls,
@@ -149,8 +161,24 @@ Manual-editing additions include:
 - atomic `CompositeRepair`
 - reversible numbering commands wrapping T12
 - explicit member-start/direction commands wrapping T11 reversal semantics.
+- `quick_fix_batch.py` maps fresh selected issues to reversible commands, computes typed mutation
+  footprints, rejects overlap, and composes accepted independent work into one `CompositeRepair`.
 
 Every successful mutation records sufficient before/after state for audit and undo. Multi-step operations such as create-node+member, split-at-intersection, or Translational Repeat commit as one atomic history item.
+
+Multi-issue Quick Fix follows a read-only planning phase before the Apply/OK dialog:
+
+```text
+IssueConsole.selected_issues
+ -> MainWindow preflight against current model/validation
+ -> quick_fix_batch maps each supported issue to a command
+ -> typed Node/Member footprints reject stale/overlapping batches
+ -> CompositeRepair -> RepairHistory/audit -> one Apply/OK transaction
+```
+
+`CROSSING_WITHOUT_NODE` reuses `build_split_selected_intersection`; this orchestration adds no
+intersection geometry or detection logic. A valid batch is one history/audit command with exact
+Undo/Redo; planner errors never partially mutate the model.
 
 Selection deletion is built by `build_delete_selection`: selected Members are removed before
 explicitly selected Nodes, while any Node retaining an unselected incidence is rejected. Selected-

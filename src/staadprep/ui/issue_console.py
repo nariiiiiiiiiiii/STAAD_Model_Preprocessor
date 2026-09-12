@@ -20,6 +20,7 @@ from staadprep.validation.issues import Issue, IssueSeverity, IssueType
 
 class IssueConsole(QFrame):
     issue_selected = Signal(str)
+    issues_selected = Signal(object)
     isolate_requested = Signal(str)
 
     def __init__(self, parent: QWidget | None = None) -> None:
@@ -59,20 +60,27 @@ class IssueConsole(QFrame):
         self.table.verticalHeader().setVisible(False)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self.table.setSelectionMode(QTableWidget.SelectionMode.ExtendedSelection)
         self.table.itemSelectionChanged.connect(self._on_selection_changed)
         layout.addWidget(self.table, 1)
 
     @property
+    def selected_issues(self) -> tuple[Issue, ...]:
+        issues: list[Issue] = []
+        rows = sorted(index.row() for index in self.table.selectionModel().selectedRows())
+        for row in rows:
+            item = self.table.item(row, 0)
+            if item is None:
+                continue
+            issue = self._by_id.get(str(item.data(Qt.ItemDataRole.UserRole)))
+            if issue is not None:
+                issues.append(issue)
+        return tuple(issues)
+
+    @property
     def selected_issue(self) -> Issue | None:
-        rows = self.table.selectionModel().selectedRows()
-        if not rows:
-            return None
-        item = self.table.item(rows[0].row(), 0)
-        if item is None:
-            return None
-        issue_id = item.data(Qt.ItemDataRole.UserRole)
-        return self._by_id.get(str(issue_id))
+        selected = self.selected_issues
+        return selected[0] if len(selected) == 1 else None
 
     def set_issues(self, issues: list[Issue] | tuple[Issue, ...]) -> None:
         signals_were_blocked = self.table.blockSignals(True)
@@ -98,7 +106,13 @@ class IssueConsole(QFrame):
         for row in range(self.table.rowCount()):
             item = self.table.item(row, 0)
             if item is not None and item.data(Qt.ItemDataRole.UserRole) == issue_id:
+                signals_were_blocked = self.table.blockSignals(True)
+                self.table.clearSelection()
                 self.table.selectRow(row)
+                self.table.setCurrentCell(row, 0)
+                self.table.blockSignals(signals_were_blocked)
+                if not signals_were_blocked:
+                    self._on_selection_changed()
                 return
         raise KeyError(f"Issue {issue_id} is not visible in the current filter")
 
@@ -108,38 +122,44 @@ class IssueConsole(QFrame):
             self.isolate_requested.emit(issue.id)
 
     def _rebuild_table(self, *_args: object) -> None:
-        selected_id = self.selected_issue.id if self.selected_issue is not None else None
+        selected_ids = {issue.id for issue in self.selected_issues}
         filter_value = self.severity_filter.currentText()
         visible = [
             issue
             for issue in self._issues
             if filter_value == "ALL" or issue.severity.value == filter_value
         ]
-        self.table.setRowCount(len(visible))
-        for row, issue in enumerate(visible):
-            values = (
-                issue.severity.value,
-                issue.type.value,
-                issue.description,
-                issue.suggested_actions[0] if issue.suggested_actions else "Inspect",
-            )
-            for column, value in enumerate(values):
-                item = QTableWidgetItem(value)
-                if column == 0:
-                    item.setData(Qt.ItemDataRole.UserRole, issue.id)
-                self.table.setItem(row, column, item)
-        if selected_id is not None and selected_id in self._by_id:
-            try:
-                self.select_issue(selected_id)
-            except KeyError:
-                pass
+        signals_were_blocked = self.table.blockSignals(True)
+        try:
+            self.table.clearSelection()
+            self.table.setCurrentCell(-1, -1)
+            self.table.setRowCount(len(visible))
+            for row, issue in enumerate(visible):
+                values = (
+                    issue.severity.value,
+                    issue.type.value,
+                    issue.description,
+                    issue.suggested_actions[0] if issue.suggested_actions else "Inspect",
+                )
+                for column, value in enumerate(values):
+                    item = QTableWidgetItem(value)
+                    if column == 0:
+                        item.setData(Qt.ItemDataRole.UserRole, issue.id)
+                    self.table.setItem(row, column, item)
+                if issue.id in selected_ids:
+                    self.table.selectRow(row)
+        finally:
+            self.table.blockSignals(signals_were_blocked)
         self._update_isolate_button()
+        if not signals_were_blocked:
+            self._on_selection_changed()
 
     def _on_selection_changed(self) -> None:
-        issue = self.selected_issue
+        issues = self.selected_issues
         self._update_isolate_button()
-        if issue is not None:
-            self.issue_selected.emit(issue.id)
+        self.issues_selected.emit(issues)
+        if len(issues) == 1:
+            self.issue_selected.emit(issues[0].id)
 
     def _update_isolate_button(self) -> None:
         issue = self.selected_issue

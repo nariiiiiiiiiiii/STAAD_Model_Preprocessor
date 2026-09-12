@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from math import sqrt
 from uuid import UUID
 
@@ -247,6 +248,7 @@ class PropertiesPanel(SectionPanel):
         self.content = QLabel("Selected entity\n\nType —\nID —\nLocation —")
         self.content.setObjectName("muted_label")
         self.content.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.content.setWordWrap(True)
         self.body_layout.addWidget(self.content, 1)
 
     def set_issue(self, issue: Issue | None) -> None:
@@ -259,6 +261,19 @@ class PropertiesPanel(SectionPanel):
             f"ID {issue.id}\nLocation {location}\n"
             f"Entities {len(issue.entity_keys)}"
         )
+
+    def set_issue_summary(self, issues: tuple[Issue, ...]) -> None:
+        if not issues:
+            self.set_issue(None)
+            return
+        if len(issues) == 1:
+            self.set_issue(issues[0])
+            return
+        counts = Counter(issue.type.value for issue in issues)
+        details = "\n".join(
+            f"{issue_type} {count}" for issue_type, count in sorted(counts.items())
+        )
+        self.content.setText(f"Selected issues\n\n{len(issues)} issues selected\n{details}")
 
     @staticmethod
     def _number(value: int | None) -> str:
@@ -358,6 +373,7 @@ class QuickFixPanel(SectionPanel):
         IssueType.ZERO_LENGTH_MEMBER,
         IssueType.SHORT_MEMBER,
         IssueType.DUPLICATE_MEMBER,
+        IssueType.CROSSING_WITHOUT_NODE,
     }
 
     def __init__(self, parent: QWidget | None = None) -> None:
@@ -365,6 +381,7 @@ class QuickFixPanel(SectionPanel):
         self.setObjectName("quick_fix_panel")
         self.selected_label = QLabel("Select an issue to inspect available actions")
         self.selected_label.setObjectName("muted_label")
+        self.selected_label.setWordWrap(True)
         self.body_layout.addWidget(self.selected_label)
 
         self.apply_button = QPushButton("Apply Selected Fix")
@@ -385,9 +402,37 @@ class QuickFixPanel(SectionPanel):
             self.selected_label.setText("Select an issue to inspect available actions")
             self.apply_button.setEnabled(False)
             return
-        action_text = issue.suggested_actions[-1] if issue.suggested_actions else "Inspect"
+        action_text = (
+            "Split at Intersection"
+            if issue.type is IssueType.CROSSING_WITHOUT_NODE
+            else issue.suggested_actions[-1] if issue.suggested_actions else "Inspect"
+        )
         self.selected_label.setText(action_text)
         self.apply_button.setEnabled(issue.type in self.SUPPORTED_TYPES)
+
+    def set_issues(
+        self,
+        issues: tuple[Issue, ...],
+        *,
+        can_apply: bool,
+        error: str | None = None,
+    ) -> None:
+        if not issues:
+            self.set_issue(None)
+            return
+        if len(issues) == 1 and error is None:
+            self.set_issue(issues[0])
+            self.apply_button.setEnabled(can_apply)
+            return
+        counts = Counter(issue.type.value for issue in issues)
+        details = ", ".join(
+            f"{issue_type} × {count}" for issue_type, count in sorted(counts.items())
+        )
+        summary = f"{len(issues)} issues selected: {details}"
+        if error is not None:
+            summary = f"{summary}\nCannot apply together: {error}"
+        self.selected_label.setText(summary)
+        self.apply_button.setEnabled(can_apply and error is None)
 
     def set_history_state(self, *, can_undo: bool, can_redo: bool) -> None:
         self.undo_button.setEnabled(can_undo)

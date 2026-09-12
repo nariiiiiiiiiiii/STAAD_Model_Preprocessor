@@ -55,7 +55,9 @@ def test_serialized_project_uses_schema_version_one(tmp_path: Path) -> None:
     assert '"schema_version": 1' in text
 
 
-def test_atomic_project_save_round_trips_exact_model_and_cleans_temp(tmp_path: Path) -> None:
+def test_atomic_project_save_round_trips_exact_model_and_uses_sibling_temp(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     node_a = Node.new(Vec3(1.0, 2.0, 3.0), source_refs=("source:a",))
     node_b = Node.new(Vec3(4.0, 5.0, 6.0), source_refs=("source:b",))
     node_a.number = 21
@@ -69,12 +71,23 @@ def test_atomic_project_save_round_trips_exact_model_and_cleans_temp(tmp_path: P
         revision=9,
     )
     target = tmp_path / "Projects" / "sample.staadprep.json"
-    temp_dir = tmp_path / "Temp"
+    replaced_source: Path | None = None
+    real_replace = serialization_module.os.replace
 
-    save_project_atomic(model, target, temp_dir=temp_dir)
+    def record_replace(source: Path, destination: Path) -> None:
+        nonlocal replaced_source
+        replaced_source = source
+        assert source.parent == destination.parent
+        real_replace(source, destination)
+
+    monkeypatch.setattr(serialization_module.os, "replace", record_replace)
+
+    save_project_atomic(model, target)
 
     assert load_project(target) == model
-    assert list(temp_dir.glob("*.tmp")) == []
+    assert replaced_source is not None
+    assert replaced_source.parent == target.parent
+    assert list(target.parent.glob(".staadprep-*.tmp")) == []
 
 
 def test_atomic_project_save_preserves_existing_destination_when_replace_fails(
@@ -84,7 +97,6 @@ def test_atomic_project_save_preserves_existing_destination_when_replace_fails(
     target.parent.mkdir(parents=True)
     target.write_bytes(b"existing-project-bytes\n")
     before = target.read_bytes()
-    temp_dir = tmp_path / "Temp"
     model = ProjectModel(metadata=ModelMetadata(), revision=3)
 
     def fail_replace(_source: Path, _destination: Path) -> None:
@@ -93,7 +105,7 @@ def test_atomic_project_save_preserves_existing_destination_when_replace_fails(
     monkeypatch.setattr(serialization_module.os, "replace", fail_replace)
 
     with pytest.raises(OSError, match="replace failed"):
-        save_project_atomic(model, target, temp_dir=temp_dir)
+        save_project_atomic(model, target)
 
     assert target.read_bytes() == before
-    assert list(temp_dir.glob("*.tmp")) == []
+    assert list(target.parent.glob(".staadprep-*.tmp")) == []

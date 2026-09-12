@@ -26,3 +26,18 @@ def test_windows_build_keeps_all_outputs_project_local() -> None:
     assert text.index("$env:NUITKA_CACHE_DIR = $CacheRoot") < text.index("-m nuitka --version")
     assert "$env:TEMP = $TempRoot" in text
     assert "$env:TMP = $TempRoot" in text
+
+
+def test_windows_build_generates_and_embeds_the_selected_brand_icon() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+
+    branding_assignment = (
+        '$BrandingAsset = Join-Path $ProjectRoot '
+        '"assets\\branding\\staad-model-preprocessor.png"'
+    )
+    assert branding_assignment in text
+    assert '$IconPath = Join-Path $BuildRoot "staad-model-preprocessor.ico"' in text
+    assert "& $Python $IconBuilder --source $BrandingAsset --output $IconPath" in text
+    assert '"--windows-icon-from-ico=$IconPath"' in text
+    assert '"--include-data-files=$BrandingAsset=branding/staad-model-preprocessor.png"' in text
+    assert text.index("& $Python $IconBuilder") < text.index("& $Python @NuitkaArgs")

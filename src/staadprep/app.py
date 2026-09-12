@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import cast
 
 from PySide6.QtCore import QTimer
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from staadprep.packaged_smoke import run_packaged_workflow_smoke
@@ -20,6 +21,23 @@ from staadprep.viewer.demo import build_demo_frame
 from staadprep.viewer.widget import StructuralViewport
 
 
+def resolve_application_icon() -> Path | None:
+    """Find the executable-adjacent packaged logo or the source-tree branding asset."""
+    icon_relative_path = Path("branding") / "staad-model-preprocessor.png"
+    executable_icon = Path(sys.executable).resolve().parent / icon_relative_path
+    source_icon = (
+        Path(__file__).resolve().parents[2]
+        / "assets"
+        / "branding"
+        / "staad-model-preprocessor.png"
+    )
+
+    for candidate in (executable_icon, source_icon):
+        if candidate.is_file():
+            return candidate
+    return None
+
+
 def create_application() -> QApplication:
     """Return the process QApplication, creating and styling it when needed."""
     existing = QApplication.instance()
@@ -28,6 +46,9 @@ def create_application() -> QApplication:
     app.setApplicationName("STAAD Model Preprocessor")
     app.setApplicationVersion(__version__)
     app.setOrganizationName("STAAD Model Preprocessor")
+    icon_path = resolve_application_icon()
+    if icon_path is not None:
+        app.setWindowIcon(QIcon(str(icon_path)))
     app.setStyle("Fusion")
     app.setStyleSheet(APP_STYLESHEET)
     return app

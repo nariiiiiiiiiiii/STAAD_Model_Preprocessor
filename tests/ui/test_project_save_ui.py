@@ -41,7 +41,7 @@ def test_project_actions_expose_open_save_and_ctrl_s(qtbot, tmp_path: Path) -> N
 def test_first_save_uses_import_file_stem_and_explicit_saved_state(
     qtbot, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    paths = ProjectPaths.from_root(tmp_path / "project")
+    paths = ProjectPaths.from_runtime_root(tmp_path / "Portable App" / "Data")
     window = MainWindow(viewport_factory=RecordingViewport, project_paths=paths)
     qtbot.addWidget(window)
     model = ProjectModel(metadata=ModelMetadata(source_file=r"D:\Models\ABC-123.dxf"))
@@ -64,6 +64,28 @@ def test_first_save_uses_import_file_stem_and_explicit_saved_state(
     assert not window.has_unsaved_changes()
     assert window.windowTitle().endswith("ABC-123 - SAVED")
     assert "*" not in window.windowTitle()
+
+
+def test_first_save_rejects_destination_outside_projects(
+    qtbot, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    paths = ProjectPaths.from_root(tmp_path / "project")
+    window = MainWindow(viewport_factory=RecordingViewport, project_paths=paths)
+    qtbot.addWidget(window)
+    window.set_canonical_model(ProjectModel(metadata=ModelMetadata(source_file="new.dxf")))
+    outside = tmp_path / "outside.staadprep.json"
+    monkeypatch.setattr(
+        QFileDialog,
+        "getSaveFileName",
+        lambda *_args: (str(outside), "Project JSON (*.staadprep.json)"),
+    )
+    monkeypatch.setattr(QMessageBox, "warning", lambda *_args: None)
+
+    assert not window.save_current_project()
+    assert not outside.exists()
+    assert window._current_project_path is None
+    assert window.has_unsaved_changes()
+    assert "Projects" in window.statusBar().currentMessage()
 
 
 def test_save_action_ctrl_s_path_requires_confirmation(
@@ -124,7 +146,7 @@ def test_save_mutate_and_exact_undo_tracks_saved_revision(qtbot, tmp_path: Path)
     assert "*" not in window.windowTitle()
 
 
-def test_open_project_json_round_trips_and_rejects_escape(qtbot, tmp_path: Path) -> None:
+def test_open_project_json_from_any_folder_and_save_back(qtbot, tmp_path: Path) -> None:
     paths = ProjectPaths.from_root(tmp_path / "project")
     source = MainWindow(viewport_factory=RecordingViewport, project_paths=paths)
     qtbot.addWidget(source)
@@ -145,5 +167,25 @@ def test_open_project_json_round_trips_and_rejects_escape(qtbot, tmp_path: Path)
 
     outside = tmp_path / "outside.staadprep.json"
     outside.write_text(target.read_text(encoding="utf-8"), encoding="utf-8")
-    with pytest.raises(ValueError, match="Projects"):
-        reopened.open_project_json(outside)
+    loaded_external = reopened.open_project_json(outside)
+
+    assert loaded_external == source.current_model
+    assert reopened._current_project_path == outside.resolve()
+    assert not reopened.has_unsaved_changes()
+
+    assert reopened.repair_history is not None
+    reopened.repair_history.execute(CreateNode(Vec3(1.0, 2.0, 3.0)))
+    reopened._refresh_after_mutation()
+    assert reopened.has_unsaved_changes()
+    assert reopened.save_current_project()
+    assert reopened._current_project_path == outside.resolve()
+    assert load_project(outside) == reopened.current_model
+    assert not reopened.has_unsaved_changes()
+
+    invalid = tmp_path / "invalid.staadprep.json"
+    invalid.write_text('{"schema_version": 999}', encoding="utf-8")
+    saved_model = reopened.current_model
+    with pytest.raises(ValueError, match="Unsupported schema version"):
+        reopened.open_project_json(invalid)
+    assert reopened.current_model == saved_model
+    assert reopened._current_project_path == outside.resolve()

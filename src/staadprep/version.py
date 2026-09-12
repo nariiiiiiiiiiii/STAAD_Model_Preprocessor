@@ -11,4 +11,4 @@ def validate_release_version(value: str) -> str:
     return normalized
 
 
-__version__ = validate_release_version("0.1.0")
+__version__ = validate_release_version("0.2.0")

@@ -114,9 +114,15 @@ User must be able to fix issues inside the app:
 - reverse member incidence,
 - scale model,
 - transform coordinate system,
-- undo/redo repair commands.
+- undo/redo repair commands;
+- apply several selected supported Quick Fix issues in one atomic, auditable, undoable batch;
+- reject unsupported, stale, or overlapping issue selections before any model mutation;
+- route `CROSSING_WITHOUT_NODE` Quick Fix through the existing intersection-split command without
+  adding or changing intersection detection/math.
 
 Every repair operation must be explicit, reversible, auditable, and re-run affected validation.
+One accepted batch is represented by one `CompositeRepair` history/audit operation; one Undo
+restores the exact pre-batch graph and revision.
 
 ### Manual analytical model editing
 

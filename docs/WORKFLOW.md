@@ -1,6 +1,6 @@
 ## A. User workflow — V1
 
-Current checkpoint (2026-09-01): all agreed source behavior is user accepted and full source
+Accepted package checkpoint (historical, 2026-09-01): agreed source behavior was user accepted and full source
 verification is complete. The user explicitly authorized compile step 1 and Nuitka produced a fresh
 standalone build. `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/` remains historical; portable assembly and ZIP
 creation are complete under `dist/post-t22-refresh-save-final/`. Package-only verification is
@@ -8,8 +8,23 @@ creation are complete under `dist/post-t22-refresh-save-final/`. Package-only ve
 T26 then moved regenerable `.tmp`/`.cache` contents and 22 historical clean worktrees into
 `DEL/t26-storage-cleanup-20260901/`; deletion remains user-controlled.
 T27 allows explicit user-selected SketchUp input/output locations and STD export destinations outside
-the project; implicit runtime paths and Project JSON remain project-local. The updated package is
+the project; implicit runtime paths remain project-local. Project JSON may now be opened from any folder and saved back to that path; first Save for a new model remains in the default Projects area. The accepted package is
 assembled under `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/`.
+
+### Active source follow-up — 2026-09-12
+
+The approved source version is `0.2.0`; source checkpoints cover SKP-stem/date JSON names, the
+selected application icon, free Project JSON Open with Save-back, and multi-issue Quick Fix with
+existing intersection splitting. STRICT / Full TDD was approved and completed for the topology
+batch. Current source evidence is **345 unit+integration passed**, **1 skipped**, **3 package gates
+deselected**, and **26/26 affected UI passed**, with Ruff and strict mypy clean. The accepted
+portable package remains `0.1.0`; no new RBZ or Windows executable is retained. User testing and
+separate compile/package authorization remain pending.
+
+A legacy integration test briefly generated a transient `0.2.0` RBZ; the file was removed. It also
+refreshed pre-existing ignored `build/sketchup/stage/` copies, which remain in place. The RBZ/package
+fixtures have since been changed so ordinary full-suite runs do not write build artifacts.
+
 
 ```text
 1. Open project
@@ -115,16 +130,15 @@ Severity:
 ## E. Issue repair workflow
 
 ```text
-Issue Console row
- -> click issue
- -> zoom/highlight
- -> show properties/context
- -> recommended actions
+Issue Console row(s)
+ -> select one issue or several issue rows
+ -> highlight the selected entities; show one issue or a multi-issue summary
+ -> preflight current issues and typed mutation footprints
+ -> fail closed before mutation if any selected fix is unsupported, stale, or overlapping
  -> user chooses Quick Fix or Manual Edit
- -> execute Repair/Edit Command
- -> record audit
- -> revalidate affected scope
- -> refresh issue/status
+ -> one Apply/OK dialog executes one CompositeRepair for an accepted batch
+ -> one audit/history operation; one Undo restores the complete pre-batch graph
+ -> revalidate and refresh the issue/status/viewport
 ```
 
 Examples:
@@ -434,3 +448,18 @@ No file is deleted by T24. A candidate with uncertain ownership/reference remain
 - The package-only verification suite was run after the user authorized step 3: **7/7 PASS**.
   Nuitka compilation, portable assembly, and ZIP creation completed under
   `dist/post-t22-refresh-save-final/`; real package acceptance is **PASS** (2026-08-31).
+
+## P. Project JSON Open/Save workflow
+
+```text
+Open Project JSON
+ -> start in the default Projects directory
+ -> user may navigate to and select any valid JSON file
+ -> parse and validate the project schema
+ -> retain the selected path
+ -> Save writes back to that selected file through a sibling atomic temp file
+```
+
+First Save for a new or imported model remains in the default Projects directory (`Data/Projects/`
+in the portable app; the project-local Projects directory in development). External Open/Save
+behavior is source-verified; package acceptance awaits a separately authorized build.

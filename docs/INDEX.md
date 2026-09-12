@@ -1,6 +1,6 @@
 # STAAD Model Preprocessor — Project Index
 
-Last synchronized: **2026-09-01**
+Last synchronized: **2026-09-12**
 
 This file is the navigation and synchronization index for the project. It records which checkout contains the live task, where the authoritative handoff is, which artifacts exist, and which Markdown files must be updated at task checkpoints.
 
@@ -50,12 +50,14 @@ complete; final documentation synchronization and commit are next.
 
 The active T22 handoff is [`task-22-portable-packaging/docs/HANDOFF.md`](D:/Dizayn59/CLICodex/gpt_mcp_workshop/STAAD_Model_Preprocessor/.worktrees/task-22-portable-packaging/docs/HANDOFF.md). The root `master` checkout contains T21 plus the T22 plan; the active T22 implementation is isolated in the dedicated worktree.
 
+Next usability follow-up: **SOURCE VERIFIED; USER/PACKAGE ACCEPTANCE PENDING**. CP1–CP5 implement source version `0.2.0`, owner-confirmed SketchUp JSON naming, the selected Qt/executable icon, unrestricted Project JSON Open with Save-back, and STRICT multi-issue Quick Fix/intersection routing. Evidence: **345 unit+integration PASS**, **1 RBZ archive test skipped**, **3 portable-executable gates deselected**, **26/26 affected UI PASS**, Ruff PASS, strict mypy **0 issues** for four source files, and diff check PASS. The accepted package remains `0.1.0`; no `0.2.0` executable/RBZ/ZIP remains, so development-app, real SketchUp, and package acceptance are pending. A legacy test briefly generated a transient RBZ, which was removed; the fixture tests no longer build under `build/`.
+
 ## T22 final checkpoint
 
 ### Completed
 
 - Portable runtime root and `Data/` path policy; packaged paths do not use launch CWD.
-- Application/package/SketchUp version contract: `0.1.0`.
+- Application/package/SketchUp version contract at this accepted T22 package checkpoint: `0.1.0` (the current source follow-up has since approved `0.2.0`; see status above).
 - Deterministic SketchUp `.rbz` builder and portable SketchUp inbox support.
 - Portable assembler, manual-update contract, ZIP/manifest/hash logic.
 - Source-level T21 workflow smoke: import → repair/manual path → renumber → READY → `.STD` + validation report.
@@ -173,10 +175,12 @@ Markdown synchronization audit (2026-08-31): all **28** source Markdown files pl
 - [`superpowers/plans/2026-08-31-project-explorer-entity-selection.md`](superpowers/plans/2026-08-31-project-explorer-entity-selection.md) — accepted Project Explorer entity inventory and selection wiring, included in the accepted portable package.
 - [`superpowers/plans/2026-09-01-worktree-mindmap.md`](superpowers/plans/2026-09-01-worktree-mindmap.md) — plan and completion record for the post-T24 map.
 - [`superpowers/plans/2026-09-06-free-user-selected-paths.md`](superpowers/plans/2026-09-06-free-user-selected-paths.md) — source/package plan for unrestricted explicit SketchUp and STD destinations.
+- [`superpowers/plans/2026-09-12-sketchup-naming-logo-json-open-batched-quick-fix.md`](superpowers/plans/2026-09-12-sketchup-naming-logo-json-open-batched-quick-fix.md) — CP1–CP5 source-verified; owner decisions, STRICT evidence, test gates, and pre-compile handoff recorded.
 - [`WORKTREE_MINDMAP.md`](WORKTREE_MINDMAP.md) — current complete worktree, source/test/build/package, and deep RBZ relationship map.
 - [`superpowers/specs/2026-08-30-post-t22-editing-corrections-design.md`](superpowers/specs/2026-08-30-post-t22-editing-corrections-design.md) — approved correction behavior and STRICT graph contracts.
 - [`superpowers/specs/2026-08-31-post-t22-refresh-properties-save-design.md`](superpowers/specs/2026-08-31-post-t22-refresh-properties-save-design.md) — binding follow-up design and new HR-2 approval gate.
 - [`superpowers/specs/2026-09-06-free-user-selected-paths-spec.md`](superpowers/specs/2026-09-06-free-user-selected-paths-spec.md) — explicit user-selected path boundary and preserved runtime path contracts.
+- [`superpowers/specs/2026-09-12-sketchup-naming-logo-json-open-batched-quick-fix.md`](superpowers/specs/2026-09-12-sketchup-naming-logo-json-open-batched-quick-fix.md) — approved version/name/icon/Open-Save/batch contracts and remaining user/package acceptance boundaries.
 - [`superpowers/specs/2026-08-31-project-explorer-entity-selection-design.md`](superpowers/specs/2026-08-31-project-explorer-entity-selection-design.md) — Node/Member row ordering, select-one/select-all, and no-mutation contract.
 - [`superpowers/specs/2026-08-28-staad-model-preprocessor-design.md`](superpowers/specs/2026-08-28-staad-model-preprocessor-design.md) — approved V1 design.
 - [`superpowers/specs/2026-08-28-manual-model-editing-design.md`](superpowers/specs/2026-08-28-manual-model-editing-design.md) — approved manual-editing design.

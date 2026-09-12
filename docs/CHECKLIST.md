@@ -385,3 +385,20 @@ Create/complete at minimum:
 - [x] Preserve project-local Project JSON and application-managed runtime path contracts.
 - [x] Run source regressions, Ruff, strict mypy, and package gates before release assembly.
 - [x] Compile/package the updated standalone and archive the previous accepted package/build/RBZ in DEL.
+
+## 2026-09-12 source follow-up — CP1–CP5
+
+- [x] Sync approved source version `0.2.0` across canonical Python, package metadata/export, and SketchUp loader.
+- [x] Name SketchUp JSON from safe SKP stem plus local `DDMMYYYY`; preserve source metadata and collision suffixes.
+- [x] Copy the selected logo byte-identically; verify Qt app icon and Windows build-contract wiring; generate 7-size ICO.
+- [x] Open Project JSON from any selected folder; Save back to the opened path; keep first Save in the default Projects folder.
+- [x] Obtain explicit STRICT / Full TDD approval for multi-issue Quick Fix/intersection.
+- [x] Add conflict-checked batch planning, extended selection, existing intersection splitter route, CompositeRepair audit/history, and exact Undo/Redo coverage.
+- [x] Verify **345 unit+integration PASS**, **1 skipped** (RBZ archive acceptance requires an explicit RBZ build), **3 deselected** (portable-executable gates require an explicit `0.2.0` package), and **26/26 affected UI PASS**; Ruff and strict mypy pass.
+- [x] Update the RBZ/portable fixture tests so ordinary integration testing does not build an RBZ or release package in `build/` or `dist/`.
+- [ ] User manually accepts the uncompiled development app and SketchUp handoff after an authorized RBZ build.
+- [ ] User separately authorizes Nuitka/RBZ/portable package build and then package acceptance.
+
+Incident record: an earlier full-suite run invoked the legacy RBZ builder test and created a transient
+`0.2.0` RBZ. That single file was removed; the existing `0.1.0` RBZ/package was retained. The builder
+also refreshed pre-existing ignored `build/sketchup/stage/` copies; those files were left in place.

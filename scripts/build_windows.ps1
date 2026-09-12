@@ -9,6 +9,9 @@ $SourceRoot = Join-Path $ProjectRoot "src"
 $BuildRoot = Join-Path $ProjectRoot "build\windows\final"
 $TempRoot = Join-Path $ProjectRoot ".tmp\nuitka"
 $CacheRoot = Join-Path $ProjectRoot ".cache\nuitka"
+$BrandingAsset = Join-Path $ProjectRoot "assets\branding\staad-model-preprocessor.png"
+$IconPath = Join-Path $BuildRoot "staad-model-preprocessor.ico"
+$IconBuilder = Join-Path $PSScriptRoot "build_windows_icon.py"
 
 if (-not $IsWindows) {
     throw "T22 Windows package build requires Windows."
@@ -53,6 +56,15 @@ if ($LASTEXITCODE -ne 0 -or -not $Version) {
 $Version = $Version.Trim()
 $WindowsVersion = if (($Version.Split('.')).Count -eq 3) { "$Version.0" } else { $Version }
 
+if (-not (Test-Path -LiteralPath $BrandingAsset -PathType Leaf)) {
+    throw "Application branding image is missing: $BrandingAsset"
+}
+
+& $Python $IconBuilder --source $BrandingAsset --output $IconPath
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to generate the Windows application icon."
+}
+
 $NuitkaArgs = @(
     "-m", "nuitka",
     "--mode=standalone",
@@ -67,6 +79,8 @@ $NuitkaArgs = @(
     "--file-description=STAAD Model Preprocessor",
     "--file-version=$WindowsVersion",
     "--product-version=$WindowsVersion",
+    "--windows-icon-from-ico=$IconPath",
+    "--include-data-files=$BrandingAsset=branding/staad-model-preprocessor.png",
     "--include-package=staadprep",
     "--include-package-data=pyvista",
     (Join-Path $SourceRoot "staadprep\app.py")

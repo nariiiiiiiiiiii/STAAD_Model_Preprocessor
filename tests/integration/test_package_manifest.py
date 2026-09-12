@@ -11,7 +11,6 @@ from staadprep.version import __version__
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ASSEMBLER = PROJECT_ROOT / "scripts" / "assemble_portable.py"
-RBZ_BUILDER = PROJECT_ROOT / "scripts" / "build_sketchup_rbz.py"
 
 
 def _sha256(path: Path) -> str:
@@ -20,6 +19,22 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _write_rbz_fixture(tmp_path: Path) -> Path:
+    source_root = PROJECT_ROOT / "extensions" / "sketchup_staadprep"
+    rbz = tmp_path / "input-rbz" / f"STAAD_Prep_Bridge_{__version__}.rbz"
+    rbz.parent.mkdir(parents=True)
+    with zipfile.ZipFile(rbz, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr(
+            "staadprep_loader.rb",
+            (source_root / "staadprep_loader.rb").read_bytes(),
+        )
+        archive.writestr(
+            "staadprep/exporter.rb",
+            (source_root / "staadprep" / "exporter.rb").read_bytes(),
+        )
+    return rbz
 
 
 def _assemble_fixture(tmp_path: Path) -> tuple[Path, Path]:
@@ -31,15 +46,7 @@ def _assemble_fixture(tmp_path: Path) -> tuple[Path, Path]:
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "platforms.dll").write_bytes(b"fake-plugin")
 
-    rbz_result = subprocess.run(
-        [sys.executable, str(RBZ_BUILDER)],
-        cwd=PROJECT_ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert rbz_result.returncode == 0, rbz_result.stderr or rbz_result.stdout
-    rbz = PROJECT_ROOT / "build" / "sketchup" / f"STAAD_Prep_Bridge_{__version__}.rbz"
+    rbz = _write_rbz_fixture(tmp_path)
 
     dist_root = tmp_path / "dist"
     result = subprocess.run(
@@ -104,15 +111,7 @@ def test_assembler_refuses_to_overwrite_existing_release(tmp_path: Path) -> None
     standalone.mkdir()
     (standalone / "STAAD Model Preprocessor.exe").write_bytes(b"fake-exe")
 
-    rbz_result = subprocess.run(
-        [sys.executable, str(RBZ_BUILDER)],
-        cwd=PROJECT_ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert rbz_result.returncode == 0, rbz_result.stderr or rbz_result.stdout
-    rbz = PROJECT_ROOT / "build" / "sketchup" / f"STAAD_Prep_Bridge_{__version__}.rbz"
+    rbz = _write_rbz_fixture(tmp_path)
 
     dist_root = tmp_path / "dist"
     existing = dist_root / f"STAAD_Model_Preprocessor_{__version__}_win64_portable"

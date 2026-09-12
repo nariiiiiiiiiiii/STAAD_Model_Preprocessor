@@ -1,7 +1,7 @@
 # STAAD Model Preprocessor — Worktree Mindmap
 
-Status: **ACTIVE POST-T26 STORAGE CLEANUP MAP**
-Generated: 2026-09-01
+Status: **ACTIVE T22 WORKTREE — CP1–CP5 SOURCE VERIFIED; USER/PACKAGE ACCEPTANCE PENDING**
+Generated: 2026-09-12
 Branch: `task/22-portable-packaging`
 T24 checkpoint: `chore: quarantine unused project files for review`
 Canonical root: `D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`
@@ -23,6 +23,7 @@ group rules and T25/T26 audit counts.
 | T25 storage audit | Move complete; space deletion pending user | `DEL/UNUSED_FILES_MANIFEST.md`, `artifacts/cleanup/storage-audit-20260901.md` |
 | T26 storage cleanup | Move + standalone smoke verified; space deletion pending user | `DEL/t26-storage-cleanup-20260901/` |
 | T27 free user-selected paths | Source + package gates complete; user package acceptance pending | `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/`, `docs/HANDOFF.md` |
+| Post-T27 CP1–5 | Version/name/icon/Open/Save/Quick Fix source verified; package remains 0.1.0 | `docs/HANDOFF.md`, `docs/INDEX.md`; no 0.2.0 release artifacts |
 | Post-T26 mindmap | Active/current | this document |
 
 T24 performed one recoverable move only:
@@ -58,6 +59,12 @@ flowchart TD
     BUILD["build/windows/final Nuitka output"]
     DIST["dist/post-t22-refresh-save-final accepted package"]
     DATA["package-local Data/ state"]
+    ISSUES["IssueConsole multi-selection"]
+    BATCH["repair/quick_fix_batch typed preflight"]
+    HISTORY["CompositeRepair + RepairHistory/audit"]
+    BRAND["assets/branding/staad-model-preprocessor.png"]
+    ICONBUILD["scripts/build_windows_icon.py"]
+    ICO["build/windows/icon-checkpoint-20260912/ multi-size ICO"]
     DEL["DEL/ recoverable quarantine"]
 
     ROOT --> DOCS
@@ -68,12 +75,19 @@ flowchart TD
     NATIVE -.expects.-> VENDOR
     EXT -->|build_sketchup_rbz.py| RBZ
     SRC -->|build_windows.ps1| BUILD
+    BRAND --> ICONBUILD
+    ICONBUILD --> ICO
+    ICONBUILD --> BUILD
     BUILD -->|assemble_portable.py| DIST
     RBZ -->|bundled extension| DIST
     DIST --> DATA
     EXT -->|Neutral JSON v1| DATA
     DATA -->|Import SketchUp JSON| SRC
     SRC -->|tests and smoke scripts| TESTS
+    SRC --> ISSUES
+    ISSUES --> BATCH
+    BATCH --> HISTORY
+    HISTORY --> SRC
     DOCS -->|contracts and workflows| SRC
     DIST -.superseded sibling.-> DEL
     DEL -->|manifest and restore path| DOCS
@@ -88,6 +102,7 @@ SketchUp Ruby Bridge or Direct DXF
   -> topology.builder (coincident registry -> Node/Member graph)
   -> validators / connected structures / ReadyGate
   -> repair/edit commands + RepairHistory + audit
+  -> IssueConsole selected issues -> quick_fix_batch preflight -> CompositeRepair/history
   -> orientation/local-X normalization
   -> deterministic numbering
   -> validated STAAD .STD + report
@@ -103,8 +118,8 @@ not own topology or permanently mutate geometry. Model mutations pass through re
 
 | File | Role | Main edges |
 |---|---|---|
-| `src/staadprep/app.py` | PySide6 entrypoint | `MainWindow`, paths, demo, viewport, packaged smoke |
-| `src/staadprep/version.py` | canonical version `0.1.0` | RBZ builder, Windows build, package manifest |
+| `src/staadprep/app.py` | PySide6 entrypoint and Qt icon resolver | `MainWindow`, paths, demo, viewport, packaged smoke |
+| `src/staadprep/version.py` | canonical source version `0.2.0`; accepted package remains `0.1.0` | RBZ builder, Windows build, package manifest |
 | `src/staadprep/paths.py` | development path service | `.tmp`, `.cache`, `.logs`, `artifacts`, `build`, `dist`, `vendor` |
 | `src/staadprep/portable_paths.py` | compiled portable path service | executable-root `Data/` hierarchy and environment |
 | `src/staadprep/packaged_smoke.py` | packaged workflow driver | UI import/edit/READY/export smoke |
@@ -154,6 +169,7 @@ member endpoint UUID references must remain valid through edits and renumbering.
 | `src/staadprep/validation/__init__.py` | validation package boundary | imports |
 | `src/staadprep/repair/commands.py` | reversible graph/coordinate commands | all mutations |
 | `src/staadprep/repair/composite.py` | atomic multi-command transaction | repeat, auto-fix-all, compound edits |
+| `src/staadprep/repair/quick_fix_batch.py` | current-issue planning and typed conflict footprints | IssueConsole/MainWindow, existing repair commands |
 | `src/staadprep/repair/history.py` | undo/redo and revision tracking | UI and audit |
 | `src/staadprep/repair/audit.py` | validation/audit report writer | acceptance evidence |
 | `src/staadprep/repair/__init__.py` | repair package boundary | imports |
@@ -187,9 +203,9 @@ member endpoint UUID references must remain valid through edits and renumbering.
 | `src/staadprep/viewer/widget.py` | PyVista/VTK rendering, picking, highlights, camera, previews | editing commands and MainWindow signals |
 | `src/staadprep/viewer/demo.py` | deterministic demo frame | app startup and UI smoke |
 | `src/staadprep/viewer/__init__.py` | viewer package boundary | imports |
-| `src/staadprep/ui/main_window.py` | authoritative UI orchestration | import, selection, Properties, dialogs, history, Save/Open, exit |
-| `src/staadprep/ui/panels.py` | Explorer, Properties, summary, validation, quick-fix panels | MainWindow |
-| `src/staadprep/ui/issue_console.py` | issue table/filter/actions | validators and repair |
+| `src/staadprep/ui/main_window.py` | authoritative UI orchestration | import, selection/batch preflight, Properties, dialogs, history, Save/Open, exit |
+| `src/staadprep/ui/panels.py` | Explorer, Properties/multi-issue summary, validation, quick-fix panels | MainWindow |
+| `src/staadprep/ui/issue_console.py` | issue table/filter/extended row selection | validators and quick-fix batch planner |
 | `src/staadprep/ui/model_controls.py` | toolbar/ribbon and enabled-state wiring | modes, numbering, direction, view |
 | `src/staadprep/ui/create_node_dialog.py` | exact/relative/repeat/member-repeat dialogs | editing specs/proposals |
 | `src/staadprep/ui/repair_apply_dialog.py` | Apply-before-OK contract | destructive actions and refresh |
@@ -198,7 +214,7 @@ member endpoint UUID references must remain valid through edits and renumbering.
 
 ## 5. SketchUp RBZ deep map
 
-The current RBZ is a deterministic ZIP archive with exactly two members. There are no external
+The accepted T22 RBZ (`0.1.0`) is a deterministic ZIP archive with exactly two members. There are no external
 HTML/CSS/JS assets; the HtmlDialog UI is embedded in `exporter.rb`.
 
 ```mermaid
@@ -227,12 +243,12 @@ flowchart LR
 ### 5.1 RBZ build and loader flow
 
 ```text
-src/staadprep/version.py
-  -> build_sketchup_rbz.py reads __version__ = 0.1.0
-  -> validates EXTENSION.version in loader
+src/staadprep/version.py currently defines source __version__ = 0.2.0
+  -> build_sketchup_rbz.py validates EXTENSION.version in loader
   -> stages only build/sketchup/stage/
-  -> writes sorted fixed-timestamp ZIP
-  -> build/sketchup/STAAD_Prep_Bridge_0.1.0.rbz
+  -> if explicitly executed, writes a version-matched sorted fixed-timestamp ZIP
+  -> current source output name would be STAAD_Prep_Bridge_0.2.0.rbz
+  -> accepted T22 RBZ/package remains 0.1.0; no 0.2.0 RBZ is retained
   -> SketchUp loads staadprep_loader.rb
   -> SketchupExtension.new('STAAD Prep Bridge', 'staadprep/exporter')
   -> SketchUp resolves staadprep/exporter.rb
@@ -315,9 +331,9 @@ RBZ evidence files:
 
 - `tests/unit/test_sketchup_ruby_contract.py` checks source strings, forbidden coupling, both inbox paths, and export semantics.
 - `tests/unit/test_version_contract.py` checks Ruby loader version against Python version.
-- `tests/integration/test_rbz_package.py` checks exact archive members, version, and project-local staging.
+- `tests/integration/test_rbz_package.py` checks an already-built archive and skips if none exists; it never invokes the RBZ builder.
 - `tests/integration/test_sketchup_ruby_pipeline.py` checks Neutral JSON through the shared pipeline.
-- `tests/integration/test_package_manifest.py` checks RBZ bundling into the folder/ZIP/manifest.
+- `tests/integration/test_package_manifest.py` checks portable assembly using an RBZ fixture written under pytest `.tmp/tests`.
 
 ## 6. Native SketchUp boundary
 
@@ -343,7 +359,7 @@ flowchart LR
     PS[scripts/build_windows.ps1] --> NUITKA[Nuitka standalone build]
     NUITKA --> WINBUILD[build/windows/final]
     WINBUILD --> ASSEMBLE[scripts/assemble_portable.py]
-    RBZBUILD[scripts/build_sketchup_rbz.py] --> RBZ[build/sketchup/STAAD_Prep_Bridge_0.1.0.rbz]
+    RBZBUILD[scripts/build_sketchup_rbz.py] --> RBZ[version-matched RBZ; accepted package is 0.1.0]
     ASSEMBLE --> PACKAGE[dist/post-t22-refresh-save-final]
     RBZ --> PACKAGE
     PACKAGE --> MANIFEST[package-manifest.json + SHA-256]
@@ -362,6 +378,11 @@ flowchart LR
 | Runtime smoke | src/staadprep/packaged_smoke.py | verify packaged imports/paths | post-build acceptance |
 | Current release | dist/post-t22-refresh-save-final/ | accepted folder package | user testing |
 | Current release archive | current T22 ZIP artifact | transportable package copy | handoff and checksum verification |
+
+The app branding asset is copied byte-for-byte from `LOGO/ChatGPT Image Sep 12, 2026, 06_17_26 PM.png`.
+`scripts/build_windows_icon.py` uses development-only Pillow to generate a 16/24/32/48/64/128/256 ICO
+under `build/`; `build_windows.ps1` passes that ICO to Nuitka and includes the PNG beside the EXE
+for the Qt application icon. The checkpoint ICO is a source-test artifact, not a compiled release.
 
 ### 7.2 Portable package contract
 
@@ -430,11 +451,11 @@ flowchart TD
 - tests/integration/test_canonical_topology_pipeline.py — canonical topology and pipeline behavior.
 - tests/integration/test_dxf_reader.py — DXF reader integration.
 - tests/integration/test_full_pipeline.py — end-to-end source pipeline.
-- tests/integration/test_package_manifest.py — package manifest, hashes, RBZ inclusion.
+- tests/integration/test_package_manifest.py — portable manifest fixture using a temporary RBZ; no build output.
 - tests/integration/test_packaged_paths.py — portable path and relocation contract.
 - tests/integration/test_packaged_workflow_smoke.py — packaged workflow smoke.
 - tests/integration/test_raw_dxf_preview.py — raw DXF preview path.
-- tests/integration/test_rbz_package.py — exact RBZ package members and version.
+- tests/integration/test_rbz_package.py — archive/version/name contract; skips without an explicitly built current RBZ.
 - tests/integration/test_sketchup_ruby_pipeline.py — neutral JSON through shared pipeline.
 
 #### UI tests
@@ -446,7 +467,7 @@ flowchart TD
 - tests/ui/test_export_ui.py — export UI behavior.
 - tests/ui/test_import_routes.py — import route selection.
 - tests/ui/test_inference_viewport.py — viewport inference interaction.
-- tests/ui/test_issue_console.py — issue console display.
+- tests/ui/test_issue_console.py — extended issue selection, highlights, and batch preflight UI.
 - tests/ui/test_issue_repair_smoke.py — issue/repair UI smoke.
 - tests/ui/test_main_window.py — main window contract.
 - tests/ui/test_manual_edit_mouse.py — mouse editing interaction.
@@ -466,7 +487,7 @@ flowchart TD
 - tests/ui/test_project_save_ui.py — JSON save UI.
 - tests/ui/test_ready_gate_ui.py — READY gate UI.
 - tests/ui/test_repair_apply_dialog.py — repair apply dialog.
-- tests/ui/test_repair_apply_refresh.py — repair refresh behavior.
+- tests/ui/test_repair_apply_refresh.py — single/multi Quick Fix Apply/OK refresh, Undo/Redo, and stale selection.
 - tests/ui/test_repair_apply_refresh_vtk.py — VTK repair refresh.
 - tests/ui/test_selection_properties.py — selected entity properties.
 - tests/ui/test_set_direction_viewport.py — direction tool viewport.
@@ -495,6 +516,7 @@ flowchart TD
 - tests/unit/test_manual_edit_commands.py — manual edit commands.
 - tests/unit/test_manual_edit_roundtrip.py — edit roundtrip.
 - tests/unit/test_manual_split_ops.py — split operations.
+- tests/unit/test_quick_fix_batch.py — strict planner, intersection, footprints, conflict rejection, and rollback.
 - tests/unit/test_member_local_axes.py — member local axes.
 - tests/unit/test_member_translational_repeat.py — member repeat.
 - tests/unit/test_merge_members.py — member merge.
@@ -536,7 +558,8 @@ flowchart TD
 - tests/unit/test_viewer_palette.py — viewer palette.
 - tests/unit/test_viewport_camera_contract.py — camera contract.
 - tests/unit/test_viewport_display_coordinates.py — display coordinates.
-- tests/unit/test_windows_build_contract.py — Windows build contract.
+- tests/unit/test_windows_build_contract.py — Windows icon/build-option contract.
+- tests/unit/test_windows_icon_builder.py — PNG validation and multi-size ICO generation.
 
 #### Golden fixtures and expected outputs
 
@@ -568,6 +591,7 @@ outputs are documented separately in Section 10.
 - DEL/UNUSED_FILES_MANIFEST.md — T24 quarantine manifest and recoverability record.
 - README.md — user-facing project overview and current status.
 - pyproject.toml — Python package metadata, dependencies, tools, and test configuration.
+- assets/branding/staad-model-preprocessor.png — byte-identical tracked application logo.
 
 ### 9.2 Core documentation
 
@@ -604,6 +628,8 @@ outputs are documented separately in Section 10.
 - docs/superpowers/specs/2026-08-30-post-t22-usability-design.md — usability design.
 - docs/superpowers/specs/2026-08-31-post-t22-refresh-properties-save-design.md — refresh/properties/save design.
 - docs/superpowers/specs/2026-08-31-project-explorer-entity-selection-design.md — explorer selection design.
+- docs/superpowers/plans/2026-09-12-sketchup-naming-logo-json-open-batched-quick-fix.md — CP1–CP5 source follow-up plan and pre-compile gate.
+- docs/superpowers/specs/2026-09-12-sketchup-naming-logo-json-open-batched-quick-fix.md — version, naming, icon, Open/Save, and STRICT batch contracts.
 
 ### 9.4 Bridge, native boundary, packaging, and scripts
 
@@ -617,7 +643,8 @@ outputs are documented separately in Section 10.
 - packaging/UPDATE_MANUAL.md — manual update instructions.
 - scripts/assemble_portable.py — portable folder/ZIP assembly.
 - scripts/build_sketchup_rbz.py — deterministic RBZ builder.
-- scripts/build_windows.ps1 — Windows/Nuitka build contract.
+- scripts/build_windows.ps1 — Windows/Nuitka icon and build contract.
+- scripts/build_windows_icon.py — project-local multi-size ICO generator.
 - scripts/run_dev.ps1 — source development launcher.
 - scripts/smoke_dxf_preview.py — DXF preview smoke helper.
 - scripts/smoke_issue_repair.py — issue repair smoke helper.
@@ -688,6 +715,7 @@ outputs are documented separately in Section 10.
 - src/staadprep/repair/audit.py — repair/audit records.
 - src/staadprep/repair/commands.py — explicit repair commands.
 - src/staadprep/repair/composite.py — grouped repair commands.
+- src/staadprep/repair/quick_fix_batch.py — supported issue mapping and fail-closed multi-fix planning.
 - src/staadprep/repair/history.py — undo/redo history.
 
 #### Topology, units, and validation
@@ -706,10 +734,10 @@ outputs are documented separately in Section 10.
 
 - src/staadprep/ui/__init__.py — UI package surface.
 - src/staadprep/ui/create_node_dialog.py — precision node dialog.
-- src/staadprep/ui/issue_console.py — issue console.
-- src/staadprep/ui/main_window.py — main window and action routing.
+- src/staadprep/ui/issue_console.py — issue console with extended multi-issue selection and signals.
+- src/staadprep/ui/main_window.py — main window and single/batch issue action routing.
 - src/staadprep/ui/model_controls.py — model/project explorer controls.
-- src/staadprep/ui/panels.py — properties, summary, and panel composition.
+- src/staadprep/ui/panels.py — properties, multi-issue summary, and panel composition.
 - src/staadprep/ui/repair_apply_dialog.py — Apply/OK repair dialog.
 - src/staadprep/ui/theme.py — dark engineering theme.
 - src/staadprep/viewer/__init__.py — viewer package surface.
@@ -814,6 +842,7 @@ Interpretation:
 | selection/highlight/navigation | viewer/selection.py, viewer/interaction.py, viewer/widget.py | selection/navigation UI tests | STANDARD |
 | Properties/project explorer | ui/panels.py, ui/model_controls.py, ui/main_window.py | properties/explorer/save tests | STANDARD |
 | repair dialog/refresh | ui/repair_apply_dialog.py, ui/main_window.py, repair/* | repair refresh and orphan regression tests | topology mutation; assess STRICT gate |
+| multi-issue Quick Fix/intersection | repair/quick_fix_batch.py, ui/issue_console.py, ui/panels.py, ui/main_window.py | planner, conflict, rollback, and UI batch tests | HIGH-RISK; explicit STRICT approval required |
 | create/delete/split/merge/repeat | editing/manual_ops.py, repair/history.py, model project boundary | focused unit/UI regression | high-risk topology; approval gate applies |
 | import conversion | importers/pipeline.py, units/transforms.py, topology/builder.py | independent coordinate/topology checks | HIGH-RISK; STRICT approval required |
 | .STD output | exporters/staad_std.py, ready gate | golden .std + independent check | HIGH-RISK; STRICT approval required |
@@ -828,7 +857,7 @@ high-risk analytical or topology change, stop at the approval gate before touchi
 
 ## 13. Completion notes and known limits
 
-This mindmap records the current worktree as of 2026-09-01. It is a navigation and handoff aid,
+This mindmap records the current worktree as of 2026-09-12. It is a navigation and handoff aid,
 not a replacement for source code, tests, the package manifest, or the current handoff.
 
 Completed and accepted:
@@ -838,13 +867,25 @@ Completed and accepted:
 - T24 inventory, reference scan, recoverable quarantine, and post-move package regression.
 - RBZ source/archive/callback/JSON handoff mapping in Section 5.
 
+Post-T27 CP1–CP5 source follow-up is **SOURCE VERIFIED / USER ACCEPTANCE PENDING**:
+- source version `0.2.0`, SKP-stem/date JSON names, selected icon, external Project JSON Open/Save,
+  and STRICT multi-issue Quick Fix/intersection source behavior are implemented;
+- verification: **345 unit+integration PASS**, **1 skipped**, **3 portable-package gates deselected**,
+  **26/26 affected UI PASS**, Ruff PASS, strict mypy **0 issues** in four source files;
+- the accepted package remains `0.1.0`; no `0.2.0` exe/RBZ/portable archive is retained.
+
+Build-test side effect: an initial integration run created a transient `0.2.0` RBZ via a legacy
+test; it was removed. Existing ignored `build/sketchup/stage/` files were refreshed by that
+builder and left in place. RBZ/package integration fixtures now stay under `.tmp/tests`.
+
+
 Not implied by this document:
 
 - installation of STAAD.Pro on this machine;
 - a native SketchUp SDK reader being compiled or enabled;
 - an installer, auto-updater, or one-file executable being supported;
 - structural analysis or design-code calculation validation;
-- a new source compile or package rebuild after this documentation-only change.
+- a `0.2.0` executable/RBZ/portable package being built or accepted by this source checkpoint.
 
 The authoritative next action after this documentation checkpoint remains whatever the user
 explicitly selects in the current handoff/task board. This document does not silently start T25 or

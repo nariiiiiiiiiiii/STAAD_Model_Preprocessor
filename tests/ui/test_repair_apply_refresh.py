@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict
 from uuid import UUID
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import QItemSelectionModel, Qt, Signal
 from PySide6.QtWidgets import QWidget
 
 from staadprep.model.entities import Member, Node
@@ -343,3 +343,56 @@ def test_multiple_orphan_quick_fixes_clear_stale_row_and_can_repeat(qtbot) -> No
     ) == 1
     window.undo_repair()
     assert _graph(model) == before
+
+
+def test_multi_issue_quick_fix_is_one_apply_undo_redo_batch(qtbot) -> None:
+    viewport = RefreshViewport()
+    model = _orphan_model()
+    model.nodes[_key(51)] = Node(_key(51), Vec3(30.0, 0.0, 0.0), number=51)
+    before = _graph(model)
+    observed: list[tuple[int, int, int]] = []
+    window = MainWindow(
+        viewport_factory=lambda: viewport,
+        repair_dialog_runner=_apply_then_ok_runner(qtbot, model, observed),
+    )
+    qtbot.addWidget(window)
+    window.set_canonical_model(model)
+    orphans = [
+        issue for issue in window.current_issues if issue.type is IssueType.ORPHAN_NODE
+    ]
+    assert len(orphans) == 2
+
+    window.issue_console.select_issue(orphans[0].id)
+    second_row = next(
+        row
+        for row in range(window.issue_console.table.rowCount())
+        if window.issue_console.table.item(row, 0).data(Qt.ItemDataRole.UserRole)
+        == orphans[1].id
+    )
+    window.issue_console.table.selectionModel().select(
+        window.issue_console.table.model().index(second_row, 0),
+        QItemSelectionModel.SelectionFlag.Select | QItemSelectionModel.SelectionFlag.Rows,
+    )
+    assert len(window.issue_console.selected_issues) == 2
+
+    window.apply_selected_quick_fix()
+
+    after = _graph(model)
+    assert _key(50) not in model.nodes
+    assert _key(51) not in model.nodes
+    assert observed == [(before[2] + 2, 1, 1), (before[2] + 2, 1, 1)]
+    assert window.repair_history is not None
+    assert len(window.repair_history.undo_stack) == 1
+    assert len(window.repair_history.audit.entries) == 1
+    assert window.repair_history.audit.entries[0].command_type == "CompositeRepair"
+    assert len(window.repair_history.audit.entries[0].parameters["children"]) == 2
+    assert window.issue_console.selected_issues == ()
+    assert window.repair_action.isEnabled() is False
+
+    window.undo_repair()
+    assert _graph(model) == before
+    assert sum(issue.type is IssueType.ORPHAN_NODE for issue in window.current_issues) == 2
+
+    window.redo_repair()
+    assert _graph(model) == after
+    assert not any(issue.type is IssueType.ORPHAN_NODE for issue in window.current_issues)

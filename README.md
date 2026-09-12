@@ -10,6 +10,20 @@ Primary workflow:
 
 ## Current status
 
+- **Latest source follow-up (2026-09-12):** owner-approved app/package source version is `0.2.0`.
+  SketchUp export naming, selected logo integration, unrestricted Project JSON Open with Save-back,
+  and multi-issue Quick Fix/intersection routing are source-verified. The high-risk batch scope
+  received explicit STRICT / Full TDD approval.
+- Focused strict evidence: **345 unit+integration passed**, **1 skipped** (archive-level RBZ test
+  awaits an explicitly built package), **3 portable-executable gates deselected** (the `0.2.0`
+  executable is not built), and **26/26 affected UI tests passed**; Ruff and strict mypy pass.
+- The accepted portable release remains `0.1.0`; no `0.2.0` executable/RBZ/ZIP is available or
+  accepted. Real SketchUp export and development-app manual acceptance remain pending. Compile and
+  release packaging require a separate explicit user instruction.
+- A legacy integration test briefly generated a transient `0.2.0` RBZ during the first full-suite
+  run; that file was removed. Its test fixtures now stay under `.tmp/tests`, and the existing
+  ignored `build/sketchup/stage/` source copies were refreshed by that run and left in place.
+
 - T01-T13 complete; deterministic minimal `.STD` geometry export is implemented.
 - T14 complete: isolated SKP process bridge, neutral protocol v1, capability probe, native CMake/C++ scaffold, and fail-soft DXF fallback UI.
 - T15 complete: lightweight SketchUp Ruby Extension -> Neutral JSON v1 -> shared T06/T07 canonical import; Direct DXF remains an independent first-class route.

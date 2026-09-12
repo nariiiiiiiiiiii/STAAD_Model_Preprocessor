@@ -287,7 +287,7 @@ module StaadPrepBridge
 
   def write_atomic(inbox, payload)
     FileUtils.mkdir_p(inbox)
-    final_path = next_output_path(inbox)
+    final_path = next_output_path(inbox, payload['source_file'])
     temp_path = "#{final_path}.tmp"
 
     File.open(temp_path, 'wb') do |file|
@@ -301,8 +301,23 @@ module StaadPrepBridge
     File.delete(temp_path) if defined?(temp_path) && temp_path && File.exist?(temp_path)
   end
 
-  def next_output_path(inbox, now = Time.now)
-    base = "SP_#{now.strftime('%Y%m%d_%H%M%S')}"
+  def safe_source_stem(source_file)
+    normalized_path = source_file.to_s.tr('\\\\', '/')
+    filename = File.basename(normalized_path)
+    extension = File.extname(filename)
+    stem = File.basename(filename, extension)
+    stem = stem.gsub(/[<>:"\/\\|?*\x00-\x1F]/, '_')
+    stem = stem.strip.gsub(/[. ]+\z/, '')
+    return 'Untitled' if stem.empty?
+
+    if stem.match?(/\A(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])\z/i)
+      stem = "_#{stem}"
+    end
+    stem
+  end
+
+  def next_output_path(inbox, source_file, now = Time.now)
+    base = "#{safe_source_stem(source_file)}_#{now.strftime('%d%m%Y')}"
     candidate = File.join(inbox, "#{base}.json")
     index = 2
     while File.exist?(candidate)

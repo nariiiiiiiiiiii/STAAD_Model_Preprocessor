@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from PySide6.QtWidgets import QApplication
 
 from staadprep.ui.panels import ViewportPlaceholder
@@ -45,3 +47,41 @@ def test_application_factory_reuses_qapplication() -> None:
     assert isinstance(app, QApplication)
     assert app.applicationVersion() == __version__
     assert create_application() is app
+
+
+def test_application_and_window_use_the_selected_brand_icon(qtbot) -> None:
+    from staadprep.app import create_application, resolve_application_icon
+    from staadprep.ui.main_window import MainWindow
+
+    expected_icon = (
+        Path(__file__).resolve().parents[2]
+        / "assets"
+        / "branding"
+        / "staad-model-preprocessor.png"
+    )
+    icon_path = resolve_application_icon()
+    app = create_application()
+
+    assert icon_path == expected_icon
+    assert icon_path is not None and icon_path.is_file()
+    assert app.windowIcon().isNull() is False
+
+    window = MainWindow(viewport_factory=ViewportPlaceholder)
+    qtbot.addWidget(window)
+    assert window.windowIcon().isNull() is False
+
+
+def test_application_icon_resolver_prefers_packaged_asset(tmp_path, monkeypatch) -> None:
+    from staadprep import app as app_module
+
+    executable_dir = tmp_path / "portable"
+    packaged_icon = executable_dir / "branding" / "staad-model-preprocessor.png"
+    packaged_icon.parent.mkdir(parents=True)
+    packaged_icon.touch()
+    monkeypatch.setattr(
+        app_module.sys,
+        "executable",
+        str(executable_dir / "STAAD Model Preprocessor.exe"),
+    )
+
+    assert app_module.resolve_application_icon() == packaged_icon

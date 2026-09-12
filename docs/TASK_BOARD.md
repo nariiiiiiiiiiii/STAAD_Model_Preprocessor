@@ -1,6 +1,6 @@
 Execution policy: **run exactly one Task at a time**. Every Task must end with its verification, Git commit, documentation/status update, and a hard stop for user review before the next Task begins.
 
-Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 through HR-4 on 2026-08-28. Manual Editing + SketchUp-style controls and SketchUp Ruby Bridge + Direct DXF V1 import architecture approved on 2026-08-28. Post-T22 HR-2 Delete/Merge/Member-Repeat correction scope explicitly approved on 2026-08-30.**
+Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 through HR-4 on 2026-08-28. Manual Editing + SketchUp-style controls and SketchUp Ruby Bridge + Direct DXF V1 import architecture approved on 2026-08-28. Post-T22 HR-2 Delete/Merge/Member-Repeat correction scope explicitly approved on 2026-08-30. Multi-issue Quick Fix/intersection batch explicitly approved STRICT on 2026-09-12.**
 
 | Task | Deliverable | Risk | Status |
 |---|---|---|---|
@@ -29,6 +29,7 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T23 | Real-project acceptance + target STAAD.Pro verification | **STRICT acceptance** | **COMPLETE / PASS** (user-tested 2026-09-01) |
 | T24 | Post-acceptance unused-file audit + quarantine to project-local `DEL/` | STANDARD | **COMPLETE** |
 | T25 | Full project storage recheck + approved old package/build quarantine | STANDARD | **MOVE COMPLETE; SPACE DELETION PENDING USER** |
+| Post-T27 CP1–5 | version/name/icon/Project JSON/batched Quick Fix source follow-up | STANDARD; CP5 STRICT/HR-2 | **SOURCE VERIFIED; app/package acceptance pending** |
 
 ## Operational rules
 
@@ -95,7 +96,7 @@ Final verified state:
 - `git diff --check`: passed;
 - feature commit: `bddd177` — `test: verify end-to-end clean model readiness`.
 
-## Current Task
+## Current accepted package baseline — T22
 
 **T22 — Portable Standalone Windows Packaging** is **COMPLETE** on `task/22-portable-packaging`.
 
@@ -201,3 +202,11 @@ does not start T23.
 - Nuitka standalone compile completed (`mode=standalone`, `completion=yes`); package gates **9/9 PASS**.
 - Previous accepted package/build/RBZ were moved to `DEL/t27-free-path-selection-20260906/old-release/`;
   no old artifact was deleted.
+
+## 2026-09-12 Post-T27 usability follow-up — CP1–5
+
+- Owner approved source version `0.2.0`; the accepted portable package remains `0.1.0`.
+- Source changes cover model/date SketchUp JSON names, the selected application icon, unrestricted Project JSON Open with Save-back, and strict multi-issue Quick Fix/intersection handling.
+- The user approved STRICT / Full TDD for CP5. Verification: **345 unit+integration passed**, **1 skipped** (RBZ archive absent), **3 package-launch tests deselected** (no `0.2.0` executable), **26/26 affected UI passed**, Ruff passed, strict mypy 0 issues in four affected source files, and diff check passed.
+- No final RBZ, Nuitka executable, portable folder, or ZIP is accepted. Real development-app/SketchUp acceptance and compile/package authorization remain pending.
+- Incident record: the first full suite invoked a legacy RBZ builder test and generated a transient `0.2.0` RBZ; that file was removed. The test harness now uses `.tmp/tests` fixtures instead. Existing ignored `build/sketchup/stage/` copies were refreshed by the transient run and left in place.

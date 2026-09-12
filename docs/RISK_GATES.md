@@ -2,7 +2,7 @@
 
 Verification policy: risk-based.
 
-Current gate state (2026-08-31): the explicitly approved post-T22 HR-2 correction scope completed
+Historical gate state (2026-08-31): the explicitly approved post-T22 HR-2 correction scope completed
 STRICT source verification and its source behavior is user accepted. Full source verification is
 complete; the user authorized compile step 1 and Nuitka compilation completed successfully.
 Portable assembly and ZIP creation are complete under `dist/post-t22-refresh-save-final/`;
@@ -17,6 +17,9 @@ recoverable until user deletion; no new implementation task is started by the cl
 T27 path-selection scope is STANDARD: it changes only explicit file/folder selection and destination
 resolution; it does not change structural calculations, topology, validation, ReadyGate, numbering,
 or `.STD` serialization. Source and package verification are recorded in `docs/HANDOFF.md`.
+
+Post-T27 source follow-up status (2026-09-12): CP1–CP5 changes are source-verified. The owner explicitly approved STRICT / Full TDD for multi-issue Quick Fix and intersection batching. Verification is **345 unit+integration PASS**, **1 RBZ archive test skipped**, **3 package-launch tests deselected** because the `0.2.0` executable/package is not built, **26/26 affected UI PASS**, Ruff PASS, strict mypy **0 issues** across four affected source files, and diff check PASS. Real app/SketchUp and package acceptance remain pending; no compile authorization was given.
+
 
 The Project Explorer entity inventory/select-one/select-all increment is STANDARD because it only
 changes UI selection/highlighting and does not execute a repair or mutate the analytical model.
@@ -149,6 +152,11 @@ Additional explicit approval was received on **2026-08-30** for the post-T22 HR-
 scope: multi-selection delete, orphan removal, Merge Members, and selected-Member Translational
 Repeat. Those changes require graph invariants, duplicate-incidence rejection, exact Undo
 round-trips, focused integration tests, and relevant regression before packaging.
+
+On **2026-09-12**, the owner also explicitly approved STRICT / Full TDD for the post-T27 multi-issue
+Quick Fix/intersection batch. Required evidence includes selection and planner regressions, overlap
+rejection, graph snapshot/rollback, exact Undo/Redo, audit/history checks, and UI refresh. This source
+approval does not authorize an RBZ/Nuitka/portable-package build.
 
 This approval applies to the scoped V1 behaviors above. If implementation discovers a new high-risk behavior outside HR-1 through HR-4, stop and request a new explicit approval before implementing that new risk area.
 

@@ -60,17 +60,17 @@ def _project_json_text(model: ProjectModel) -> str:
     return json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
 
 
-def save_project_atomic(model: ProjectModel, path: Path, *, temp_dir: Path) -> None:
+def save_project_atomic(model: ProjectModel, path: Path) -> None:
     """Atomically serialize *model* without risking a partial destination file."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temp_dir.mkdir(parents=True, exist_ok=True)
-    temp_path = temp_dir / f".{path.name}.{uuid4().hex}.tmp"
+    destination = path.expanduser().resolve()
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = destination.parent / f".staadprep-{uuid4().hex}.tmp"
     try:
-        with temp_path.open("w", encoding="utf-8", newline="\n") as stream:
+        with temp_path.open("x", encoding="utf-8", newline="\n") as stream:
             stream.write(_project_json_text(model))
             stream.flush()
             os.fsync(stream.fileno())
-        os.replace(temp_path, path)
+        os.replace(temp_path, destination)
     finally:
         temp_path.unlink(missing_ok=True)
 

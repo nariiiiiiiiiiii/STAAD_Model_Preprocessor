@@ -76,10 +76,10 @@ from staadprep.repair.commands import (
     ConnectNodes,
     DeleteMember,
     DeleteNode,
-    MergeNodes,
     RepairCommand,
 )
 from staadprep.repair.history import RepairHistory
+from staadprep.repair.quick_fix_batch import QuickFixBatchError, build_quick_fix_batch
 from staadprep.topology.connectivity import connected_components
 from staadprep.ui.create_node_dialog import (
     CreateNodeDialog,
@@ -99,7 +99,7 @@ from staadprep.ui.panels import (
     ValidationPanel,
 )
 from staadprep.ui.repair_apply_dialog import RepairApplyDialog
-from staadprep.validation.issues import Issue, IssueType
+from staadprep.validation.issues import Issue
 from staadprep.validation.ready_gate import ReadyGate, ReadyStatus
 from staadprep.validation.validators import validate_model
 from staadprep.viewer.interaction import EditMode, LabelVisibility, SelectionFilter
@@ -164,6 +164,7 @@ class MainWindow(QMainWindow):
         self.current_issues: list[Issue] = []
         self.repair_history: RepairHistory | None = None
         self._selected_issue_id: str | None = None
+        self._selected_issues: tuple[Issue, ...] = ()
         self.orientation_reverse_count = 0
         self._current_project_path: Path | None = None
         self._saved_revision: int | None = None
@@ -555,7 +556,7 @@ class MainWindow(QMainWindow):
         root_layout.addWidget(main_splitter, 1)
 
         self.issue_console = IssueConsole()
-        self.issue_console.issue_selected.connect(self._on_issue_selected)
+        self.issue_console.issues_selected.connect(self._on_issues_selected)
         self.issue_console.isolate_requested.connect(self._on_isolate_requested)
         self.issue_console.setMinimumHeight(150)
         self.issue_console.setMaximumHeight(240)
@@ -1301,7 +1302,8 @@ class MainWindow(QMainWindow):
         if self.current_model is None:
             return False
         target = self._current_project_path
-        if target is None:
+        is_first_save = target is None
+        if is_first_save:
             default_name = f"{self._project_display_name()}.staadprep.json"
             initial = self._project_paths.projects / default_name
             file_name, _ = QFileDialog.getSaveFileName(
@@ -1315,9 +1317,14 @@ class MainWindow(QMainWindow):
             target = Path(file_name)
             if not str(target).lower().endswith(".staadprep.json"):
                 target = Path(f"{target}.staadprep.json")
+        if target is None:
+            return False
         try:
-            safe_path = self._assert_project_json_path(target)
-            save_project_atomic(self.current_model, safe_path, temp_dir=self._project_paths.tmp)
+            if is_first_save:
+                safe_path = self._assert_project_json_path(target)
+            else:
+                safe_path = self._project_paths.resolve_user_selected_path(target)
+            save_project_atomic(self.current_model, safe_path)
         except (OSError, ValueError) as exc:
             self.statusBar().showMessage(f"Save Blocked: {exc}")
             QMessageBox.warning(self, "Save Blocked", str(exc))
@@ -1344,7 +1351,7 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Open Blocked", str(exc))
 
     def open_project_json(self, path: Path) -> ProjectModel:
-        safe_path = self._assert_project_json_path(path)
+        safe_path = self._project_paths.resolve_user_selected_path(path)
         model = load_project(safe_path)
         self.set_canonical_model(model)
         self._current_project_path = safe_path
@@ -1467,6 +1474,7 @@ class MainWindow(QMainWindow):
         self.current_ready_status = None
         self.repair_history = None
         self._selected_issue_id = None
+        self._selected_issues = ()
         self.issue_console.set_issues([])
         self.properties_panel.set_issue(None)
         self.quick_fix_panel.set_issue(None)
@@ -1525,6 +1533,7 @@ class MainWindow(QMainWindow):
         self.set_direction_action.setEnabled(has_members)
         self._direction_member_key = None
         self._selected_issue_id = None
+        self._selected_issues = ()
         self.refresh_validation()
         self._refresh_project_persistence_state()
 
@@ -1537,6 +1546,7 @@ class MainWindow(QMainWindow):
             self.current_issues,
         )
         self._selected_issue_id = None
+        self._selected_issues = ()
         self.issue_console.set_issues(self.current_issues)
         self.validation_panel.set_issues(self.current_issues)
         self.properties_panel.set_issue(None)
@@ -1589,16 +1599,53 @@ class MainWindow(QMainWindow):
 
     def _on_issue_selected(self, issue_id: str) -> None:
         issue = self._issue_by_id(issue_id)
-        if issue is None or self.current_model is None:
+        self._on_issues_selected((issue,) if issue is not None else ())
+
+    def _on_issues_selected(self, issues: tuple[Issue, ...]) -> None:
+        if self.current_model is None or not issues:
+            self._selected_issue_id = None
+            self._selected_issues = ()
+            self._call_viewport("highlight_nodes", ())
+            self._call_viewport("highlight_members", ())
+            self.properties_panel.set_issue_summary(())
+            self.quick_fix_panel.set_issues((), can_apply=False)
+            self.repair_action.setEnabled(False)
             return
-        self._selected_issue_id = issue.id
-        node_keys, member_keys = self._partition_entity_keys(issue.entity_keys)
-        self._call_viewport("highlight_nodes", node_keys)
-        self._call_viewport("highlight_members", member_keys)
-        self._call_viewport("focus_entities", node_keys, member_keys, issue.location)
-        self.properties_panel.set_issue(issue)
-        self.quick_fix_panel.set_issue(issue)
-        self.repair_action.setEnabled(issue.type in QuickFixPanel.SUPPORTED_TYPES)
+
+        self._selected_issues = issues
+        self._selected_issue_id = issues[0].id if len(issues) == 1 else None
+        node_keys: list[UUID] = []
+        member_keys: list[UUID] = []
+        for issue in issues:
+            issue_nodes, issue_members = self._partition_entity_keys(issue.entity_keys)
+            node_keys.extend(key for key in issue_nodes if key not in node_keys)
+            member_keys.extend(key for key in issue_members if key not in member_keys)
+
+        selected_nodes = tuple(node_keys)
+        selected_members = tuple(member_keys)
+        self._call_viewport("highlight_nodes", selected_nodes)
+        self._call_viewport("highlight_members", selected_members)
+        location = issues[0].location if len(issues) == 1 else None
+        self._call_viewport(
+            "focus_entities",
+            selected_nodes,
+            selected_members,
+            location,
+        )
+        self.properties_panel.set_issue_summary(issues)
+
+        error: str | None = None
+        try:
+            build_quick_fix_batch(
+                self.current_model,
+                issues,
+                validated_issues=self.current_issues,
+            )
+        except QuickFixBatchError as exc:
+            error = str(exc)
+        can_apply = error is None
+        self.quick_fix_panel.set_issues(issues, can_apply=can_apply, error=error)
+        self.repair_action.setEnabled(can_apply)
 
     def _on_isolate_requested(self, issue_id: str) -> None:
         issue = self._issue_by_id(issue_id)
@@ -1610,17 +1657,25 @@ class MainWindow(QMainWindow):
     def apply_selected_quick_fix(self) -> None:
         if self.current_model is None or self.repair_history is None:
             return
-        issue = self._issue_by_id(self._selected_issue_id)
-        if issue is None:
+        issues = self.issue_console.selected_issues
+        if not issues:
             return
-        command = self._command_for_issue(issue)
-        if command is None:
-            self.statusBar().showMessage("No safe predefined quick fix for this issue")
+        try:
+            command = build_quick_fix_batch(self.current_model, issues)
+        except QuickFixBatchError as exc:
+            self.statusBar().showMessage(f"Quick Fix blocked: {exc}")
+            self.quick_fix_panel.set_issues(issues, can_apply=False, error=str(exc))
+            self.repair_action.setEnabled(False)
             return
+        summary = (
+            f"Apply repair for {issues[0].type.value}?"
+            if len(issues) == 1
+            else f"Apply {len(issues)} selected quick fixes as one change?"
+        )
         self._run_repair_apply_dialog(
             command,
             title="Apply Quick Fix",
-            summary=f"Apply repair for {issue.type.value}?",
+            summary=summary,
         )
 
     def normalize_member_directions(self) -> None:
@@ -1665,28 +1720,6 @@ class MainWindow(QMainWindow):
         self.repair_history.redo()
         self.refresh_validation()
         self._refresh_project_persistence_state()
-
-    def _command_for_issue(self, issue: Issue) -> RepairCommand | None:
-        if self.current_model is None:
-            return None
-        node_keys, member_keys = self._partition_entity_keys(issue.entity_keys)
-        if (
-            issue.type
-            in {
-                IssueType.DUPLICATE_NODE,
-                IssueType.NEAR_NODE,
-                IssueType.UNCONNECTED_GAP,
-            }
-            and len(node_keys) >= 2
-        ):
-            return MergeNodes(node_keys[0], node_keys[1])
-        if issue.type is IssueType.ORPHAN_NODE and node_keys:
-            return DeleteNode(node_keys[0])
-        if issue.type in {IssueType.ZERO_LENGTH_MEMBER, IssueType.SHORT_MEMBER} and member_keys:
-            return DeleteMember(member_keys[0])
-        if issue.type is IssueType.DUPLICATE_MEMBER and len(member_keys) >= 2:
-            return DeleteMember(member_keys[-1])
-        return None
 
     def _partition_entity_keys(
         self,
