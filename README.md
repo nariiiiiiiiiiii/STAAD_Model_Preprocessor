@@ -6,10 +6,12 @@ the Node/Member model, validates readiness, and exports a STAAD `.STD` model.
 
 > **Current status (2026-09-13):** source and version-matched `0.2.0` Windows portable / SketchUp
 > RBZ artifacts have been built. The package verification gates pass **9/9**, including a
-> no-Python launch smoke after cleanup. The owner has not yet reported manual testing of this exact
-> `0.2.0` standalone build, so it remains a candidate pre-release, not a stable release. The
+> no-Python launch smoke after cleanup. The owner tested this exact `0.2.0` standalone on
+> 2026-09-13 and reports that it works well. It remains a pre-release candidate; no stable-release
+> approval has been given. The
 > [portable ZIP is available for download](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/releases/download/v0.2.0/STAAD_Model_Preprocessor_0.2.0_win64_portable.zip);
-> it is the only application asset uploaded, not the extracted folder or standalone EXE. See the
+> it is the only application asset uploaded, not the extracted folder or standalone EXE. This
+> existing ZIP predates the local license migration and has not been rebuilt or replaced. See the
 > [v0.2.0 pre-release notes](docs/RELEASE_NOTES_0.2.0.md) and [release page](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/releases/tag/v0.2.0).
 
 ## What it does
@@ -128,6 +130,18 @@ portable runtime notes are in [`packaging/README_PORTABLE.md`](packaging/README_
 
 ## License
 
-The supplied GitHub repository already has a `LICENSE` file on its `main` branch. The same file is
-preserved unchanged in this branch; no new license was selected or authored here. See
-[`LICENSE`](LICENSE).
+License: PolyForm Noncommercial 1.0.0
+
+Free for personal, educational, research, and other noncommercial use only.
+
+Commercial use is not permitted without separate written permission from the copyright holder.
+This includes work for pay, freelance or consultancy services, compensated deliverables, selling the
+software, and making commercial products from it.
+
+The official license also expressly permits use by specified organizations—including educational
+institutions and public research organizations—regardless of funding sources or obligations resulting
+from that funding. This exception is part of the license terms; review the **Noncommercial
+Organizations** section in [`LICENSE`](LICENSE), especially if you intend to prohibit every funded or
+compensated institutional use.
+
+See [`LICENSE`](LICENSE) for the complete terms and required notice.

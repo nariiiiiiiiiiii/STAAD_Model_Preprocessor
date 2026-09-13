@@ -448,7 +448,7 @@ also refreshed pre-existing ignored `build/sketchup/stage/` copies; those files 
 - [x] Replace machine-specific root paths in tracked Markdown with checkout-relative guidance.
 - [x] Complete final link/secret/path/binary/ignore/large-file/status preflight; all 46 local Markdown links resolve, no tracked binaries or files over 50 MB were found, no machine-specific checkout path or secret/key filename was found, and `git diff --check` passes.
 - [x] Commit only the reviewed docs, manifest, and portable README-template changes; leave unrelated line-ending-only test change unstaged.
-- [x] Stop before GitHub push/release. Owner manual test/acceptance of the exact compiled 0.2.0 candidate and license selection remain separate owner actions.
+- [x] Stop before GitHub push/release. The owner later reported the exact compiled 0.2.0 EXE works well (2026-09-13); stable release and T30 license commit/push remain separate owner decisions.
 
 ## T29 — Project-wide storage recheck and ZIP-only GitHub download (2026-09-13)
 
@@ -458,8 +458,8 @@ also refreshed pre-existing ignored `build/sketchup/stage/` copies; those files 
 - [x] Verify all three logo moves by checking source absence, destination presence, byte size, and SHA-256.
 - [x] Re-run focused package/RBZ tests (**5/5 PASS**), Ruff, strict mypy, and diff checks; move the 29 generated test-temp files (55,453 bytes) into the T29 quarantine.
 - [x] Keep inaccessible `.tmp/pytest` / `.cache/pytest` and the separate checkout cache because access was denied and Python processes were present; do not stop processes or change ACLs.
-- [x] Read-only inspect the supplied private repository: `main` contains only an initial README and Unlicense; no tags/releases; histories are unrelated.
-- [x] Copy the existing remote Unlicense byte-for-byte into the project branch; no new license was selected or authored.
+- [x] Read-only inspect the supplied private repository: at the T29 checkpoint, `main` contained only an initial README and its then-current LICENSE; no tags/releases; histories are unrelated.
+- [x] Copy the remote `main` LICENSE as it existed at the T29 checkpoint; the later T30 owner request superseded that license state locally.
 - [x] Select a non-destructive publication path: push this worktree as a new `task/22-portable-packaging` branch, keep `main` unchanged, and use a `v0.2.0` pre-release with the ZIP as the sole app asset.
 - [x] Push branch commit `47c0b0a` without changing `main`; publish the `v0.2.0` pre-release with only the 226,243,587-byte ZIP asset and verify GitHub's SHA-256 digest.
 - [x] Commit/push this post-publication status/link synchronization; keep the `.exe`, extracted folder, and ZIP out of normal Git history.
@@ -467,3 +467,12 @@ also refreshed pre-existing ignored `build/sketchup/stage/` copies; those files 
 - [x] Finish GitHub repository branch/tag/release inspection and select the safe ZIP-only release operation; do not add the extracted folder or binary ZIP to normal Git history.
 - [x] Complete local checks and exact commit-set review; preserve the unrelated test-file line-ending change.
 - [x] After local checks, push the source/docs branch and publish the ZIP-only pre-release; verify its remote digest. Never delete quarantine data.
+
+## T30 — PolyForm Noncommercial license migration (2026-09-13)
+
+- [x] Replace `LICENSE` with the official PolyForm Noncommercial 1.0.0 text and add the separate Required Notice.
+- [x] Align `README.md` and PEP 639 metadata in `pyproject.toml`; require setuptools 77.0.3 or newer.
+- [x] Reconcile current-status and historical docs so they no longer imply the superseded license remains current.
+- [x] Flag PolyForm's funded-organization permission in README for owner review against the intended paid-use restrictions.
+- [x] Keep all changes limited to licensing/documentation; preserve unrelated test-file changes and package artifacts.
+- [ ] Present the exact license, funded-organization exception, and local diff to the owner; do not commit or push until explicitly approved.

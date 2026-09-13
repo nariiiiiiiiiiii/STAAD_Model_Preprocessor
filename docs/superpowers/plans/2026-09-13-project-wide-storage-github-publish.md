@@ -28,9 +28,9 @@ inspection, GitHub Release asset upload if repository conventions support it.
 - Complete local audit and verification before any remote write. No delete, force push, merge, or
   remote-history overwrite.
 - Current 0.2.0 compiled package is a verified candidate; manual owner acceptance remains pending.
-- Do not invent, revise, or replace a LICENSE. The supplied remote `main` already has an Unlicense;
-  preserve that exact owner-supplied file in this branch. Do not stage the known change in
-  `tests/ui/test_manual_edit_mouse.py`.
+- At the T29 checkpoint, preserve the remote `main`'s then-current LICENSE byte-for-byte. That
+  checkpoint decision was superseded by the separate T30 owner request; do not stage the known
+  unrelated change in `tests/ui/test_manual_edit_mouse.py`.
 
 ## Task 1: Inventory the complete local project
 
@@ -71,7 +71,7 @@ repository's read-only metadata.
 ## Task 4: Inspect and publish to the supplied GitHub repository
 
 - [x] Read-only verify remote URL, default branch, existing branch, tags, and releases. The repo is
-  private; `main` has an initial README/Unlicense only, the local/remote histories are unrelated,
+  private; `main` had an initial README and its then-current LICENSE only, the local/remote histories are unrelated,
   and no feature branch, tag, or release exists. Safest route: push the existing
   `task/22-portable-packaging` branch as a new branch, leave `main` untouched, and create a
   version-matched pre-release `v0.2.0` because the owner has not manually accepted the EXE.

@@ -1,6 +1,6 @@
 # STAAD Model Preprocessor — Worktree Mindmap
 
-Status: **ACTIVE T22 WORKTREE — SOURCE AND 0.2.0 PACKAGE CANDIDATE VERIFIED; OWNER COMPILED-APP ACCEPTANCE PENDING**
+Status: **ACTIVE T22 WORKTREE — SOURCE VERIFIED; OWNER TESTED 0.2.0 EXE PASS; STABLE-RELEASE APPROVAL PENDING**
 Generated: 2026-09-13
 Branch: `task/22-portable-packaging`
 Project root: repository clone root containing `.git` and `.worktrees/` (resolve from Git metadata)
@@ -22,7 +22,7 @@ group rules; dated storage measurements are explicitly historical unless marked 
 | T27 free user-selected paths | Source and earlier 0.1.0 package gates complete | Historical detail in `docs/HANDOFF.md` |
 | Post-T27 CP1–5 + Crop/Save | Source-verified; owner reports requested source-app behavior works | `docs/HANDOFF.md` |
 | 0.2.0 package candidate | Nuitka standalone, RBZ, portable folder/ZIP built; package gates 9/9 PASS | Current 0.2.0 evidence below and `docs/HANDOFF.md` |
-| Compiled-app owner acceptance | Not yet reported for this exact 0.2.0 EXE | Owner test remains before calling it accepted/released |
+| Compiled-app owner acceptance | PASS by owner report: exact 0.2.0 EXE tested 2026-09-13 and works well | Stable-release decision remains separate |
 | T28/T29 cleanup/GitHub prep | Superseded outputs, three unreferenced logo drafts, and focused-test output moved to DEL; T22 branch pushed; ZIP-only `v0.2.0` pre-release published; `main` untouched | `DEL/UNUSED_FILES_MANIFEST.md`, current plan/spec below |
 
 ### Current 0.2.0 candidate artifacts
@@ -382,7 +382,7 @@ flowchart LR
 | Windows build | scripts/build_windows.ps1 | invoke the approved Nuitka build contract | reproducible executable creation |
 | Portable assembly | scripts/assemble_portable.py | copy runtime, data, RBZ, manifest and hashes | package layout and installer-free distribution |
 | Runtime smoke | src/staadprep/packaged_smoke.py | verify packaged imports/paths | post-build acceptance |
-| Current candidate | dist/STAAD_Model_Preprocessor_0.2.0_win64_portable/ | version-matched portable folder; 813 files | owner manual launch/acceptance pending |
+| Current candidate | dist/STAAD_Model_Preprocessor_0.2.0_win64_portable/ | version-matched portable folder; 813 files | owner-tested PASS by report; pre-release |
 | Current release archive | current T22 ZIP artifact | transportable package copy | handoff and checksum verification |
 
 The tracked app branding asset is `assets/branding/staad-model-preprocessor.png`.
@@ -646,7 +646,7 @@ outputs are documented separately in Section 10.
 - docs/superpowers/plans/2026-09-13-post-compile-cleanup-github-readiness.md — post-compile package verification, DEL quarantine, all-Markdown/README sync, and no-push GitHub preparation.
 - docs/superpowers/specs/2026-09-13-post-compile-cleanup-github-readiness.md — user scope, no-delete/no-push boundaries, and compile prerequisite.
 - docs/superpowers/plans/2026-09-13-project-wide-storage-github-publish.md — T29 complete-project audit, safe DEL moves, branch push, and ZIP-only pre-release gate.
-- docs/superpowers/specs/2026-09-13-project-wide-storage-github-publish.md — T29 full-root scope, move-only rules, existing-license preservation, and remote safety boundaries.
+- docs/superpowers/specs/2026-09-13-project-wide-storage-github-publish.md — historical T29 full-root scope, move-only rules, then-current license snapshot, and remote safety boundaries; superseded license state is tracked in the T30 migration spec.
 - docs/RELEASE_NOTES_0.2.0.md — candidate ZIP instructions, hashes, automated evidence, and owner-test limitation.
 
 ### 9.4 Bridge, native boundary, packaging, and scripts
@@ -890,8 +890,8 @@ Completed source/package work:
   Package verification is **9/9 PASS**; the no-Python/different-CWD smoke after cleanup is **1/1
   PASS**. Exact artifact identities are in the current section at the top of this file and in the
   handoff.
-- The owner reports the source-app Save and viewport behavior working. Manual launch/acceptance of
-  this exact compiled 0.2.0 candidate has not yet been reported.
+- The owner reports the source-app Save and viewport behavior working and confirmed on 2026-09-13
+  that this exact compiled 0.2.0 candidate works well. Stable-release approval is not implied.
 - T28 storage audit moved 19,729 superseded/generated files (12,273,385,286 bytes) into the
   project-local `DEL/post-compile-cleanup-20260913/`; no files were deleted. This does not free disk
   space until the owner deletes the quarantine.
@@ -906,11 +906,13 @@ Verification/operation limits:
 - Automated offscreen VTK initialization was unavailable in this environment because Win32 OpenGL
   reported a pixel-format error followed by a Python Application Error. Owner manual viewport
   acceptance is recorded separately.
-- The remote repo is private; `main` contains an initial README and Unlicense, while local project
-  history is unrelated. That exact LICENSE was copied unchanged into this branch. The
-  `task/22-portable-packaging` branch was pushed, and the `v0.2.0` pre-release was published with the
-  portable ZIP as its only application asset; `main` was left untouched. The owner has not manually
-  accepted the compiled app yet.
+- The remote repo is private; at the T29 checkpoint, `main` contained an initial README and its
+  then-current LICENSE, while local project history was unrelated. That file was copied into the
+  branch at that checkpoint; the current local T30 migration replaces it with PolyForm Noncommercial
+  1.0.0 and awaits owner approval before commit/push. The owner later reported that the exact
+  compiled app works well; it remains a pre-release. The `task/22-portable-packaging` branch was
+  pushed, and the `v0.2.0` pre-release was published with the portable ZIP as its only application
+  asset; `main` was left untouched.
 
 For the next code change, follow the relevant plan/spec, then update the six current documents listed
 in `AGENTS.md`. Assess the risk gate before changing coordinate conversion, topology, automatic

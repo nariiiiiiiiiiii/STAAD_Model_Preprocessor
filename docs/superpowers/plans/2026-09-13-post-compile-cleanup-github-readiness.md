@@ -16,7 +16,8 @@
 - Quarantine verified superseded outputs only after package gates pass and the owner requests the recoverable move. Manual testing of the exact executable remains a separate pre-release acceptance step.
 - Move only verified-obsolete files under the canonical root to `DEL/`; never delete files.
 - Moving to `DEL/` does not reclaim disk space; deletion remains a separate owner action.
-- Do not push, create a GitHub release, merge branches, or invent/choose a software license.
+- For this T28/T29 readiness sequence, license selection was outside scope. That boundary was later
+  superseded by the separate T30 owner request; its local changes await review before commit/push.
 - Preserve source, tests, current package/build evidence, required vendor files, and unrelated owner changes.
 - Audit every tracked Markdown file; retain historical measurements and label them historical rather than rewriting history.
 
@@ -103,8 +104,8 @@ none were deleted.
 - [x] Audit for secrets, personal machine paths in public-facing content, broken links, unexpected
   large binaries, untracked artifacts, and uncommitted unrelated owner changes. Do not delete or
   stage unrelated files to force a clean tree.
-- [x] If no LICENSE exists, report that GitHub license selection is an owner decision; do not create
-  one without instruction.
+- [x] At that checkpoint, treat any license selection as an owner decision; the later T30 request
+  supplied that decision and is documented separately.
 - [x] Run relevant source/package tests, Ruff, strict mypy where applicable, Markdown/link checks,
   and `git diff --check`. Verify the exact intended commit set and branch name; do not merge or push.
 - [x] Commit the cleanup manifest/docs and README in reviewed checkpoints. Hand off the branch and
@@ -114,4 +115,5 @@ none were deleted.
 
 Recommended model for any later multi-file implementation fix: **Luna Max with Max reasoning**.
 The build authorization checkpoint for this plan is already satisfied; the remaining owner gates are
-manual testing of the exact candidate and any eventual license/push/release decision.
+manual testing of the exact candidate and review/approval before the separate T30 license changes are
+committed or pushed.

@@ -26,8 +26,9 @@ Repository supplied by the owner:
 - Complete tests, documentation, ignore/secret/large-file/link checks, and review the exact commit
   set locally before publishing. The owner instructed commit/push after local completion; do not
   publish before these gates pass.
-- Do not invent, revise, or replace a software license. The supplied remote `main` already contains
-  an Unlicense; preserve that exact owner-supplied file in the project branch.
+- For the T29 publication task, preserve the remote `main`'s then-current LICENSE. This scope
+  decision was superseded by the separate T30 owner request; the migration remains local pending
+  owner review before commit/push.
 
 ## Completion gates
 
@@ -38,7 +39,7 @@ Repository supplied by the owner:
 4. Normal Git history contains source/docs only, not the extracted standalone folder or ZIP. The
    ZIP is made available through the agreed download mechanism.
 5. The user is told what was moved, what could not be inspected, tests performed, branch/commit,
-   whether anything was pushed, and any remaining manual acceptance/license decision.
+   whether anything was pushed, and any remaining manual acceptance or push-approval decision.
 
 ## Safety boundaries
 

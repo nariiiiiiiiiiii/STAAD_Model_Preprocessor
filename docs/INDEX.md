@@ -62,9 +62,11 @@ For current state, use this index and the handoff first.
   that quarantine later.
 - `.gitignore` excludes `build/`, `dist/`, user data, caches, logs, temporary test output, and all
   `DEL/` content except the tracked move manifest.
-- The supplied repository's existing `LICENSE` was copied byte-for-byte from `main`; no new license
-  was selected or authored.
+- Current license: PolyForm Noncommercial 1.0.0. The official terms and required notice are in
+  [`../LICENSE`](../LICENSE); package metadata uses SPDX identifier
+  `PolyForm-Noncommercial-1.0.0`.
 - The supplied repo is private and its `main` history is unrelated to this local project history;
   the safe target is a new `task/22-portable-packaging` branch, leaving `main` untouched.
 - A version-matched `v0.2.0` pre-release is published with the ZIP as its only application asset;
   the extracted folder and EXE were not added to Git history.
+- The 2026-09-13 local license migration is not committed or pushed; owner review is required first.

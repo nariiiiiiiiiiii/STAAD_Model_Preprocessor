@@ -1,15 +1,22 @@
 Status as of **2026-09-13**: T21 is complete; T22 packaging is complete; T23 is PASS by owner report
 (2026-09-01). Source version **0.2.0**, matching Windows standalone, SketchUp RBZ, portable folder,
 and ZIP have been built. Package gates are **9/9 PASS** and the post-cleanup no-Python/different-CWD
-launch smoke is **1/1 PASS**. The owner has not yet reported manually testing this exact 0.2.0
-standalone, so it remains a **verified candidate/pre-release**, not an owner-accepted stable release.
+launch smoke is **1/1 PASS**. The owner tested this exact 0.2.0 standalone on 2026-09-13 and
+reports that it works well. It remains a **pre-release**; no stable-release approval has been given.
 T28/T29 old outputs, three unused logo drafts, and focused-test temp output are recoverably stored
 in `DEL/`; no files were deleted. The project-wide audit is in the ignored local report
 `artifacts/cleanup/project-wide-storage-audit-20260913.md`. The private repo's unrelated initial
 `main` was left untouched. Branch `task/22-portable-packaging` was pushed at commit `47c0b0a`; the
 `v0.2.0` pre-release tag points to that commit and has only the portable ZIP as an application asset:
 [download](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/releases/download/v0.2.0/STAAD_Model_Preprocessor_0.2.0_win64_portable.zip).
-Owner manual acceptance of this exact EXE is still pending.
+Owner manual test of this exact EXE: **PASS by owner report (2026-09-13)**. Stable-release approval
+remains a separate decision.
+
+Local license migration checkpoint (2026-09-13): `LICENSE` now contains the official PolyForm
+Noncommercial 1.0.0 text with the separate Required Notice; `README.md` and `pyproject.toml` match.
+The change is limited to licensing/documentation and remains uncommitted and unpushed pending owner
+review. PolyForm's official funded-organization exception is called out in README for owner review.
+The already-published pre-release asset and remote `main` were not changed.
 
 ## Current 0.2.0 candidate — build and verification
 
@@ -30,9 +37,9 @@ Owner manual acceptance of this exact EXE is still pending.
   the later Save/import/export/path regression **58/58**, Ruff PASS, and strict mypy reported **0**
   issues on affected files. `git diff --check` passed before the packaging/doc checkpoint.
 - Owner-reported source-app acceptance: Save and the requested viewport behavior work; T23 earlier
-  acceptance is PASS by report. **No manual owner acceptance of the newly built 0.2.0 executable is
-  recorded yet.** The isolated offscreen VTK smoke remains unavailable after a Win32 OpenGL pixel
-  format error and Python Application Error; the owner manually accepted viewport behavior.
+  acceptance is PASS by report. The owner tested the newly built 0.2.0 executable on 2026-09-13 and
+  reports it works well. The isolated offscreen VTK smoke remains unavailable after a Win32 OpenGL
+  pixel-format error and Python Application Error; this did not prevent the owner's successful app test.
 
 The package is folder-based standalone with a ZIP distribution; it is **not** a one-file executable.
 Generated `build/` and `dist/` outputs are ignored and are not GitHub repository commits by default.
@@ -151,8 +158,9 @@ After a separately authorized compile, the owner requests: verify the new standa
 project data and move confirmed old standalone folders/ZIPs to `DEL/` without deletion; update all
 tracked Markdown and make the root README suitable for the owner's GitHub repository. Then run a
 local repository preflight and hand off without pushing. The owner authorized beginning the sequence
-and the compile/package step has completed. Deletion, branch merging, license selection, and a
-GitHub push remain outside this task. See
+and the compile/package step has completed. Deletion and branch merging remain outside that task.
+The license-selection decision was later resolved by the T30 request, but its commit/push still
+awaits owner approval. See
 `docs/superpowers/specs/2026-09-13-post-compile-cleanup-github-readiness.md` and
 `docs/superpowers/plans/2026-09-13-post-compile-cleanup-github-readiness.md`. Moving items to `DEL/`
 does not free disk space; final deletion remains owner-controlled.

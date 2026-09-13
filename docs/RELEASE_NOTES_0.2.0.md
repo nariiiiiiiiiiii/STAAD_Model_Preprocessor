@@ -1,6 +1,7 @@
 # STAAD Model Preprocessor 0.2.0 — Pre-release
 
-Status: **download candidate for owner testing; not yet manually accepted as a stable release**.
+Status: **owner-tested pre-release**. The owner reported on 2026-09-13 that this exact `0.2.0`
+executable works well; no stable-release approval has been given.
 
 ## Download and run
 
