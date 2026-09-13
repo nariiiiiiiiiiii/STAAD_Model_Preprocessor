@@ -1,4 +1,4 @@
-Status: **T21 is complete; T22's accepted portable release is `0.1.0`; T23 acceptance is PASS by user report; T24 is complete with no files deleted. The active CP1–CP5 source follow-up is source-verified on `task/22-portable-packaging`. Owner smoke on 2026-09-12 confirms the app/taskbar logo and Quick Fix/Undo/Redo. The owner reports Crop to Select / Zoom in Select works on 2026-09-13. External Project JSON First Save/Save As is now source-implemented under explicit STRICT approval: 58/58 relevant tests, Ruff, strict mypy, and diff check pass. Owner manual Save acceptance is pending; no compile/package build was run. Automated offscreen VTK smoke remains unverified after the Win32 OpenGL/Python Application Error. No `0.2.0` executable/RBZ/ZIP has been built or accepted.**
+Status: **T21 is complete; T22's accepted portable release is `0.1.0`; T23 acceptance is PASS by user report; T24 is complete with no files deleted. The active CP1–CP5 source follow-up is source-verified on `task/22-portable-packaging`. Owner smoke on 2026-09-12 confirms the app/taskbar logo and Quick Fix/Undo/Redo. The owner reports Crop to Select / Zoom in Select works on 2026-09-13. External Project JSON First Save/Save As is source-implemented under explicit STRICT approval: 58/58 relevant tests, Ruff, strict mypy, and diff check pass. The owner reports on 2026-09-13 that Save works in the app; no compile/package build was run. Automated offscreen VTK smoke remains unverified after the Win32 OpenGL/Python Application Error. No `0.2.0` executable/RBZ/ZIP has been built or accepted.**
 
 ## Current source follow-up — 2026-09-12
 
@@ -32,10 +32,9 @@ $env:PYTHONPATH = (Resolve-Path .\src).Path
 ..\..\.venv\Scripts\python.exe -m staadprep.app
 ```
 
-Remaining manual checks: Open a Project JSON outside the project and Save it back; verify First Save
-opens in the default Projects folder but accepts a chosen external folder; test Save As to a second
-external folder, regular Save-back, and cancel; and exercise
-multi-issue Apply once with Undo/Redo plus the intersection case. The user has reported Quick Fix and
+Save-path manual acceptance: the owner reported on 2026-09-13 that Save works; individual Save As,
+cancel, overwrite, and reopen cases were not itemized. Remaining unrelated manual checks include
+multi-issue Apply with Undo/Redo and the intersection case. The user has reported Quick Fix and
 Undo/Redo working, but did not specify which batch/intersection scenarios were tested. Real SketchUp
 export testing needs a later explicit RBZ/package build; no compile should be started yet.
 
@@ -97,8 +96,9 @@ failure tests pass as recorded below.
   validation report remains beside the selected `.STD`.
 - Verification: **58/58 relevant UI/unit tests PASS**, Ruff PASS, strict mypy **0 issues** in
   `main_window.py`, `git diff --check` PASS. No compile or package build was run.
-- Owner manual test is now the gate: test First Save to an external folder, Save As to another folder,
-  regular Save-back, cancellation, and reopen the saved JSON before authorizing any compile.
+- Owner manual report (2026-09-13): Save now works in the app. Individual Save As/cancel/overwrite
+  cases were not specified; the owner has accepted the reported Save behavior. No compile/package
+  build was run or authorized.
 
 ## Historical post-T22 editing correction checkpoint — 2026-08-31
 

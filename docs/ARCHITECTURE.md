@@ -36,8 +36,8 @@ Member segments into a screen rectangle and updates only `SelectionState`/highli
 camera-framing action is named Zoom in Select and remains view-only; the owner manually reports this
 flow working on 2026-09-13. Project JSON First Save and Save As now resolve explicit destinations
 with `ProjectPaths.resolve_user_selected_path()` and retain `save_project_atomic()`; the runtime
-containment guard remains in place for generated data. The owner-approved STRICT implementation is
-source-verified, with manual Save acceptance pending before any compile.
+containment guard remains in place for generated data. The owner reports the Save flow works in the
+uncompiled app (2026-09-13); compile/package authorization remains a separate gate.
 
 ## Layers
 

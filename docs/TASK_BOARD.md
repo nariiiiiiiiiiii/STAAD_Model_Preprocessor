@@ -30,8 +30,8 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T24 | Post-acceptance unused-file audit + quarantine to project-local `DEL/` | STANDARD | **COMPLETE** |
 | T25 | Full project storage recheck + approved old package/build quarantine | STANDARD | **MOVE COMPLETE; SPACE DELETION PENDING USER** |
 | Post-T27 CP1–5 | version/name/icon/Project JSON/batched Quick Fix source follow-up | STANDARD; CP5 STRICT/HR-2 | **SOURCE VERIFIED; owner confirms app/taskbar logo and Quick Fix/Undo/Redo; focused icon suite 10/10; package acceptance pending** |
-| Post-CP5 manual bug report | Crop-to-Selection single-Node camera collapse; user-selected Save destinations | STANDARD; Save STRICT | **Crop source fix + 15 focused UI/save tests PASS; owner viewport retest PASS; First Save path guard fixed and Save As added; 58 relevant tests PASS; owner Save acceptance pending** |
-| Post-CP5 marquee + free Save destinations | Crop to Select rectangle, Zoom in Select rename, any-folder Save/Save As audit | STANDARD viewport; Save STRICT | **Owner reports viewport behavior PASS; Save STRICT approved 2026-09-13; First Save/Save As implemented; 58/58 tests, Ruff, strict mypy PASS; no compile; owner Save acceptance pending** |
+| Post-CP5 manual bug report | Crop-to-Selection single-Node camera collapse; user-selected Save destinations | STANDARD; Save STRICT | **Crop source fix + 15 focused UI/save tests PASS; owner viewport retest PASS; First Save path guard fixed and Save As added; 58 relevant tests PASS; owner reports Save works (2026-09-13)** |
+| Post-CP5 marquee + free Save destinations | Crop to Select rectangle, Zoom in Select rename, any-folder Save/Save As audit | STANDARD viewport; Save STRICT | **Owner reports viewport and Save behavior PASS; Save STRICT approved 2026-09-13; 58/58 tests, Ruff, strict mypy PASS; no compile; package/compile auth remains pending** |
 
 ## Operational rules
 

@@ -55,13 +55,13 @@ The fix bypasses/removes only this user-selected Project JSON containment guard.
   write succeeds. Cancel and save errors leave path association and dirty state unchanged.
 - Runtime path containment and the `.STD`/validation-report co-location contract are unchanged.
 - Relevant regression: **58/58 UI/unit tests PASS**, Ruff PASS, strict mypy **0 issues** in
-  `main_window.py`, `git diff --check` PASS. Owner manual acceptance of external First Save/Save As
-  remains pending; no compile/package build was run.
+  `main_window.py`, `git diff --check` PASS. The owner reports the Save flow works in the app on
+  2026-09-13 (individual cases not itemized); no compile/package build was run.
 
 ## Risk gate and approval state
 
 This scope changes where existing user files can be overwritten. The owner explicitly approved
 STRICT / Full TDD on 2026-09-12 after the risk and proposed verification were explained. The owner
 requested a refreshed plan on 2026-09-13 and explicitly approved that plan before implementation
-started. The source task is complete under the approved scope; the owner must manually test the
-uncompiled app before any compile/package task.
+started. The owner reports the uncompiled Save flow works on 2026-09-13. Any compile/package task
+still requires separate explicit authorization.

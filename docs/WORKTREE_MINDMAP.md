@@ -1,6 +1,6 @@
 # STAAD Model Preprocessor — Worktree Mindmap
 
-Status: **ACTIVE T22 WORKTREE — CP1–CP5 SOURCE VERIFIED; OWNER ACCEPTED MARQUEE; SAVE STRICT SOURCE IMPLEMENTED / OWNER ACCEPTANCE PENDING**
+Status: **ACTIVE T22 WORKTREE — CP1–CP5 SOURCE VERIFIED; OWNER ACCEPTED MARQUEE AND REPORTS SAVE WORKING; PACKAGE/COMPILE AUTHORIZATION PENDING**
 Generated: 2026-09-12
 Branch: `task/22-portable-packaging`
 T24 checkpoint: `chore: quarantine unused project files for review`
@@ -24,7 +24,7 @@ group rules and T25/T26 audit counts.
 | T26 storage cleanup | Move + standalone smoke verified; space deletion pending user | `DEL/t26-storage-cleanup-20260901/` |
 | T27 free user-selected paths | Source + package gates complete; user package acceptance pending | `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/`, `docs/HANDOFF.md` |
 | Post-T27 CP1–5 | Version/name/icon/Open/Save/Quick Fix source verified; package remains 0.1.0 | `docs/HANDOFF.md`, `docs/INDEX.md`; no 0.2.0 release artifacts |
-| Post-CP5 Crop/Save follow-up | Owner reports marquee works; 13 non-renderer tests PASS; First Save/Save As implemented; 58 relevant tests PASS; owner Save acceptance pending | `docs/HANDOFF.md`; automated VTK smoke remains unavailable after Win32 OpenGL pixel-format error |
+| Post-CP5 Crop/Save follow-up | Owner reports marquee and Save work; 13 viewport + 58 Save/path tests PASS; no compile | `docs/HANDOFF.md`; automated VTK smoke remains unavailable after Win32 OpenGL pixel-format error |
 | Post-T26 mindmap | Active/current | this document |
 
 T24 performed one recoverable move only:
@@ -886,8 +886,9 @@ owner reports Crop to Select / Zoom in Select passes. **13 non-renderer viewport
 Save/import/export/path regression is **58/58 PASS**, Ruff PASS, strict mypy **0 issues** in
 `main_window.py`. The Save guard was removed only from explicitly user-selected Project JSON First
 Save/Save As paths; atomic serialization and runtime path containment remain. The owner approved the
-refreshed STRICT plan on 2026-09-13. Manual external Save acceptance is pending. Automated offscreen
-VTK smoke remains unverified after Win32 OpenGL initialization reported `failed to get valid pixel
+refreshed STRICT plan on 2026-09-13. The owner reports Save works in the uncompiled app (2026-09-13);
+no compile/package authorization has been given. Automated offscreen VTK smoke remains unverified
+after Win32 OpenGL initialization reported `failed to get valid pixel
 format`, followed by a Python Application Error. No compile was performed.
 
 Build-test side effect: an initial integration run created a transient `0.2.0` RBZ via a legacy

@@ -410,12 +410,12 @@ Create/complete at minimum:
 - [x] Verify non-renderer event/action/geometry coverage: **13/13 PASS**; Ruff PASS; strict mypy **0 issues** for `main_window.py` and `widget.py`.
 - [x] Owner manually accepts Crop to Select / Zoom in Select behavior (2026-09-13); owner reports the viewport functions work well.
 - [ ] Automated isolated real-VTK smoke remains unverified; the offscreen attempt failed at Win32 OpenGL pixel-format initialization and raised a Python Application Error.
-- [x] Inventory all desktop file dialogs: import JSON/DXF paths and Export STD are user-selectable; Project JSON First Save is the only remaining Projects-folder guard; STD validation report follows the selected STD path.
+- [x] Inventory all desktop file dialogs: import JSON/DXF paths and Export STD are user-selectable; Project JSON First Save was the only restrictive save guard and is now removed from explicit user-selected saves; STD validation report follows the selected STD path.
 - [x] Obtain owner STRICT / Full TDD approval for user-selected Project JSON First Save/Save As and complete save/export-path audit (2026-09-12).
 - [x] Receive owner's approval of the refreshed Save STRICT plan (2026-09-13).
 - [x] Implement external Project JSON First Save and Save As using the explicit path resolver and atomic serializer; leave runtime path guards intact.
 - [x] Verify Save/import/export/path regression: **58/58 PASS**, Ruff PASS, strict mypy **0 issues**, `git diff --check` PASS.
-- [ ] Owner manually verifies uncompiled First Save to an external folder, Save As to a second folder, regular Save-back, and cancellation; stop before compile.
+- [x] Owner reports on 2026-09-13 that Save now works in the app; manual Save-path acceptance is recorded (individual cases not itemized).
 - [ ] Do not compile until owner accepts the uncompiled source behavior and separately authorizes packaging.
 
 ## 2026-09-12 post-CP5 manual bug report
@@ -429,7 +429,7 @@ Create/complete at minimum:
 - [x] Owner requests any-folder Project JSON First Save/Save As and all user-facing save destinations; STRICT / Full TDD approved (2026-09-12).
 - [x] Confirm the remaining Save Blocked popup matches `_assert_project_json_path()` in the First Save branch (2026-09-13 source review).
 - [x] Start/complete the refreshed STRICT Save-path source plan after owner approval; preserve atomic writes and STD/report co-location.
-- [ ] Owner manually accepts the uncompiled Save-path behavior before any compile/package action.
+- [x] Owner reports the uncompiled Save-path behavior works (2026-09-13); any compile/package action still requires separate authorization.
 
 Incident record: an earlier full-suite run invoked the legacy RBZ builder test and created a transient
 `0.2.0` RBZ. That single file was removed; the existing `0.1.0` RBZ/package was retained. The builder

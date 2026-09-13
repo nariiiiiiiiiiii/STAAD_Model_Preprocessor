@@ -31,7 +31,8 @@ flow works (2026-09-13), while the automated real-VTK smoke remains unverified a
 Python Application Error. The owner reproduced Save Blocked for an external Project JSON destination;
 after explicit refreshed-plan approval, First Save/Save As now use user-selected paths with atomic
 serialization. The focused Save/import/export/path regression is **58/58 PASS**, Ruff PASS, and strict
-mypy reports **0 issues**. Manual external Save acceptance is pending; no compile has started.
+mypy reports **0 issues**. The owner reports Save now works in the uncompiled app (2026-09-13); no
+compile has started and package authorization remains separate.
 
 
 ```text

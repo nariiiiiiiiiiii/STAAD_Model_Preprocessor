@@ -34,7 +34,8 @@ Primary workflow:
   Application Error. The owner reports the viewport behavior passes. The approved Save-path fix now
   allows external Project JSON First Save and Save As while retaining atomic writes and project-local
   runtime path guards. Focused relevant regressions are **58/58 PASS**, Ruff PASS, strict mypy has
-  **0 issues**, and no compile/package build was run. Owner manual Save acceptance is pending.
+  **0 issues**, and no compile/package build was run. The owner reports on 2026-09-13 that Save
+  now works in the app; package/compile acceptance remains a separate gate.
 - A legacy integration test briefly generated a transient `0.2.0` RBZ during the first full-suite
   run; that file was removed. Its test fixtures now stay under `.tmp/tests`, and the existing
   ignored `build/sketchup/stage/` source copies were refreshed by that run and left in place.

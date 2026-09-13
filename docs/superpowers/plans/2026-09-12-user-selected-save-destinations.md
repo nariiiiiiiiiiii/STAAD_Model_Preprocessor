@@ -112,7 +112,8 @@ serializer checks: **14/14 PASS**.
 Observed: **58/58 relevant UI/unit regression tests PASS** (Save, serialization, Open/Import, Export,
 project/portable paths, toolbar, and exit confirmation); Ruff PASS; strict mypy **0 issues** in
 `main_window.py`; `git diff --check` PASS. No compile was run. Owner manual acceptance of external
-First Save and Save As is still pending.
+First Save and Save As was reported working by the owner on 2026-09-13; individual manual cases
+were not itemized. No compile/package authorization was given.
 
 ### Task 3: STRICT independent regression, docs, and commit
 
@@ -122,6 +123,6 @@ First Save and Save As is still pending.
 - [x] Update README, HANDOFF, INDEX, TASK_BOARD, CHECKLIST, and this plan with exact evidence.
 - [x] Commit only after the STRICT verification gate is green; stop for owner manual acceptance.
 
-Checkpoint note: the source/docs commit is the final automated step for this task. Owner manual
-acceptance of the uncompiled external Save paths remains pending; do not start a compile/package
-task until that test is reported and separately authorized.
+Checkpoint note: the source/docs commit is the final automated step for this task. The owner reports
+the uncompiled Save flow works (2026-09-13). This closes the source-app acceptance gate; compile or
+package work still needs separate explicit authorization.
