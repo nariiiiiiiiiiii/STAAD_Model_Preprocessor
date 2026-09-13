@@ -461,7 +461,9 @@ also refreshed pre-existing ignored `build/sketchup/stage/` copies; those files 
 - [x] Read-only inspect the supplied private repository: `main` contains only an initial README and Unlicense; no tags/releases; histories are unrelated.
 - [x] Copy the existing remote Unlicense byte-for-byte into the project branch; no new license was selected or authored.
 - [x] Select a non-destructive publication path: push this worktree as a new `task/22-portable-packaging` branch, keep `main` unchanged, and use a `v0.2.0` pre-release with the ZIP as the sole app asset.
+- [x] Push branch commit `47c0b0a` without changing `main`; publish the `v0.2.0` pre-release with only the 226,243,587-byte ZIP asset and verify GitHub's SHA-256 digest.
+- [x] Commit/push this post-publication status/link synchronization; keep the `.exe`, extracted folder, and ZIP out of normal Git history.
 - [x] Choose the non-destructive route: push the existing T22 branch as a new remote branch; keep `main` unchanged and attach only the ZIP to a `v0.2.0` pre-release.
-- [ ] Finish GitHub repository branch/tag/release inspection and select a safe ZIP-only downloadable release operation; do not add the extracted folder or binary ZIP to normal Git history.
-- [ ] Complete local checks and exact commit-set review; preserve the unrelated test-file line-ending change.
-- [ ] Only after all local checks, perform the owner-requested commit/push/release action; report exact branch/commit/download URL. Never delete quarantine data.
+- [x] Finish GitHub repository branch/tag/release inspection and select the safe ZIP-only release operation; do not add the extracted folder or binary ZIP to normal Git history.
+- [x] Complete local checks and exact commit-set review; preserve the unrelated test-file line-ending change.
+- [x] After local checks, push the source/docs branch and publish the ZIP-only pre-release; verify its remote digest. Never delete quarantine data.

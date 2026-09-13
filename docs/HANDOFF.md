@@ -2,14 +2,14 @@ Status as of **2026-09-13**: T21 is complete; T22 packaging is complete; T23 is 
 (2026-09-01). Source version **0.2.0**, matching Windows standalone, SketchUp RBZ, portable folder,
 and ZIP have been built. Package gates are **9/9 PASS** and the post-cleanup no-Python/different-CWD
 launch smoke is **1/1 PASS**. The owner has not yet reported manually testing this exact 0.2.0
-standalone, so it remains a **verified candidate**, not an owner-accepted/public release. T28 old
-outputs and generated data plus three unreferenced logo drafts and focused-test temp output from the
-full T29 review are recoverably stored in `DEL/`; no files were deleted. The project-wide audit is
-recorded in the ignored local report `artifacts/cleanup/project-wide-storage-audit-20260913.md`.
-Read-only GitHub inspection found a private repo with only an initial `main` README/Unlicense, no
-tags/releases, and history unrelated to this local project. The existing LICENSE was copied
-unchanged into this branch. Planned remote action is a new `task/22-portable-packaging` branch plus
-a ZIP-only `v0.2.0` pre-release; `main` remains untouched. No remote write has occurred.
+standalone, so it remains a **verified candidate/pre-release**, not an owner-accepted stable release.
+T28/T29 old outputs, three unused logo drafts, and focused-test temp output are recoverably stored
+in `DEL/`; no files were deleted. The project-wide audit is in the ignored local report
+`artifacts/cleanup/project-wide-storage-audit-20260913.md`. The private repo's unrelated initial
+`main` was left untouched. Branch `task/22-portable-packaging` was pushed at commit `47c0b0a`; the
+`v0.2.0` pre-release tag points to that commit and has only the portable ZIP as an application asset:
+[download](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/releases/download/v0.2.0/STAAD_Model_Preprocessor_0.2.0_win64_portable.zip).
+Owner manual acceptance of this exact EXE is still pending.
 
 ## Current 0.2.0 candidate — build and verification
 
@@ -22,6 +22,7 @@ a ZIP-only `v0.2.0` pre-release; `main` remains untouched. No remote write has o
   709,571,303 bytes; manifest has 812 managed-file entries.
 - ZIP: `dist/STAAD_Model_Preprocessor_0.2.0_win64_portable.zip`, 226,243,587 bytes,
   SHA-256 `635AF835CE71C211E6FE184EBE05656187E0C4C36D2FA8BC542679802C7B15A7`.
+- GitHub pre-release asset: [download the ZIP](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/releases/download/v0.2.0/STAAD_Model_Preprocessor_0.2.0_win64_portable.zip).
 - Package tests (manifest, RBZ, packaged paths, workflow smoke): **9/9 PASS**. After quarantine,
   `test_final_package_launches_without_python_from_different_cwd`: **1/1 PASS**.
 - Pre-package source evidence: **345 unit+integration passed**, **1 skipped** (RBZ archive test at

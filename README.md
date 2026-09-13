@@ -7,10 +7,10 @@ the Node/Member model, validates readiness, and exports a STAAD `.STD` model.
 > **Current status (2026-09-13):** source and version-matched `0.2.0` Windows portable / SketchUp
 > RBZ artifacts have been built. The package verification gates pass **9/9**, including a
 > no-Python launch smoke after cleanup. The owner has not yet reported manual testing of this exact
-> `0.2.0` standalone build, so treat it as a verified candidate—not a stable release. The portable
-> ZIP is the only application artifact intended for GitHub download; the extracted folder and build
-> binaries stay out of normal Git history. See [0.2.0 pre-release notes](docs/RELEASE_NOTES_0.2.0.md)
-> and the [GitHub Releases page](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/releases).
+> `0.2.0` standalone build, so it remains a candidate pre-release, not a stable release. The
+> [portable ZIP is available for download](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/releases/download/v0.2.0/STAAD_Model_Preprocessor_0.2.0_win64_portable.zip);
+> it is the only application asset uploaded, not the extracted folder or standalone EXE. See the
+> [v0.2.0 pre-release notes](docs/RELEASE_NOTES_0.2.0.md) and [release page](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/releases/tag/v0.2.0).
 
 ## What it does
 

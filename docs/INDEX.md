@@ -19,7 +19,7 @@ describe the state at that checkpoint. Use the current status below and the top 
 | 0.2.0 package candidate | Nuitka standalone + RBZ + portable folder/ZIP built; package gates **9/9 PASS**; post-cleanup launch smoke **1/1 PASS** | [`HANDOFF.md`](HANDOFF.md), `dist/` (local ignored output) |
 | Manual acceptance of exact 0.2.0 standalone | **Not yet reported by owner**; keep candidate status until tested | [`HANDOFF.md`](HANDOFF.md) |
 | T28/T29 storage audit | T28 superseded packages/generated outputs and T29 three unreferenced logo drafts plus focused-test output moved to `DEL/`; no deletion; inaccessible caches retained | [`DEL/UNUSED_FILES_MANIFEST.md`](../DEL/UNUSED_FILES_MANIFEST.md), ignored local audit reports under `artifacts/cleanup/` |
-| GitHub preparation | Read-only inspection complete: private repo, `main` has initial README/Unlicense, no tags/releases; histories are unrelated. Plan: push `task/22-portable-packaging` as a new branch, leave `main` unchanged, attach ZIP to `v0.2.0` pre-release; no remote write yet. | [`README.md`](../README.md), [`HANDOFF.md`](HANDOFF.md) |
+| GitHub preparation | `task/22-portable-packaging` pushed; private repo `main` left unchanged; `v0.2.0` pre-release published with only the portable ZIP asset. Exact EXE manual acceptance remains pending. | [`README.md`](../README.md), [`HANDOFF.md`](HANDOFF.md), [download ZIP](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/releases/download/v0.2.0/STAAD_Model_Preprocessor_0.2.0_win64_portable.zip) |
 
 ## Current 0.2.0 build evidence
 
@@ -66,5 +66,5 @@ For current state, use this index and the handoff first.
   was selected or authored.
 - The supplied repo is private and its `main` history is unrelated to this local project history;
   the safe target is a new `task/22-portable-packaging` branch, leaving `main` untouched.
-- A version-matched `v0.2.0` pre-release with the ZIP as its only app asset is planned; no remote
-  write has yet occurred.
+- A version-matched `v0.2.0` pre-release is published with the ZIP as its only application asset;
+  the extracted folder and EXE were not added to Git history.

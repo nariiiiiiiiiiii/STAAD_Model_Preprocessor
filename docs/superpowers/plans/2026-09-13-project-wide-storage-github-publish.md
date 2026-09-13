@@ -75,13 +75,13 @@ repository's read-only metadata.
   and no feature branch, tag, or release exists. Safest route: push the existing
   `task/22-portable-packaging` branch as a new branch, leave `main` untouched, and create a
   version-matched pre-release `v0.2.0` because the owner has not manually accepted the EXE.
-- [ ] Review the exact commit diff locally; commit only intentional source/docs/manifest changes,
-  release notes, and the exact owner-supplied LICENSE. Leave `main` unchanged; exclude the existing
-  test line-ending change plus all build, cache, user-data, and `DEL` payloads.
-- [ ] Push `task/22-portable-packaging` only after all local gates are complete. Create the
-  `v0.2.0` pre-release and attach only the portable ZIP; do not upload the extracted folder or
-  overwrite `main`.
-- [ ] Report the exact branch, commit, release/tag/asset URL, and remaining owner actions. If blocked,
+- [x] Review and commit the local source/docs/manifest, release notes, and exact owner-supplied
+  LICENSE set as `47c0b0a`. The pre-existing test line-ending change and all build/cache/user-data/
+  `DEL` payloads were excluded; `main` was not changed.
+- [x] Push `task/22-portable-packaging` and create the `v0.2.0` pre-release with only the portable ZIP.
+  GitHub reports the uploaded asset's SHA-256 matches the local ZIP.
+- [x] Commit/push the final post-publish status/link synchronization; report the final branch head,
+  release/tag/asset URL, and remaining owner actions. If blocked,
   stop without any remote mutation.
 
 ## Recommended model

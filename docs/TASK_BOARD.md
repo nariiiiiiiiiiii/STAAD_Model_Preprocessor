@@ -3,11 +3,11 @@
 Source/package version `0.2.0` is built. Package verification is **9/9 PASS** and the post-cleanup
 no-Python/different-CWD launch smoke is **1/1 PASS**. T28/T29 moved confirmed superseded outputs and
 three unreferenced logo drafts into `DEL/`; no deletion occurred. The project-wide audit is recorded
-locally. Read-only GitHub inspection found private `main` with only an initial README/Unlicense, no
-tags/releases, and history unrelated to this project. The existing LICENSE has been copied unchanged
-into this branch. Plan: push `task/22-portable-packaging` as a new branch, leave `main` untouched,
-and publish the ZIP only as a `v0.2.0` pre-release asset. No remote write has occurred. The owner has
-not manually tested the exact compiled 0.2.0 candidate. Older status blocks below are dated history.
+locally. Read-only GitHub inspection found private `main` with an initial README/Unlicense and
+unrelated history. The existing LICENSE was copied unchanged into this branch. Branch
+`task/22-portable-packaging` was pushed at `47c0b0a`; the `v0.2.0` pre-release was published with only
+the portable ZIP application asset, leaving `main` untouched. Manual owner testing of the exact
+compiled 0.2.0 candidate remains pending. Older status blocks below are dated history.
 
 Execution policy: **run exactly one Task at a time**. Every Task must end with its verification, Git commit, documentation/status update, and a hard stop for user review before the next Task begins.
 
@@ -43,8 +43,8 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | Post-T27 CP1–5 | version/name/icon/Project JSON/batched Quick Fix source follow-up | STANDARD; CP5 STRICT/HR-2 | **SOURCE VERIFIED; superseded by the 0.2.0 package checkpoint below** |
 | Post-CP5 manual bug report | Crop-to-Selection single-Node camera collapse; user-selected Save destinations | STANDARD; Save STRICT | **Source fixes and focused verification complete; owner reports behavior works** |
 | Post-CP5 marquee + free Save destinations | Crop to Select rectangle, Zoom in Select rename, any-folder Save/Save As audit | STANDARD viewport; Save STRICT | **Source behavior owner-reported PASS; 0.2.0 candidate built; exact compiled app manual test pending** |
-| Post-compile cleanup + GitHub readiness | Verify new standalone, quarantine verified old outputs to DEL, sync all tracked Markdown/README, local GitHub preflight | STANDARD; move-only cleanup | **T28 local prep committed; T29 preserves remote Unlicense unchanged; manual 0.2.0 test and remote write remain pending** |
-| T29 project-wide audit + ZIP-only GitHub download | Recheck canonical + active worktree; quarantine verified obsolete data; push source/docs and publish only portable ZIP after local gates | STANDARD; no-delete cleanup | **Local audit/package checks passed; new feature branch + `v0.2.0` pre-release planned; remote write still pending** |
+| Post-compile cleanup + GitHub readiness | Verify new standalone, quarantine verified old outputs to DEL, sync all tracked Markdown/README, local GitHub preflight | STANDARD; move-only cleanup | **T28 local prep committed; superseded by T29 publish; existing remote Unlicense preserved; manual 0.2.0 test pending** |
+| T29 project-wide audit + ZIP-only GitHub download | Recheck canonical + active worktree; quarantine verified obsolete data; push source/docs and publish only portable ZIP after local gates | STANDARD; no-delete cleanup | **PUSHED branch `task/22-portable-packaging`; `v0.2.0` pre-release asset verified; `main` untouched; manual EXE test pending** |
 
 ## Operational rules
 

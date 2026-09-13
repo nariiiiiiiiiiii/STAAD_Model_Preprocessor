@@ -23,7 +23,7 @@ group rules; dated storage measurements are explicitly historical unless marked 
 | Post-T27 CP1–5 + Crop/Save | Source-verified; owner reports requested source-app behavior works | `docs/HANDOFF.md` |
 | 0.2.0 package candidate | Nuitka standalone, RBZ, portable folder/ZIP built; package gates 9/9 PASS | Current 0.2.0 evidence below and `docs/HANDOFF.md` |
 | Compiled-app owner acceptance | Not yet reported for this exact 0.2.0 EXE | Owner test remains before calling it accepted/released |
-| T28/T29 cleanup/GitHub prep | Superseded outputs, three unreferenced logo drafts, and focused-test output moved to DEL; remote inspected read-only; new feature branch + ZIP-only pre-release planned | `DEL/UNUSED_FILES_MANIFEST.md`, current plan/spec below |
+| T28/T29 cleanup/GitHub prep | Superseded outputs, three unreferenced logo drafts, and focused-test output moved to DEL; T22 branch pushed; ZIP-only `v0.2.0` pre-release published; `main` untouched | `DEL/UNUSED_FILES_MANIFEST.md`, current plan/spec below |
 
 ### Current 0.2.0 candidate artifacts
 
@@ -907,9 +907,10 @@ Verification/operation limits:
   reported a pixel-format error followed by a Python Application Error. Owner manual viewport
   acceptance is recorded separately.
 - The remote repo is private; `main` contains an initial README and Unlicense, while local project
-  history is unrelated. That exact LICENSE was copied unchanged into this branch. T29 plans a new
-  feature branch and a ZIP-only `v0.2.0` pre-release, leaving `main` untouched; no remote write has
-  occurred yet.
+  history is unrelated. That exact LICENSE was copied unchanged into this branch. The
+  `task/22-portable-packaging` branch was pushed, and the `v0.2.0` pre-release was published with the
+  portable ZIP as its only application asset; `main` was left untouched. The owner has not manually
+  accepted the compiled app yet.
 
 For the next code change, follow the relevant plan/spec, then update the six current documents listed
 in `AGENTS.md`. Assess the risk gate before changing coordinate conversion, topology, automatic

@@ -4,7 +4,8 @@ Status: **download candidate for owner testing; not yet manually accepted as a s
 
 ## Download and run
 
-Download the portable ZIP asset from the repository's GitHub Releases page. This is a folder-based
+Download the [portable ZIP asset](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/releases/download/v0.2.0/STAAD_Model_Preprocessor_0.2.0_win64_portable.zip)
+from the repository's [v0.2.0 pre-release page](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/releases/tag/v0.2.0). This is a folder-based
 standalone package, not a single-file executable: extract the ZIP as a whole, keep its `Data/`
 directory beside the executable, then run `STAAD Model Preprocessor.exe`. Do not upload or distribute
 the extracted folder as a separate repository artifact; the ZIP is the application download.
