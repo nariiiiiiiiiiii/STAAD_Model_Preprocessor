@@ -82,6 +82,15 @@ Rules:
 - This gate does not replace the mandatory STRICT / Full TDD approval gate for high-risk topology,
   coordinate, automatic-repair, or `.STD`-semantics changes.
 
+## Post-compile cleanup and GitHub readiness
+
+The owner requested a post-compile sequence: verify the new standalone first; move only verified
+obsolete package/generated outputs to `DEL/` without deleting; synchronize all tracked Markdown and
+prepare the root README for GitHub; then run a local repository preflight. This request does not
+authorize compilation or a GitHub push. Follow the detailed spec/plan linked from `docs/INDEX.md`.
+Moving items to `DEL/` is recoverable but does not reclaim disk space until the owner separately
+deletes them.
+
 ## B. Import workflow
 
 ```text

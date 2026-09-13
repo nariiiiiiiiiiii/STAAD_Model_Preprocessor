@@ -434,3 +434,14 @@ Create/complete at minimum:
 Incident record: an earlier full-suite run invoked the legacy RBZ builder test and created a transient
 `0.2.0` RBZ. That single file was removed; the existing `0.1.0` RBZ/package was retained. The builder
 also refreshed pre-existing ignored `build/sketchup/stage/` copies; those files were left in place.
+
+## Post-compile storage cleanup and GitHub readiness (planned 2026-09-13)
+
+- [ ] Obtain separate explicit compile/package authorization; this post-compile request is not compile authorization.
+- [ ] Verify the newly built standalone folder/ZIP, manifest hashes, no-Python launch, relocation, and package gates before moving anything.
+- [ ] Re-audit project storage and classify KEEP / REGENERABLE / SUPERSEDED / UNUSED; move only verified obsolete items to dated `DEL/`, never delete.
+- [ ] Record original/destination paths, sizes, versions, hashes, and reference scan in `artifacts/cleanup/post-compile-storage-audit.md` and `DEL/UNUSED_FILES_MANIFEST.md`.
+- [ ] Inventory every tracked Markdown file; update current facts/status and label historical evidence without rewriting past results.
+- [ ] Prepare root `README.md` for GitHub with accurate purpose, quick start, prerequisites, source/standalone use, tests, version, and limitations.
+- [ ] Check links, secrets, user-specific absolute paths, `.gitignore`, tracked binaries, licenses, branch/status, and uncommitted owner changes.
+- [ ] Do not push or create a GitHub release; hand the prepared branch to the owner. Moving to `DEL/` is recoverable but does not free disk space until the owner separately deletes it.

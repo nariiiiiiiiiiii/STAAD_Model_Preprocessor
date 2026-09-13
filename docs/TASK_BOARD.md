@@ -32,6 +32,7 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | Post-T27 CP1–5 | version/name/icon/Project JSON/batched Quick Fix source follow-up | STANDARD; CP5 STRICT/HR-2 | **SOURCE VERIFIED; owner confirms app/taskbar logo and Quick Fix/Undo/Redo; focused icon suite 10/10; package acceptance pending** |
 | Post-CP5 manual bug report | Crop-to-Selection single-Node camera collapse; user-selected Save destinations | STANDARD; Save STRICT | **Crop source fix + 15 focused UI/save tests PASS; owner viewport retest PASS; First Save path guard fixed and Save As added; 58 relevant tests PASS; owner reports Save works (2026-09-13)** |
 | Post-CP5 marquee + free Save destinations | Crop to Select rectangle, Zoom in Select rename, any-folder Save/Save As audit | STANDARD viewport; Save STRICT | **Owner reports viewport and Save behavior PASS; Save STRICT approved 2026-09-13; 58/58 tests, Ruff, strict mypy PASS; no compile; package/compile auth remains pending** |
+| Post-compile cleanup + GitHub readiness | Verify new standalone, quarantine verified old outputs to DEL, sync all tracked Markdown/README, local GitHub preflight | STANDARD; move-only cleanup | **PLANNED; WAITING for separate compile authorization; no moves, README rewrite, or push started** |
 
 ## Operational rules
 

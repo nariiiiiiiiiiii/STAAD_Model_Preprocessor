@@ -25,6 +25,7 @@ group rules and T25/T26 audit counts.
 | T27 free user-selected paths | Source + package gates complete; user package acceptance pending | `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/`, `docs/HANDOFF.md` |
 | Post-T27 CP1–5 | Version/name/icon/Open/Save/Quick Fix source verified; package remains 0.1.0 | `docs/HANDOFF.md`, `docs/INDEX.md`; no 0.2.0 release artifacts |
 | Post-CP5 Crop/Save follow-up | Owner reports marquee and Save work; 13 viewport + 58 Save/path tests PASS; no compile | `docs/HANDOFF.md`; automated VTK smoke remains unavailable after Win32 OpenGL pixel-format error |
+| Post-compile cleanup/GitHub readiness | Planned: verify new package, move verified old outputs to DEL, synchronize tracked Markdown/README, local no-push preflight | Waiting for separate compile authorization; see `docs/superpowers/plans/2026-09-13-post-compile-cleanup-github-readiness.md` |
 | Post-T26 mindmap | Active/current | this document |
 
 T24 performed one recoverable move only:
@@ -637,6 +638,8 @@ outputs are documented separately in Section 10.
 - docs/superpowers/specs/2026-09-12-marquee-selection.md — filter, Ctrl-additive, no-mutation, and camera-command behavior.
 - docs/superpowers/plans/2026-09-12-user-selected-save-destinations.md — STRICT-approved First Save/Save As implementation; 58-test evidence and owner acceptance gate.
 - docs/superpowers/specs/2026-09-12-user-selected-save-destinations.md — confirmed root cause, implemented user-selected save scope, data-loss risk controls, and acceptance status.
+- docs/superpowers/plans/2026-09-13-post-compile-cleanup-github-readiness.md — post-compile package verification, DEL quarantine, all-Markdown/README sync, and no-push GitHub preparation.
+- docs/superpowers/specs/2026-09-13-post-compile-cleanup-github-readiness.md — user scope, no-delete/no-push boundaries, and compile prerequisite.
 
 ### 9.4 Bridge, native boundary, packaging, and scripts
 

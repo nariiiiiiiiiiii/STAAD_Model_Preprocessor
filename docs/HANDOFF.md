@@ -100,6 +100,17 @@ failure tests pass as recorded below.
   cases were not specified; the owner has accepted the reported Save behavior. No compile/package
   build was run or authorized.
 
+## Post-compile cleanup and GitHub readiness request (2026-09-13)
+
+After a separately authorized compile, the owner requests: verify the new standalone; re-audit unused
+project data and move confirmed old standalone folders/ZIPs to `DEL/` without deletion; update all
+tracked Markdown and make the root README suitable for the owner's GitHub repository. Then run a
+local repository preflight and hand off without pushing. The request does not authorize compile now,
+deletion, branch merging, license selection, or a GitHub push. See
+`docs/superpowers/specs/2026-09-13-post-compile-cleanup-github-readiness.md` and
+`docs/superpowers/plans/2026-09-13-post-compile-cleanup-github-readiness.md`. Moving items to `DEL/`
+does not free disk space; final deletion remains owner-controlled.
+
 ## Historical post-T22 editing correction checkpoint — 2026-08-31
 
 After real package testing, the user supplied ten desktop editing corrections covering STAAD-axis
