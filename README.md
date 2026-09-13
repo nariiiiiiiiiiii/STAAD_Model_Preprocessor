@@ -4,12 +4,14 @@ A Windows desktop tool for preparing and editing analytical line geometry before
 STAAD.Pro. It imports geometry from the SketchUp STAAD Prep Bridge or DXF, helps inspect and repair
 the Node/Member model, validates readiness, and exports a STAAD `.STD` model.
 
+ภาษาไทย: [README_TH.md](README_TH.md)
+
 > **Current status (2026-09-13):** source and version-matched `0.2.0` Windows portable / SketchUp
 > RBZ artifacts have been built. The package verification gates pass **9/9**, including a
 > no-Python launch smoke after cleanup. The owner tested this exact `0.2.0` standalone on
 > 2026-09-13 and reports that it works well. It remains a pre-release candidate; no stable-release
 > approval has been given. [PR #1](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/pull/1)
-> records the project tree and license update proposed for `main`. The
+> records the project tree and license update merged into `main`. The
 > [portable ZIP is available for download](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/releases/download/v0.2.0/STAAD_Model_Preprocessor_0.2.0_win64_portable.zip);
 > it is the only application asset uploaded, not the extracted folder or standalone EXE. This
 > existing ZIP predates the license update and has not been rebuilt or replaced. See the
