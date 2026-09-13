@@ -1,6 +1,6 @@
 # STAAD Model Preprocessor — Project Index
 
-Last synchronized: **2026-09-13** · Active branch: `task/22-portable-packaging` · Current source/package version: **0.2.0**
+Last synchronized: **2026-09-13** · Active branch: `task/22-portable-packaging` · Current source/package version: **0.2.0** · Tracked Markdown after T29 additions: **49**
 
 This index is the navigation point for current project status. Dated plans/specs and older sections
 in the handoff, task board, checklist, and mindmap are historical records; their “pending” notes
@@ -18,8 +18,8 @@ describe the state at that checkpoint. Use the current status below and the top 
 | 0.2.0 source follow-ups | Source-verified; owner reported the requested UI and Save behavior working | [`HANDOFF.md`](HANDOFF.md) |
 | 0.2.0 package candidate | Nuitka standalone + RBZ + portable folder/ZIP built; package gates **9/9 PASS**; post-cleanup launch smoke **1/1 PASS** | [`HANDOFF.md`](HANDOFF.md), `dist/` (local ignored output) |
 | Manual acceptance of exact 0.2.0 standalone | **Not yet reported by owner**; keep candidate status until tested | [`HANDOFF.md`](HANDOFF.md) |
-| T28 storage cleanup | Superseded package, stale package assembly, caches, generated test output, and old logs/helpers moved to `DEL/`; nothing deleted | [`DEL/UNUSED_FILES_MANIFEST.md`](../DEL/UNUSED_FILES_MANIFEST.md), ignored local audit report `artifacts/cleanup/post-compile-storage-audit.md` |
-| GitHub preparation | Local docs/link/secret/binary/ignore preflight passed; commit remains local; **not pushed**, no release published, no license selected | [`README.md`](../README.md), [`HANDOFF.md`](HANDOFF.md) |
+| T28/T29 storage audit | T28 superseded packages/generated outputs and T29 three unreferenced logo drafts plus focused-test output moved to `DEL/`; no deletion; inaccessible caches retained | [`DEL/UNUSED_FILES_MANIFEST.md`](../DEL/UNUSED_FILES_MANIFEST.md), ignored local audit reports under `artifacts/cleanup/` |
+| GitHub preparation | Read-only inspection complete: private repo, `main` has initial README/Unlicense, no tags/releases; histories are unrelated. Plan: push `task/22-portable-packaging` as a new branch, leave `main` unchanged, attach ZIP to `v0.2.0` pre-release; no remote write yet. | [`README.md`](../README.md), [`HANDOFF.md`](HANDOFF.md) |
 
 ## Current 0.2.0 build evidence
 
@@ -44,13 +44,16 @@ automated test counts, caveats, and the exact user action still needed.
 - [`PROJECT_RULES.md`](PROJECT_RULES.md) and [`AGENTS.md`](../AGENTS.md) — project boundary and development rules.
 - [`WORKTREE_MINDMAP.md`](WORKTREE_MINDMAP.md) — source, test, package, and SketchUp RBZ relationships.
 - [`TASK_BOARD.md`](TASK_BOARD.md) — completed work and current next action.
+- [`RELEASE_NOTES_0.2.0.md`](RELEASE_NOTES_0.2.0.md) — candidate binary download and verification notes.
 
 ## Plans and specifications
 
 The dated files under [`superpowers/plans/`](superpowers/plans/) and
 [`superpowers/specs/`](superpowers/specs/) preserve the decisions, approvals, and verification
-evidence for individual increments. They are not a live task queue. For current state, use this
-index and the handoff first.
+evidence for individual increments. They are not a live task queue. The current project-wide audit
+is tracked in [`2026-09-13-project-wide-storage-github-publish.md`](superpowers/plans/2026-09-13-project-wide-storage-github-publish.md)
+and [`2026-09-13-project-wide-storage-github-publish.md`](superpowers/specs/2026-09-13-project-wide-storage-github-publish.md).
+For current state, use this index and the handoff first.
 
 ## Storage and GitHub notes
 
@@ -59,6 +62,9 @@ index and the handoff first.
   that quarantine later.
 - `.gitignore` excludes `build/`, `dist/`, user data, caches, logs, temporary test output, and all
   `DEL/` content except the tracked move manifest.
-- The repository has no `LICENSE` file. License selection remains an owner decision before public
-  reuse/redistribution.
-- No GitHub push or GitHub release was performed in this task.
+- The supplied repository's existing `LICENSE` was copied byte-for-byte from `main`; no new license
+  was selected or authored.
+- The supplied repo is private and its `main` history is unrelated to this local project history;
+  the safe target is a new `task/22-portable-packaging` branch, leaving `main` untouched.
+- A version-matched `v0.2.0` pre-release with the ZIP as its only app asset is planned; no remote
+  write has yet occurred.

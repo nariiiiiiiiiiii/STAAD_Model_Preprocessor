@@ -23,7 +23,7 @@ group rules; dated storage measurements are explicitly historical unless marked 
 | Post-T27 CP1–5 + Crop/Save | Source-verified; owner reports requested source-app behavior works | `docs/HANDOFF.md` |
 | 0.2.0 package candidate | Nuitka standalone, RBZ, portable folder/ZIP built; package gates 9/9 PASS | Current 0.2.0 evidence below and `docs/HANDOFF.md` |
 | Compiled-app owner acceptance | Not yet reported for this exact 0.2.0 EXE | Owner test remains before calling it accepted/released |
-| T28 cleanup/GitHub prep | Superseded outputs and generated temp/cache moved to DEL; docs synchronized; no deletion or push | `DEL/UNUSED_FILES_MANIFEST.md`, current plan below |
+| T28/T29 cleanup/GitHub prep | Superseded outputs, three unreferenced logo drafts, and focused-test output moved to DEL; remote inspected read-only; new feature branch + ZIP-only pre-release planned | `DEL/UNUSED_FILES_MANIFEST.md`, current plan/spec below |
 
 ### Current 0.2.0 candidate artifacts
 
@@ -39,11 +39,12 @@ are ignored local build artifacts, not committed binaries.
 
 ### Current storage disposition
 
-`DEL/post-compile-cleanup-20260913/` contains **23,018 files / 15,111,734,735 bytes** moved
-recoverably. This includes the old 0.1.0 package/RBZ, a 0.2.0 package assembled before its README
-was synchronized, generated test/cache output, historical icon/log evidence, and one-off temporary
-helpers. The package under `dist/` is the current candidate and was not moved. Moving to DEL on the
-same volume does not reclaim storage; no files were deleted.
+The T28 `DEL/post-compile-cleanup-20260913/` quarantine contains **23,018 files / 15,111,734,735
+bytes**. T29 added three superseded logo drafts (**3,379,882 bytes**) under
+`DEL/project-wide-audit-20260913/owner-logo-alternatives/LOGO/`, and the focused package/RBZ temp
+files were moved to `DEL/project-wide-audit-20260913/generated-tests/`. Combined quarantine payload
+is **23,050 files / 15,115,170,070 bytes**. Current source, active package, user data, and selected
+branding were not moved. Same-volume moves do not reclaim storage; no files were deleted.
 
 Older T24/T25/T26 size tables and package hashes in later sections are dated historical records.
 
@@ -644,6 +645,9 @@ outputs are documented separately in Section 10.
 - docs/superpowers/specs/2026-09-12-user-selected-save-destinations.md — confirmed root cause, implemented user-selected save scope, data-loss risk controls, and acceptance status.
 - docs/superpowers/plans/2026-09-13-post-compile-cleanup-github-readiness.md — post-compile package verification, DEL quarantine, all-Markdown/README sync, and no-push GitHub preparation.
 - docs/superpowers/specs/2026-09-13-post-compile-cleanup-github-readiness.md — user scope, no-delete/no-push boundaries, and compile prerequisite.
+- docs/superpowers/plans/2026-09-13-project-wide-storage-github-publish.md — T29 complete-project audit, safe DEL moves, branch push, and ZIP-only pre-release gate.
+- docs/superpowers/specs/2026-09-13-project-wide-storage-github-publish.md — T29 full-root scope, move-only rules, existing-license preservation, and remote safety boundaries.
+- docs/RELEASE_NOTES_0.2.0.md — candidate ZIP instructions, hashes, automated evidence, and owner-test limitation.
 
 ### 9.4 Bridge, native boundary, packaging, and scripts
 
@@ -902,8 +906,10 @@ Verification/operation limits:
 - Automated offscreen VTK initialization was unavailable in this environment because Win32 OpenGL
   reported a pixel-format error followed by a Python Application Error. Owner manual viewport
   acceptance is recorded separately.
-- No GitHub push or release was performed. No `LICENSE` file is present; license choice belongs to
-  the owner.
+- The remote repo is private; `main` contains an initial README and Unlicense, while local project
+  history is unrelated. That exact LICENSE was copied unchanged into this branch. T29 plans a new
+  feature branch and a ZIP-only `v0.2.0` pre-release, leaving `main` untouched; no remote write has
+  occurred yet.
 
 For the next code change, follow the relevant plan/spec, then update the six current documents listed
 in `AGENTS.md`. Assess the risk gate before changing coordinate conversion, topology, automatic

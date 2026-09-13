@@ -449,3 +449,19 @@ also refreshed pre-existing ignored `build/sketchup/stage/` copies; those files 
 - [x] Complete final link/secret/path/binary/ignore/large-file/status preflight; all 46 local Markdown links resolve, no tracked binaries or files over 50 MB were found, no machine-specific checkout path or secret/key filename was found, and `git diff --check` passes.
 - [x] Commit only the reviewed docs, manifest, and portable README-template changes; leave unrelated line-ending-only test change unstaged.
 - [x] Stop before GitHub push/release. Owner manual test/acceptance of the exact compiled 0.2.0 candidate and license selection remain separate owner actions.
+
+## T29 — Project-wide storage recheck and ZIP-only GitHub download (2026-09-13)
+
+- [x] Inspect both canonical `master` and active T22 worktree, tracked files, generated roots, current package, runtime data, and owner-provided `LOGO/`.
+- [x] Confirm canonical `master` build/dist are empty; preserve its runtime inbox, environment, Git/worktree metadata, and active project data.
+- [x] Verify selected logo source and tracked branding asset are byte-identical; move only the three unreferenced alternate logo drafts to `DEL/project-wide-audit-20260913/`.
+- [x] Verify all three logo moves by checking source absence, destination presence, byte size, and SHA-256.
+- [x] Re-run focused package/RBZ tests (**5/5 PASS**), Ruff, strict mypy, and diff checks; move the 29 generated test-temp files (55,453 bytes) into the T29 quarantine.
+- [x] Keep inaccessible `.tmp/pytest` / `.cache/pytest` and the separate checkout cache because access was denied and Python processes were present; do not stop processes or change ACLs.
+- [x] Read-only inspect the supplied private repository: `main` contains only an initial README and Unlicense; no tags/releases; histories are unrelated.
+- [x] Copy the existing remote Unlicense byte-for-byte into the project branch; no new license was selected or authored.
+- [x] Select a non-destructive publication path: push this worktree as a new `task/22-portable-packaging` branch, keep `main` unchanged, and use a `v0.2.0` pre-release with the ZIP as the sole app asset.
+- [x] Choose the non-destructive route: push the existing T22 branch as a new remote branch; keep `main` unchanged and attach only the ZIP to a `v0.2.0` pre-release.
+- [ ] Finish GitHub repository branch/tag/release inspection and select a safe ZIP-only downloadable release operation; do not add the extracted folder or binary ZIP to normal Git history.
+- [ ] Complete local checks and exact commit-set review; preserve the unrelated test-file line-ending change.
+- [ ] Only after all local checks, perform the owner-requested commit/push/release action; report exact branch/commit/download URL. Never delete quarantine data.

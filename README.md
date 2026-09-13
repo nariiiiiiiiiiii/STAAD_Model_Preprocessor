@@ -7,8 +7,10 @@ the Node/Member model, validates readiness, and exports a STAAD `.STD` model.
 > **Current status (2026-09-13):** source and version-matched `0.2.0` Windows portable / SketchUp
 > RBZ artifacts have been built. The package verification gates pass **9/9**, including a
 > no-Python launch smoke after cleanup. The owner has not yet reported manual testing of this exact
-> `0.2.0` standalone build, so treat it as a verified candidate—not a publicly accepted release.
-> No GitHub release has been published.
+> `0.2.0` standalone build, so treat it as a verified candidate—not a stable release. The portable
+> ZIP is the only application artifact intended for GitHub download; the extracted folder and build
+> binaries stay out of normal Git history. See [0.2.0 pre-release notes](docs/RELEASE_NOTES_0.2.0.md)
+> and the [GitHub Releases page](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/releases).
 
 ## What it does
 
@@ -93,8 +95,9 @@ portable folder/ZIP with the repository scripts:
 
 The current scripts derive the version from `src/staadprep/version.py`; check the generated
 filename/version before distributing a future build. `build/` and `dist/` outputs are ignored by
-Git. Do not commit the large portable binaries to the source repository by default; if desired,
-publish a separately reviewed archive through GitHub Releases after owner acceptance.
+Git. For this 0.2.0 candidate, offer only the ZIP as a GitHub pre-release download so the owner can
+test it; do not commit the ZIP or extracted folder into normal Git history. Mark later stable releases
+only after owner acceptance.
 
 ## Install the SketchUp extension
 
@@ -120,10 +123,11 @@ portable runtime notes are in [`packaging/README_PORTABLE.md`](packaging/README_
 - [Workflow](docs/WORKFLOW.md)
 - [Risk and approval gates](docs/RISK_GATES.md)
 - [Worktree/file relationship mindmap](docs/WORKTREE_MINDMAP.md)
+- [0.2.0 pre-release notes](docs/RELEASE_NOTES_0.2.0.md)
 - [Recoverable storage-move manifest](DEL/UNUSED_FILES_MANIFEST.md)
 
 ## License
 
-No `LICENSE` file is currently included. The repository owner must choose and add a license before
-others are granted permission to reuse or redistribute the project. Do not assume that public
-visibility on GitHub makes the code open source.
+The supplied GitHub repository already has a `LICENSE` file on its `main` branch. The same file is
+preserved unchanged in this branch; no new license was selected or authored here. See
+[`LICENSE`](LICENSE).

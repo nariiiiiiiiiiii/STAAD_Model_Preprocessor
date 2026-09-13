@@ -1,6 +1,6 @@
 # Project Storage Audit Manifest
 
-Status: **T28 POST-COMPILE AUDIT — 0.2.0 CANDIDATE VERIFIED; SUPERSEDED OUTPUTS MOVED; NO DELETION**
+Status: **T28/T29 STORAGE AUDITS — VERIFIED SUPERSEDED/UNUSED OUTPUTS MOVED; NO DELETION**
 Original manifest prepared: 2026-09-01; updated: 2026-09-13
 Worktree: `task/22-portable-packaging`
 Policy: move-only, recoverable quarantine; final deletion remains user-controlled.
@@ -164,5 +164,39 @@ package copies are deliberately not edited; they remain recoverable snapshots.
 | RBZ | `655238B3EA983C2A3C76A66BA8C9D44FE030F68BE49A9D8B950CC5CD70234D06` |
 | portable ZIP | `635AF835CE71C211E6FE184EBE05656187E0C4C36D2FA8BC542679802C7B15A7` |
 
-The local, ignored detailed inventory is `artifacts/cleanup/post-compile-storage-audit.md`. No
-GitHub push/release or license selection occurred in this checkpoint.
+The local, ignored detailed inventory is `artifacts/cleanup/post-compile-storage-audit.md`. T28 was
+local-only; T29's full project recheck is recorded below.
+
+## T29 whole-project recheck — 2026-09-13
+
+The owner requested a fresh audit across the canonical checkout and active T22 worktree before
+publishing. The canonical `master` checkout has no standalone/build files in its `build/` or `dist/`
+folders; its `tools/` and `vendor/` folders are empty, and its `artifacts/sketchup_bridge/inbox/`
+is a configured runtime location that was kept. The active worktree's source/tests and current 0.2.0
+build/package remain in place.
+
+Three unselected logo draft images in the owner-supplied root `LOGO/` folder had no live source,
+test, script, or documentation references. The selected image `06_17_26 PM.png` was retained because
+it is the approved source asset; its SHA-256 matches the tracked
+`assets/branding/staad-model-preprocessor.png` byte-for-byte. The unused alternatives were moved
+recoverably (not deleted):
+
+| Original path | Quarantine path | Classification | Size / SHA-256 |
+|---|---|---|---|
+| `LOGO/ChatGPT Image Sep 12, 2026, 05_44_55 PM.png` | `DEL/project-wide-audit-20260913/owner-logo-alternatives/LOGO/ChatGPT Image Sep 12, 2026, 05_44_55 PM.png` | Superseded logo draft; no live references | 1,531,613 bytes / `B4A15E4B96FF52C7475443788758A7A987B2B108D2DDAB9AD1FC4E628EC69A35` |
+| `LOGO/ChatGPT Image Sep 12, 2026, 06_12_39 PM.png` | `DEL/project-wide-audit-20260913/owner-logo-alternatives/LOGO/ChatGPT Image Sep 12, 2026, 06_12_39 PM.png` | Superseded logo draft; no live references | 690,290 bytes / `EF8C6B43E37B87E3D84D0A0CCBE18BA4B59DFAB1D327F9C6B9DCFF683E9D5322` |
+| `LOGO/ChatGPT Image Sep 12, 2026, 06_15_26 PM.png` | `DEL/project-wide-audit-20260913/owner-logo-alternatives/LOGO/ChatGPT Image Sep 12, 2026, 06_15_26 PM.png` | Superseded logo draft; no live references | 1,157,979 bytes / `CB0050D648ACE315F9252A9506E0493379607DCB737239E1273E7E65C39E5313` |
+| `.tmp/project-wide-audit-tests-20260913/` | `DEL/project-wide-audit-20260913/generated-tests/active-worktree/tmp/project-wide-audit-tests-20260913/` | Generated temporary output from focused 5-test package/RBZ verification | 29 files / 55,453 bytes |
+
+Post-move verification: all three logo sources are absent; all logo and test-temp destinations exist
+with the recorded lengths/hashes. The selected `06_17_26 PM.png` remains in `LOGO/`, and its hash
+equals the tracked active branding asset. The focused package/RBZ suite passed **5/5**; its temp
+output was archived after the test. T29 added **32 files / 3,435,335 bytes**. Combined `DEL/`
+payload excluding this tracked manifest is **23,050 files / 15,115,170,070 bytes**. These are
+same-volume moves, so no storage is released until the owner deletes the quarantine.
+
+The unreadable active `.tmp/pytest/` and canonical `.cache/pytest/` paths, plus the canonical
+checkout's 33,560,418-byte cache, remain untouched: Windows returned access denied and Python
+processes were present. No process was terminated, no ACL changed, and no uncertain cache/temp path
+was moved. The detailed full-root inventory is in the ignored local report
+`artifacts/cleanup/project-wide-storage-audit-20260913.md`.

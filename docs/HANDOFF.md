@@ -3,10 +3,13 @@ Status as of **2026-09-13**: T21 is complete; T22 packaging is complete; T23 is 
 and ZIP have been built. Package gates are **9/9 PASS** and the post-cleanup no-Python/different-CWD
 launch smoke is **1/1 PASS**. The owner has not yet reported manually testing this exact 0.2.0
 standalone, so it remains a **verified candidate**, not an owner-accepted/public release. T28 old
-outputs and generated data were moved into `DEL/post-compile-cleanup-20260913/`; no files were
-deleted. Documentation and the local GitHub preflight have passed on
-`task/22-portable-packaging`. Nothing has been pushed, no release has been published, and no license
-has been selected.
+outputs and generated data plus three unreferenced logo drafts and focused-test temp output from the
+full T29 review are recoverably stored in `DEL/`; no files were deleted. The project-wide audit is
+recorded in the ignored local report `artifacts/cleanup/project-wide-storage-audit-20260913.md`.
+Read-only GitHub inspection found a private repo with only an initial `main` README/Unlicense, no
+tags/releases, and history unrelated to this local project. The existing LICENSE was copied
+unchanged into this branch. Planned remote action is a new `task/22-portable-packaging` branch plus
+a ZIP-only `v0.2.0` pre-release; `main` remains untouched. No remote write has occurred.
 
 ## Current 0.2.0 candidate — build and verification
 
@@ -32,7 +35,7 @@ has been selected.
 
 The package is folder-based standalone with a ZIP distribution; it is **not** a one-file executable.
 Generated `build/` and `dist/` outputs are ignored and are not GitHub repository commits by default.
-The local audit has quarantined 23,018 payload files / 15,111,734,735 bytes; because this is a
+The T28/T29 audit has quarantined 23,050 payload files / 15,115,170,070 bytes; because this is a
 same-volume move, used disk space is not reclaimed until the owner separately deletes that folder.
 
 This block is authoritative. Older “not built”, “compile pending”, or “Save restricted to
