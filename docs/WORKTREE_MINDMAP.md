@@ -909,7 +909,7 @@ Verification/operation limits:
 - The remote repo is private; at the T29 checkpoint, `main` contained an initial README and its
   then-current LICENSE, while local project history was unrelated. T30 committed PolyForm
   Noncommercial 1.0.0 on the feature branch (`7bc1dcc`); merge bridge `f6aa64f` connects the histories.
-  PR #1 is open against `main`; `main` remains unchanged until an explicit merge. The owner reports
+  PR #1 records the integration into `main`, which the owner authorized. The owner reports
   that the exact compiled app works well; it remains a pre-release. The v0.2.0 pre-release still has
   the portable ZIP as its only application asset.
 

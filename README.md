@@ -9,7 +9,7 @@ the Node/Member model, validates readiness, and exports a STAAD `.STD` model.
 > no-Python launch smoke after cleanup. The owner tested this exact `0.2.0` standalone on
 > 2026-09-13 and reports that it works well. It remains a pre-release candidate; no stable-release
 > approval has been given. [PR #1](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/pull/1)
-> proposes this project tree and license update for `main`; it is open and not merged. The
+> records the project tree and license update proposed for `main`. The
 > [portable ZIP is available for download](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/releases/download/v0.2.0/STAAD_Model_Preprocessor_0.2.0_win64_portable.zip);
 > it is the only application asset uploaded, not the extracted folder or standalone EXE. This
 > existing ZIP predates the license update and has not been rebuilt or replaced. See the

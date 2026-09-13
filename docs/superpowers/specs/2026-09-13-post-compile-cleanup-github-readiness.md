@@ -38,8 +38,8 @@ repository—including the root `README.md`—for the owner to push to their Git
 - Do not move the newly accepted standalone, active source, tests, required SDK/vendor files, or
   current build evidence needed to reproduce the package.
 - This T28/T29 task did not push or merge branches. Its no-license-change scope was superseded by the
-  separate T30 owner request; T30 is now committed/pushed on the feature branch and PR #1 is open.
-  Merging that PR remains a separate owner decision.
+  separate T30 owner request; T30 is committed/pushed on the feature branch, PR #1 was created, and
+  the owner later authorized merging the PR.
 - Preserve the existing project-local runtime path policy and exclude generated `build/`, `dist/`,
   `.tmp/`, `.cache/`, `.worktrees/`, and quarantined `DEL/` contents from Git unless an owner-approved
   release policy explicitly requires otherwise.

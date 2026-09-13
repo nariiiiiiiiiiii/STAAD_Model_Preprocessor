@@ -67,8 +67,8 @@ For current state, use this index and the handoff first.
   `PolyForm-Noncommercial-1.0.0`.
 - The supplied private repo's `main` began with an unrelated starter history. T30 joined that
   history on `task/22-portable-packaging`; [PR #1](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/pull/1)
-  is open against `main`. `main` remains unchanged until the PR is reviewed and merged.
+  records integration into `main`, which the owner authorized on 2026-09-13.
 - A version-matched `v0.2.0` pre-release is published with the ZIP as its only application asset;
   the extracted folder and EXE were not added to Git history.
-- The license commit `7bc1dcc` and history-bridge merge `f6aa64f` are pushed on
-  `task/22-portable-packaging`; PR #1 is open and has not been merged.
+- The license commit `7bc1dcc` and history-bridge merge `f6aa64f` were pushed on
+  `task/22-portable-packaging`; PR #1 is the integration record.

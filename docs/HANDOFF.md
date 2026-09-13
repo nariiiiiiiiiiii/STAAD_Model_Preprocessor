@@ -14,13 +14,13 @@ remains a separate decision.
 
 Repository integration: license commit `7bc1dcc` and merge bridge `f6aa64f` are pushed on
 `task/22-portable-packaging`. [PR #1](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/pull/1)
-is open against `main`; it adds the project tree and license update. No merge into `main` has occurred.
+records integration of the project tree and license update into `main`; the owner authorized its merge
+on 2026-09-13.
 
 Local license migration checkpoint (2026-09-13): `LICENSE` now contains the official PolyForm
 Noncommercial 1.0.0 text with the separate Required Notice; `README.md` and `pyproject.toml` match.
 The license change is committed and pushed on the T22 branch. PolyForm's official funded-organization
-permission is called out in README and PR #1 for review before merge. The already-published pre-release
-asset and remote `main` were not changed.
+permission is disclosed in README and PR #1. The already-published pre-release asset was not changed.
 
 ## Current 0.2.0 candidate — build and verification
 
@@ -163,8 +163,8 @@ project data and move confirmed old standalone folders/ZIPs to `DEL/` without de
 tracked Markdown and make the root README suitable for the owner's GitHub repository. Then run a
 local repository preflight and hand off without pushing. The owner authorized beginning the sequence
 and the compile/package step has completed. Deletion and branch merging remain outside that task.
-The T30 license change and push are complete; PR #1 is open. Do not merge it into `main` without
-owner approval. See
+The T30 license change and push are complete; PR #1 records the owner-authorized integration into
+`main`. See
 `docs/superpowers/specs/2026-09-13-post-compile-cleanup-github-readiness.md` and
 `docs/superpowers/plans/2026-09-13-post-compile-cleanup-github-readiness.md`. Moving items to `DEL/`
 does not free disk space; final deletion remains owner-controlled.
