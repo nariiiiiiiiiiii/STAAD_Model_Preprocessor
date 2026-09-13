@@ -1,8 +1,9 @@
 # PROJECT RULES
 
-Canonical root:
-
-`D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`
+Canonical root: the repository clone root containing `.git` and `.worktrees/`. The active checkout
+may be a nested Git worktree; all project-local support paths must remain inside this repository
+root or its contained worktrees. Resolve paths from Git metadata rather than hard-coding a
+machine-specific absolute path.
 
 ## Mandatory file-boundary rule
 
@@ -53,7 +54,7 @@ Prefer vertical slices, targeted tests, and stable interfaces over speculative i
 
 ## DEL quarantine rule
 
-T24 uses `STAAD_Model_Preprocessor/DEL/` as a non-destructive quarantine area for files proven unused or superseded after final acceptance.
+Use the project-local `DEL/` directory as a non-destructive quarantine for files proven unused or superseded after the relevant current package checks.
 
 - T24 MUST NOT delete files.
 - Every moved file requires a manifest entry with its original path and reason.

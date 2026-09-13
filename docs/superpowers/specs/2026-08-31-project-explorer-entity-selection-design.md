@@ -1,4 +1,5 @@
 # Project Explorer Entity Selection Design
+> Historical design record: approved scope and decisions are preserved as recorded; current implementation/release status is in [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 **Date:** 2026-08-31  
 **Status:** Source implemented, verified, and user accepted  

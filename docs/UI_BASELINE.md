@@ -1,7 +1,8 @@
-Status: LOCKED for V1 unless the user explicitly requests a redesign. Current post-T22 source
-implementation conforms to this baseline with the user-requested Reset/Crop, selection Properties,
-context actions, and active-mode additions; source behavior is user accepted and full source
-verification is complete. Replacement packaging awaits explicit compile approval.
+Status: LOCKED for V1 unless the user explicitly requests a redesign. The 0.2.0 source and matching
+portable package candidate include the accepted Reset/Crop, selection Properties, context actions,
+active-mode styling, Crop to Select marquee, and Zoom in Select. Package gates pass **9/9**; manual
+owner acceptance of the exact compiled candidate is not yet recorded. The approved dark engineering
+desktop baseline remains unchanged.
 
 The approved baseline remains the dark engineering desktop application, extended on 2026-08-28 with focused manual analytical editing and SketchUp-style viewport controls.
 

@@ -1,6 +1,44 @@
-Status: **T21 is complete; T22's accepted portable release is `0.1.0`; T23 acceptance is PASS by user report; T24 is complete with no files deleted. The active CP1–CP5 source follow-up is source-verified on `task/22-portable-packaging`. Owner smoke on 2026-09-12 confirms the app/taskbar logo and Quick Fix/Undo/Redo. The owner reports Crop to Select / Zoom in Select works on 2026-09-13. External Project JSON First Save/Save As is source-implemented under explicit STRICT approval: 58/58 relevant tests, Ruff, strict mypy, and diff check pass. The owner reports on 2026-09-13 that Save works in the app; no compile/package build was run. Automated offscreen VTK smoke remains unverified after the Win32 OpenGL/Python Application Error. No `0.2.0` executable/RBZ/ZIP has been built or accepted.**
+Status as of **2026-09-13**: T21 is complete; T22 packaging is complete; T23 is PASS by owner report
+(2026-09-01). Source version **0.2.0**, matching Windows standalone, SketchUp RBZ, portable folder,
+and ZIP have been built. Package gates are **9/9 PASS** and the post-cleanup no-Python/different-CWD
+launch smoke is **1/1 PASS**. The owner has not yet reported manually testing this exact 0.2.0
+standalone, so it remains a **verified candidate**, not an owner-accepted/public release. T28 old
+outputs and generated data were moved into `DEL/post-compile-cleanup-20260913/`; no files were
+deleted. Documentation and the local GitHub preflight have passed on
+`task/22-portable-packaging`. Nothing has been pushed, no release has been published, and no license
+has been selected.
 
-## Current source follow-up — 2026-09-12
+## Current 0.2.0 candidate — build and verification
+
+- Nuitka mode: `standalone`; report says `completion=yes`; Windows file/product version `0.2.0.0`.
+- Executable: `build/windows/final/app.dist/STAAD Model Preprocessor.exe`, 160,498,688 bytes,
+  SHA-256 `A616C8286DD63C718D821132B37C4C24F82AA2FB75E15BB46A4FC60E004174A2`.
+- SketchUp RBZ: `build/sketchup/STAAD_Prep_Bridge_0.2.0.rbz`, 4,211 bytes,
+  SHA-256 `655238B3EA983C2A3C76A66BA8C9D44FE030F68BE49A9D8B950CC5CD70234D06`.
+- Portable folder: `dist/STAAD_Model_Preprocessor_0.2.0_win64_portable/`, 813 files,
+  709,571,303 bytes; manifest has 812 managed-file entries.
+- ZIP: `dist/STAAD_Model_Preprocessor_0.2.0_win64_portable.zip`, 226,243,587 bytes,
+  SHA-256 `635AF835CE71C211E6FE184EBE05656187E0C4C36D2FA8BC542679802C7B15A7`.
+- Package tests (manifest, RBZ, packaged paths, workflow smoke): **9/9 PASS**. After quarantine,
+  `test_final_package_launches_without_python_from_different_cwd`: **1/1 PASS**.
+- Pre-package source evidence: **345 unit+integration passed**, **1 skipped** (RBZ archive test at
+  that source-only checkpoint), **3 package tests deselected** before build; affected UI **26/26**,
+  the later Save/import/export/path regression **58/58**, Ruff PASS, and strict mypy reported **0**
+  issues on affected files. `git diff --check` passed before the packaging/doc checkpoint.
+- Owner-reported source-app acceptance: Save and the requested viewport behavior work; T23 earlier
+  acceptance is PASS by report. **No manual owner acceptance of the newly built 0.2.0 executable is
+  recorded yet.** The isolated offscreen VTK smoke remains unavailable after a Win32 OpenGL pixel
+  format error and Python Application Error; the owner manually accepted viewport behavior.
+
+The package is folder-based standalone with a ZIP distribution; it is **not** a one-file executable.
+Generated `build/` and `dist/` outputs are ignored and are not GitHub repository commits by default.
+The local audit has quarantined 23,018 payload files / 15,111,734,735 bytes; because this is a
+same-volume move, used disk space is not reclaimed until the owner separately deletes that folder.
+
+This block is authoritative. Older “not built”, “compile pending”, or “Save restricted to
+Data/Projects” statements below are dated historical snapshots and must not be read as current.
+
+## Historical source follow-up snapshot — 2026-09-12 (superseded where the current block above differs)
 
 The owner approved version `0.2.0`. Checkpoint 1 is complete in the active T22 worktree: `src/staadprep/version.py` is canonical, `staadprep.__version__` imports from it, and the SketchUp loader declares the same version. The version-contract test is **6/6 PASS**; Ruff passes; strict mypy reports **0 issues** across the three affected Python files; `git diff --check` passes. No RBZ, executable, portable folder, or ZIP was rebuilt. Existing accepted package records remain version `0.1.0`.
 
@@ -22,21 +60,24 @@ Taskbar source follow-up (2026-09-12): `configure_windows_taskbar_identity()` as
 
 Owner retest result (2026-09-12): the selected logo now appears correctly on the source-run app's taskbar. This is owner-confirmed development-app behavior; the compiled `.exe` remains the old `0.1.0.0` and was not rebuilt or tested.
 
-Next: finish the remaining manual checks. No `0.2.0` RBZ/executable/portable package has been built or accepted; wait for a separate explicit compile/package instruction before any build.
+At the time of this source snapshot, manual checks and compile/package authorization were still
+pending. The user later authorized the post-compile sequence; the resulting candidate build and
+verification are recorded at the top of this handoff.
 
 Development launch for manual source acceptance (PowerShell, from the active worktree):
 
 ```powershell
-Set-Location -LiteralPath 'D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor\.worktrees\task-22-portable-packaging'
+Set-Location -LiteralPath (git rev-parse --show-toplevel)
 $env:PYTHONPATH = (Resolve-Path .\src).Path
-..\..\.venv\Scripts\python.exe -m staadprep.app
+python -m staadprep.app
 ```
 
 Save-path manual acceptance: the owner reported on 2026-09-13 that Save works; individual Save As,
 cancel, overwrite, and reopen cases were not itemized. Remaining unrelated manual checks include
 multi-issue Apply with Undo/Redo and the intersection case. The user has reported Quick Fix and
 Undo/Redo working, but did not specify which batch/intersection scenarios were tested. Real SketchUp
-export testing needs a later explicit RBZ/package build; no compile should be started yet.
+export testing needs the owner to install/test the current version-matched RBZ; the 0.2.0 build
+exists and passed the archive/package gates.
 
 ## 2026-09-12 manual bug follow-up — Crop and Save Blocked
 
@@ -73,8 +114,8 @@ The real VTK smoke was not verified in the agent test process: an offscreen atte
 Error. A prior combined same-process UI test also triggered a native VTK access violation; both
 attempts used only synthetic in-memory model data and did not open or write user Project JSON. The
 owner manually tested the viewport flow and reports it works well on 2026-09-13, so manual viewport
-acceptance is complete; only automated offscreen VTK evidence remains unavailable. No compile has
-been run.
+acceptance is complete; only automated offscreen VTK evidence remains unavailable. The later 0.2.0
+build result is recorded at the top of this handoff.
 
 **Save destination audit:** Source inventory found three unrestricted open-file dialogs (Project
 JSON, SketchUp Neutral JSON, DXF); Export STD already lets the user choose any path and writes its
@@ -94,19 +135,20 @@ failure tests pass as recorded below.
   and all project-local runtime destinations remain intact.
 - External Open Project JSON, SketchUp JSON, DXF, and Export STD dialog paths were verified; the STD
   validation report remains beside the selected `.STD`.
-- Verification: **58/58 relevant UI/unit tests PASS**, Ruff PASS, strict mypy **0 issues** in
-  `main_window.py`, `git diff --check` PASS. No compile or package build was run.
+- Verification at the source-fix checkpoint: **58/58 relevant UI/unit tests PASS**, Ruff PASS,
+  strict mypy **0 issues** in `main_window.py`, `git diff --check` PASS. Compilation followed later.
 - Owner manual report (2026-09-13): Save now works in the app. Individual Save As/cancel/overwrite
-  cases were not specified; the owner has accepted the reported Save behavior. No compile/package
-  build was run or authorized.
+  cases were not specified. The exact compiled 0.2.0 package still awaits the owner's own manual
+  launch/acceptance; build and automated package-gate results are at the top of this handoff.
 
 ## Post-compile cleanup and GitHub readiness request (2026-09-13)
 
 After a separately authorized compile, the owner requests: verify the new standalone; re-audit unused
 project data and move confirmed old standalone folders/ZIPs to `DEL/` without deletion; update all
 tracked Markdown and make the root README suitable for the owner's GitHub repository. Then run a
-local repository preflight and hand off without pushing. The request does not authorize compile now,
-deletion, branch merging, license selection, or a GitHub push. See
+local repository preflight and hand off without pushing. The owner authorized beginning the sequence
+and the compile/package step has completed. Deletion, branch merging, license selection, and a
+GitHub push remain outside this task. See
 `docs/superpowers/specs/2026-09-13-post-compile-cleanup-github-readiness.md` and
 `docs/superpowers/plans/2026-09-13-post-compile-cleanup-github-readiness.md`. Moving items to `DEL/`
 does not free disk space; final deletion remains owner-controlled.
@@ -328,9 +370,10 @@ Post-T22 usability commit:
 
 ## Canonical project root
 
-`D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`
-
-HARD RULE: all project-created source/temp/cache/log/build/test/generated/exported/quarantine files remain inside this root.
+The canonical project boundary is the repository clone root that owns `.git` and `.worktrees/`;
+the active source checkout may be a nested worktree below it. All project-created source/temp/cache/
+log/build/test/generated/exported/quarantine files must stay inside that clone or its contained
+worktrees. Resolve locations from Git metadata rather than a machine-specific absolute path.
 
 ## Completed baseline
 

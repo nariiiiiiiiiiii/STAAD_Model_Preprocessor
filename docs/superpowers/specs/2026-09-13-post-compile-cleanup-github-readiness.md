@@ -6,14 +6,15 @@ After a separately authorized compile, inspect the project for unused data and s
 folders/ZIPs, move only verified-unused items to `DEL/`, update all Markdown files, and prepare the
 repository—including the root `README.md`—for the owner to push to their GitHub repository.
 
-## Preconditions
+## Current gate and preconditions
 
-- Compilation/package creation is a separate approval gate. This request describes work to do after
-  that compile; it does not itself authorize running Nuitka or replacing the accepted package.
-- The new standalone folder/ZIP must first pass the existing package verification and owner acceptance
-  applicable to the build.
-- The current accepted package and source remain protected until the new package is identified and
-  verified by version, manifest, and hashes.
+- The owner authorized the post-compile sequence with “เริ่มทำได้” on 2026-09-13; the 0.2.0
+  standalone build and portable assembly have completed.
+- The new folder/ZIP passed the existing package verification (**9/9**) and the post-cleanup
+  no-Python/different-CWD launch smoke (**1/1**).
+- The owner has not reported manually launching/accepting this exact compiled 0.2.0 candidate. Keep
+  it identified as a verified candidate, not an owner-accepted public release, until that test.
+- Superseded outputs were moved to `DEL/` recoverably after package gates; no data was deleted.
 
 ## Expected results
 

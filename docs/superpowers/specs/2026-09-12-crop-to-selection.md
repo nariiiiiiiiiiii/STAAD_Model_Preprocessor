@@ -1,4 +1,5 @@
 # Crop to Selection — Behavior Specification
+> Historical design record: accepted behavior and tests are preserved as recorded; current status is in [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 ## User-reported issue
 

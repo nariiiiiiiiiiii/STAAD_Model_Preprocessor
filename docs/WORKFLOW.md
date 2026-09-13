@@ -1,6 +1,13 @@
 ## A. User workflow — V1
 
-Accepted package checkpoint (historical, 2026-09-01): agreed source behavior was user accepted and full source
+Current package checkpoint (2026-09-13): source and matching release candidate are version `0.2.0`.
+The portable folder/ZIP and RBZ passed automated package verification **9/9**; an additional
+no-Python/different-CWD launch passed **1/1** after cleanup. The owner has not reported manual testing
+of the exact compiled 0.2.0 standalone. The user reports the source-app Save and viewport changes
+work. User-selected Project JSON First Save/Save As, SketchUp JSON/DXF import, and `.STD` export
+destinations are supported; the validation report is written beside the chosen `.STD` file.
+
+Historical accepted package checkpoint (2026-09-01): agreed source behavior was user accepted and full source
 verification is complete. The user explicitly authorized compile step 1 and Nuitka produced a fresh
 standalone build. `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/` remains historical; portable assembly and ZIP
 creation are complete under `dist/post-t22-refresh-save-final/`. Package-only verification is
@@ -8,18 +15,19 @@ creation are complete under `dist/post-t22-refresh-save-final/`. Package-only ve
 T26 then moved regenerable `.tmp`/`.cache` contents and 22 historical clean worktrees into
 `DEL/t26-storage-cleanup-20260901/`; deletion remains user-controlled.
 T27 allows explicit user-selected SketchUp input/output locations and STD export destinations outside
-the project; implicit runtime paths remain project-local. Project JSON may now be opened from any folder and saved back to that path; first Save for a new model remains in the default Projects area. The accepted package is
-assembled under `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/`.
+the project; implicit runtime paths remain project-local. Project JSON may be opened and saved in any
+user-selected folder. The current 0.2.0 package candidate is under
+`dist/STAAD_Model_Preprocessor_0.2.0_win64_portable/` in the ignored local build output.
 
-### Active source follow-up — 2026-09-12
+### Historical source follow-up snapshot — 2026-09-12 (current status is above)
 
-The approved source version is `0.2.0`; source checkpoints cover SKP-stem/date JSON names, the
+At this dated source checkpoint, the approved source version was `0.2.0`; checkpoints covered SKP-stem/date JSON names, the
 selected application icon, free Project JSON Open with Save-back, and multi-issue Quick Fix with
 existing intersection splitting. STRICT / Full TDD was approved and completed for the topology
-batch. Current source evidence is **345 unit+integration passed**, **1 skipped**, **3 package gates
+batch. Source evidence at that checkpoint was **345 unit+integration passed**, **1 skipped**, **3 package gates
 deselected**, and **26/26 affected UI passed**, with Ruff and strict mypy clean. The accepted
-portable package remains `0.1.0`; no new RBZ or Windows executable is retained. User testing and
-separate compile/package authorization remain pending.
+portable package was still `0.1.0`; no new RBZ or Windows executable was retained then. Build and
+acceptance status was superseded by the current package checkpoint at the top of this section.
 
 A legacy integration test briefly generated a transient `0.2.0` RBZ; the file was removed. It also
 refreshed pre-existing ignored `build/sketchup/stage/` copies, which remain in place. The RBZ/package
@@ -478,6 +486,8 @@ Open Project JSON
  -> Save writes back to that selected file through a sibling atomic temp file
 ```
 
-First Save for a new or imported model remains in the default Projects directory (`Data/Projects/`
-in the portable app; the project-local Projects directory in development). External Open/Save
-behavior is source-verified; package acceptance awaits a separately authorized build.
+First Save and Save As for a new or imported model use the destination selected in the save dialog;
+regular Save writes back to the associated file. The write is atomic, and a failed/cancelled save
+does not change the current association or dirty state. Application-managed runtime files remain
+under the project/portable `Data/` boundary; external user-selected Project JSON files are not
+automatically included in portable-app backups or updates.

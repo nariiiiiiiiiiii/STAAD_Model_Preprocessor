@@ -1,4 +1,5 @@
 # Post-T22 Editing Corrections Design
+> Historical design record: approved scope and decisions are preserved as recorded; current implementation/release status is in [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 **Status:** STRICT implementation and package verification complete; historical package checkpoint
 superseded for current acceptance by later user-accepted, fully verified source follow-ups

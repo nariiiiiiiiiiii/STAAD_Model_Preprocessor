@@ -1,4 +1,5 @@
 # STAAD Model Preprocessor — Design
+> Historical design record: approved scope and decisions are preserved as recorded; current implementation/release status is in [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 Date: 2026-08-28
 Status: **APPROVED V1 design baseline** — implementation proceeds through the task-gated plans; current execution status is tracked in `docs/TASK_BOARD.md` and `docs/HANDOFF.md`.
@@ -101,7 +102,7 @@ Golden dirty-model fixtures are part of the V1 acceptance strategy.
 
 Canonical root:
 
-`D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`
+the repository clone root containing `.git` and the active `.worktrees/` directory.
 
 All project files, logs, cache, temp, build output, generated artifacts, and project-controlled dependency staging must stay inside this root. See `AGENTS.md` and `docs/PROJECT_RULES.md`.
 

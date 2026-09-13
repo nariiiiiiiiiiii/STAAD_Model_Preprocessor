@@ -1,4 +1,5 @@
 # T22 Portable Standalone Windows Packaging Implementation Plan
+> Historical plan record: task-date checkboxes and status are preserved as recorded; for current status see [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -639,7 +640,7 @@ Reject any implicit write to:
 - `%LOCALAPPDATA%`;
 - user home;
 - old package path;
-- hard-coded `D:\Dizayn59\...`.
+- hard-coded machine-specific checkout or user-profile paths.
 
 - [x] **Step 4: Prove unwritable-root behavior**
 

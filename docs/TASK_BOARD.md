@@ -1,3 +1,13 @@
+## Current checkpoint — 2026-09-13
+
+Source/package version `0.2.0` is built. Package verification is **9/9 PASS** and the post-cleanup
+no-Python/different-CWD launch smoke is **1/1 PASS**. Superseded release/build output and generated
+test/cache data were moved into `DEL/post-compile-cleanup-20260913/`; no deletion occurred. Current
+documentation and local GitHub preflight passed on `task/22-portable-packaging`; nothing has been
+pushed or merged.
+The owner has not yet reported manually testing the exact compiled 0.2.0 candidate; no push, release,
+or license selection is part of this task. Older status blocks below are dated history.
+
 Execution policy: **run exactly one Task at a time**. Every Task must end with its verification, Git commit, documentation/status update, and a hard stop for user review before the next Task begins.
 
 Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 through HR-4 on 2026-08-28. Manual Editing + SketchUp-style controls and SketchUp Ruby Bridge + Direct DXF V1 import architecture approved on 2026-08-28. Post-T22 HR-2 Delete/Merge/Member-Repeat correction scope explicitly approved on 2026-08-30. Multi-issue Quick Fix/intersection batch approved STRICT on 2026-09-12. User-selected Project JSON Save/Save As refreshed plan approved STRICT on 2026-09-13.**
@@ -28,11 +38,11 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | T22 | Portable standalone Windows packaging (`.exe` + bundled `.rbz` + update-ready manifest) | STANDARD | **COMPLETE** |
 | T23 | Real-project acceptance + target STAAD.Pro verification | **STRICT acceptance** | **COMPLETE / PASS** (user-tested 2026-09-01) |
 | T24 | Post-acceptance unused-file audit + quarantine to project-local `DEL/` | STANDARD | **COMPLETE** |
-| T25 | Full project storage recheck + approved old package/build quarantine | STANDARD | **MOVE COMPLETE; SPACE DELETION PENDING USER** |
-| Post-T27 CP1–5 | version/name/icon/Project JSON/batched Quick Fix source follow-up | STANDARD; CP5 STRICT/HR-2 | **SOURCE VERIFIED; owner confirms app/taskbar logo and Quick Fix/Undo/Redo; focused icon suite 10/10; package acceptance pending** |
-| Post-CP5 manual bug report | Crop-to-Selection single-Node camera collapse; user-selected Save destinations | STANDARD; Save STRICT | **Crop source fix + 15 focused UI/save tests PASS; owner viewport retest PASS; First Save path guard fixed and Save As added; 58 relevant tests PASS; owner reports Save works (2026-09-13)** |
-| Post-CP5 marquee + free Save destinations | Crop to Select rectangle, Zoom in Select rename, any-folder Save/Save As audit | STANDARD viewport; Save STRICT | **Owner reports viewport and Save behavior PASS; Save STRICT approved 2026-09-13; 58/58 tests, Ruff, strict mypy PASS; no compile; package/compile auth remains pending** |
-| Post-compile cleanup + GitHub readiness | Verify new standalone, quarantine verified old outputs to DEL, sync all tracked Markdown/README, local GitHub preflight | STANDARD; move-only cleanup | **PLANNED; WAITING for separate compile authorization; no moves, README rewrite, or push started** |
+| T25 | Full project storage recheck + approved old package/build quarantine | STANDARD | **HISTORICAL MOVE COMPLETE; owner later cleared that quarantine** |
+| Post-T27 CP1–5 | version/name/icon/Project JSON/batched Quick Fix source follow-up | STANDARD; CP5 STRICT/HR-2 | **SOURCE VERIFIED; superseded by the 0.2.0 package checkpoint below** |
+| Post-CP5 manual bug report | Crop-to-Selection single-Node camera collapse; user-selected Save destinations | STANDARD; Save STRICT | **Source fixes and focused verification complete; owner reports behavior works** |
+| Post-CP5 marquee + free Save destinations | Crop to Select rectangle, Zoom in Select rename, any-folder Save/Save As audit | STANDARD viewport; Save STRICT | **Source behavior owner-reported PASS; 0.2.0 candidate built; exact compiled app manual test pending** |
+| Post-compile cleanup + GitHub readiness | Verify new standalone, quarantine verified old outputs to DEL, sync all tracked Markdown/README, local GitHub preflight | STANDARD; move-only cleanup | **LOCAL PREPARATION VERIFIED; manual 0.2.0 owner test, license choice, and push remain owner actions** |
 
 ## Operational rules
 
@@ -162,9 +172,10 @@ does not start T23.
 - `docs/WORKTREE_MINDMAP.md` is the canonical current worktree/file relationship map.
 - It covers tracked source, tests, plans/specs, build/package/runtime flow, generated/protected
   groups, T24 quarantine, and the RBZ archive/source/callback/JSON contract in depth.
-- T24 remains **COMPLETE**; the mindmap is documentation-only and does not start T25 or compile.
-- Documentation checkpoint is **COMPLETE** in commit `9751746 docs: add complete worktree and RBZ
-  mindmap`; stop for user review before any next implementation task.
+- At the 2026-09-01 checkpoint T24 was **COMPLETE**; the mindmap was documentation-only. Later
+  T25–T28 work is recorded below and in the current checkpoint at the top of this board.
+- The original mindmap checkpoint was committed as `9751746 docs: add complete worktree and RBZ
+  mindmap`; the mindmap was subsequently synchronized again on 2026-09-13.
 
 ## 2026-09-01 T25 storage audit checkpoint
 
@@ -206,10 +217,23 @@ does not start T23.
 - Previous accepted package/build/RBZ were moved to `DEL/t27-free-path-selection-20260906/old-release/`;
   no old artifact was deleted.
 
-## 2026-09-12 Post-T27 usability follow-up — CP1–5
+## Historical checkpoint — 2026-09-12 Post-T27 usability follow-up — CP1–5
 
-- Owner approved source version `0.2.0`; the accepted portable package remains `0.1.0`.
+- Owner approved source version `0.2.0`; at this checkpoint the last packaged build was still `0.1.0`.
 - Source changes cover model/date SketchUp JSON names, the selected application icon, unrestricted Project JSON Open with Save-back, and strict multi-issue Quick Fix/intersection handling.
 - The user approved STRICT / Full TDD for CP5. Verification: **345 unit+integration passed**, **1 skipped** (RBZ archive absent), **3 package-launch tests deselected** (no `0.2.0` executable), **26/26 affected UI passed**, Ruff passed, strict mypy 0 issues in four affected source files, and diff check passed.
-- No final RBZ, Nuitka executable, portable folder, or ZIP is accepted. Real development-app/SketchUp acceptance and compile/package authorization remain pending.
+- At this checkpoint the final RBZ, Nuitka executable, portable folder, and ZIP had not yet been built. The later 2026-09-13 package checkpoint below supersedes this status.
 - Incident record: the first full suite invoked a legacy RBZ builder test and generated a transient `0.2.0` RBZ; that file was removed. The test harness now uses `.tmp/tests` fixtures instead. Existing ignored `build/sketchup/stage/` copies were refreshed by the transient run and left in place.
+
+## 2026-09-13 Post-compile cleanup and GitHub preparation
+
+- [x] Owner authorized starting the post-compile sequence; Nuitka built version `0.2.0.0` in standalone mode (`completion=yes`).
+- [x] Build the matching `STAAD_Prep_Bridge_0.2.0.rbz`, portable folder, and ZIP; retain generated outputs under ignored `build/` and `dist/`.
+- [x] Verify package manifest, RBZ archive, packaged path/workflow gates: **9/9 PASS**.
+- [x] After cleanup, rerun the no-Python/different-CWD executable smoke: **1/1 PASS**.
+- [x] Move the 0.1.0 standalone folder/ZIP and RBZ, pre-doc-sync 0.2.0 candidate, old build icon evidence, old logs, caches, tests, and temporary helpers into `DEL/post-compile-cleanup-20260913/`; verify destination presence/metrics, never delete.
+- [x] Update the tracked storage manifest and create the local ignored detailed storage audit.
+- [x] Synchronize the GitHub-facing root README and authoritative status/navigation docs; inventory all **46 tracked Markdown files** and label dated plans/specs as historical records.
+- [ ] Finish link/secret/path/binary/ignore/large-file/status preflight and run final `git diff --check`.
+- [ ] Commit only the intended docs/manifest/package-template changes; preserve the unrelated `tests/ui/test_manual_edit_mouse.py` line-ending-only change.
+- [ ] Stop before GitHub push/release. Owner manual acceptance of exact compiled 0.2.0 candidate and license choice remain owner actions.

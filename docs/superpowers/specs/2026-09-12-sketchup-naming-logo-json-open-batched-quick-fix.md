@@ -1,4 +1,5 @@
 # Version, SketchUp Naming, App Icon, Open JSON, and Batched Quick Fix
+> Historical design record: accepted behavior and tests are preserved as recorded; current status is in [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 **Date:** 2026-09-12
 

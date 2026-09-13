@@ -1,4 +1,5 @@
 # SketchUp Ruby Bridge + Direct DXF Import Design
+> Historical design record: approved scope and decisions are preserved as recorded; current implementation/release status is in [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 Status: APPROVED FOR V1 on 2026-08-28.
 

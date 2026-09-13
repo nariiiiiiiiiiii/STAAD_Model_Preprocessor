@@ -1,4 +1,5 @@
 # Manual Model Editing + SketchUp-Style Viewport Design
+> Historical design record: approved scope and decisions are preserved as recorded; current implementation/release status is in [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 Date: 2026-08-28
 Status: **APPROVED design baseline for V1 continuation**

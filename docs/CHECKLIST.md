@@ -386,12 +386,12 @@ Create/complete at minimum:
 - [x] Run source regressions, Ruff, strict mypy, and package gates before release assembly.
 - [x] Compile/package the updated standalone and archive the previous accepted package/build/RBZ in DEL.
 
-## 2026-09-12 source follow-up — CP1–CP5
+## Historical checkpoint — 2026-09-12 source follow-up — CP1–CP5
 
 - [x] Sync approved source version `0.2.0` across canonical Python, package metadata/export, and SketchUp loader.
 - [x] Name SketchUp JSON from safe SKP stem plus local `DDMMYYYY`; preserve source metadata and collision suffixes.
 - [x] Copy the selected logo byte-identically; verify Qt app icon and Windows build-contract wiring; generate 7-size ICO.
-- [x] Open Project JSON from any selected folder; Save back to the opened path; keep first Save in the default Projects folder.
+- [x] At that checkpoint, Open Project JSON from any selected folder and Save back to it; the First Save restriction was later removed by the approved 2026-09-13 Save-path follow-up below.
 - [x] Obtain explicit STRICT / Full TDD approval for multi-issue Quick Fix/intersection.
 - [x] Add conflict-checked batch planning, extended selection, existing intersection splitter route, CompositeRepair audit/history, and exact Undo/Redo coverage.
 - [x] Verify **345 unit+integration PASS**, **1 skipped** (RBZ archive acceptance requires an explicit RBZ build), **3 deselected** (portable-executable gates require an explicit `0.2.0` package), and **26/26 affected UI PASS**; Ruff and strict mypy pass.
@@ -435,13 +435,17 @@ Incident record: an earlier full-suite run invoked the legacy RBZ builder test a
 `0.2.0` RBZ. That single file was removed; the existing `0.1.0` RBZ/package was retained. The builder
 also refreshed pre-existing ignored `build/sketchup/stage/` copies; those files were left in place.
 
-## Post-compile storage cleanup and GitHub readiness (planned 2026-09-13)
+## T28 — Post-compile cleanup and GitHub preparation (2026-09-13)
 
-- [ ] Obtain separate explicit compile/package authorization; this post-compile request is not compile authorization.
-- [ ] Verify the newly built standalone folder/ZIP, manifest hashes, no-Python launch, relocation, and package gates before moving anything.
-- [ ] Re-audit project storage and classify KEEP / REGENERABLE / SUPERSEDED / UNUSED; move only verified obsolete items to dated `DEL/`, never delete.
-- [ ] Record original/destination paths, sizes, versions, hashes, and reference scan in `artifacts/cleanup/post-compile-storage-audit.md` and `DEL/UNUSED_FILES_MANIFEST.md`.
-- [ ] Inventory every tracked Markdown file; update current facts/status and label historical evidence without rewriting past results.
-- [ ] Prepare root `README.md` for GitHub with accurate purpose, quick start, prerequisites, source/standalone use, tests, version, and limitations.
-- [ ] Check links, secrets, user-specific absolute paths, `.gitignore`, tracked binaries, licenses, branch/status, and uncommitted owner changes.
-- [ ] Do not push or create a GitHub release; hand the prepared branch to the owner. Moving to `DEL/` is recoverable but does not free disk space until the owner separately deletes it.
+- [x] Owner authorized starting the post-compile sequence; the Windows build completed as Nuitka `standalone`, version `0.2.0.0`, `completion=yes`.
+- [x] Verify the 0.2.0 package manifest, RBZ archive, packaged paths, and packaged workflow: **9/9 PASS**.
+- [x] After quarantine, run `test_final_package_launches_without_python_from_different_cwd`: **1/1 PASS**.
+- [x] Inventory storage and retain active source, tests, required vendor/runtime files, project data, and current 0.2.0 build evidence.
+- [x] Move the superseded 0.1.0 folder/ZIP/RBZ, pre-documentation-sync 0.2.0 folder/ZIP, generated test/cache output, historical icon/log evidence, and one-off temporary helpers into `DEL/post-compile-cleanup-20260913/`.
+- [x] Confirm moves are recoverable, record item counts/bytes/hashes and the reference check, and do not delete anything. A same-volume move does not free space.
+- [x] Update `DEL/UNUSED_FILES_MANIFEST.md`; create ignored local audit `artifacts/cleanup/post-compile-storage-audit.md`.
+- [x] Rewrite the root GitHub README and synchronize current status/navigation documents; inventory **46 tracked Markdown files** and preserve dated plans/specs as historical evidence.
+- [x] Replace machine-specific root paths in tracked Markdown with checkout-relative guidance.
+- [x] Complete final link/secret/path/binary/ignore/large-file/status preflight; all 46 local Markdown links resolve, no tracked binaries or files over 50 MB were found, no machine-specific checkout path or secret/key filename was found, and `git diff --check` passes.
+- [x] Commit only the reviewed docs, manifest, and portable README-template changes; leave unrelated line-ending-only test change unstaged.
+- [x] Stop before GitHub push/release. Owner manual test/acceptance of the exact compiled 0.2.0 candidate and license selection remain separate owner actions.

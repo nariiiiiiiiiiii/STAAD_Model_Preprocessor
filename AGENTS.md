@@ -4,16 +4,17 @@ These rules apply to every agent, tool, script, test, build, and generated artif
 
 ## 1. Immutable project boundary
 
-Canonical project root:
-
-`D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`
+The project boundary is the repository clone root that owns `.git` and `.worktrees/`. The active
+checkout may be a nested Git worktree below `.worktrees/<name>/`; project-local support directories
+under the clone root are still inside the boundary. Resolve locations from Git worktree metadata
+rather than relying on a machine-specific absolute path.
 
 ### HARD RULE
 
-ALL files created, modified, generated, downloaded, extracted, cached, logged, built, tested, or temporarily staged for this project MUST remain inside the canonical project root.
+ALL files created, modified, generated, downloaded, extracted, cached, logged, built, tested, or temporarily staged for this project MUST remain inside the repository clone root or its contained active worktrees.
 
 Do not create project files in:
-- `D:\Dizayn59\CLICodex\gpt_mcp_workshop` root,
+- the parent directory of the active checkout or an unrelated workspace root,
 - Windows `%TEMP%` or `%TMP%`, when the tool/runtime allows an explicit project-local temp directory,
 - Desktop/Documents/Downloads,
 - user profile folders,

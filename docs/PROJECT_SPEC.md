@@ -1,9 +1,16 @@
 Status: APPROVED FOR IMPLEMENTATION — task-gated execution; STRICT approved for HR-1 through HR-4; Manual Editing V1 expansion approved 2026-08-28; SketchUp Ruby Bridge + Direct DXF V1 import architecture approved 2026-08-28.
 Date: 2026-08-28
 
-Current delivery checkpoint (2026-08-31): T22 is complete; the consolidated post-T22
+Historical delivery checkpoint (2026-08-31): T22 is complete; the consolidated post-T22
  refresh/properties/save standalone/ZIP is package-verified and real-user accepted. T23
  target-STAAD.Pro acceptance is **PASS** by user report (2026-09-01).
+
+Current implementation checkpoint (2026-09-13): source/package version `0.2.0` is built. The
+version-matched Windows standalone, SketchUp RBZ, portable folder, and ZIP pass package verification
+(**9/9**) plus a post-cleanup no-Python/different-CWD launch smoke (**1/1**). The owner has not yet
+reported manual testing of this exact compiled candidate. User-selected Project JSON First Save and
+Save As, SketchUp JSON/DXF import paths, and `.STD` export destinations are supported. This spec
+defines product scope; current release/acceptance state is maintained in `HANDOFF.md` and `INDEX.md`.
 
 ## 1. Problem statement
 

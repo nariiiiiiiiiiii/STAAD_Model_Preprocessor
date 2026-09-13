@@ -1,4 +1,5 @@
 # Project Explorer Entity Selection Implementation Plan
+> Historical plan record: task-date checkboxes and status are preserved as recorded; for current status see [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 **Status:** COMPLETE / SOURCE USER ACCEPTED — 2026-08-31  
 **Compile status:** Deferred; no replacement standalone/ZIP authorized

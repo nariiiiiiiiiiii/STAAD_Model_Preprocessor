@@ -1,4 +1,5 @@
 # Project Storage Audit and Safe Cleanup Plan
+> Historical plan record: task-date checkboxes and status are preserved as recorded; for current status see [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 > **For agentic workers:** Use this plan task-by-task with a fresh inventory and a user review gate before any move or deletion.
 
@@ -12,7 +13,7 @@
 
 ## Global Constraints
 
-- Canonical root: `D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`.
+- Canonical root: the repository clone root containing `.git` and the active `.worktrees/` directory.
 - Active worktree: `.worktrees/task-22-portable-packaging`.
 - All generated, staged, moved, and audit files remain inside the canonical project root.
 - Never move or delete `.git`, active `.worktrees`, `.venv`, source, tests, native code, extensions, packaging instructions, required vendor SDK, current build inputs, current accepted package, or acceptance evidence without explicit separate approval.

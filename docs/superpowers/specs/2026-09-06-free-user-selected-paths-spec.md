@@ -1,4 +1,5 @@
 # Free User-Selected Import and STD Export Paths
+> Historical design record: approved scope and decisions are preserved as recorded; current implementation/release status is in [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 **Scope:** SketchUp Bridge JSON import/output and STAAD `.STD` export.
 

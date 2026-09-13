@@ -1,4 +1,5 @@
 # Post-T22 Repair Refresh, Properties, Save, and Exit Design
+> Historical design record: approved scope and decisions are preserved as recorded; current implementation/release status is in [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 **Status:** SOURCE FEATURE SCOPE USER ACCEPTED / FULL SOURCE VERIFIED — Nuitka compile step 1,
 portable assembly, ZIP creation, package-only verification, and real user package acceptance

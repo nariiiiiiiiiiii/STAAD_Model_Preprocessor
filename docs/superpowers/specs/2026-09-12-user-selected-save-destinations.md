@@ -1,4 +1,5 @@
 # User-Selected Save Destinations — Behavior Specification
+> Historical design record: approved risk scope and acceptance are preserved as recorded; current status is in [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 ## User request
 

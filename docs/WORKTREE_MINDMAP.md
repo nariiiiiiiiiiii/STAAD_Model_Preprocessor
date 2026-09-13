@@ -1,50 +1,51 @@
 # STAAD Model Preprocessor — Worktree Mindmap
 
-Status: **ACTIVE T22 WORKTREE — CP1–CP5 SOURCE VERIFIED; OWNER ACCEPTED MARQUEE AND REPORTS SAVE WORKING; PACKAGE/COMPILE AUTHORIZATION PENDING**
-Generated: 2026-09-12
+Status: **ACTIVE T22 WORKTREE — SOURCE AND 0.2.0 PACKAGE CANDIDATE VERIFIED; OWNER COMPILED-APP ACCEPTANCE PENDING**
+Generated: 2026-09-13
 Branch: `task/22-portable-packaging`
-T24 checkpoint: `chore: quarantine unused project files for review`
-Canonical root: `D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor`
-Active worktree: `D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor\.worktrees\task-22-portable-packaging`
+Project root: repository clone root containing `.git` and `.worktrees/` (resolve from Git metadata)
 
 This is the canonical navigation map for future patches. It distinguishes source-of-truth code,
 generated output, accepted release artifacts, historical evidence, and quarantined files. Tracked
 files are listed individually in the catalog. Volatile ignored directories are represented by stable
-group rules and T25/T26 audit counts.
+group rules; dated storage measurements are explicitly historical unless marked current below.
 
 ## 1. Lifecycle and task status
 
 | Area | State | Evidence |
 |---|---|---|
 | T01–T21 | Complete | master plan and historical checkpoints |
-| T22 portable standalone packaging | Complete | `dist/post-t22-refresh-save-final/` |
+| T22 portable standalone packaging | Complete; 0.2.0 candidate built and package-verified | `dist/STAAD_Model_Preprocessor_0.2.0_win64_portable/` |
 | T23 real-project / STAAD.Pro acceptance | Pass by user report | `docs/HANDOFF.md`, 2026-09-01 |
 | T24 cleanup | Complete | `DEL/UNUSED_FILES_MANIFEST.md` and final audit |
-| T25 storage audit | Move complete; space deletion pending user | `DEL/UNUSED_FILES_MANIFEST.md`, `artifacts/cleanup/storage-audit-20260901.md` |
-| T26 storage cleanup | Move + standalone smoke verified; space deletion pending user | `DEL/t26-storage-cleanup-20260901/` |
-| T27 free user-selected paths | Source + package gates complete; user package acceptance pending | `dist/STAAD_Model_Preprocessor_0.1.0_win64_portable/`, `docs/HANDOFF.md` |
-| Post-T27 CP1–5 | Version/name/icon/Open/Save/Quick Fix source verified; package remains 0.1.0 | `docs/HANDOFF.md`, `docs/INDEX.md`; no 0.2.0 release artifacts |
-| Post-CP5 Crop/Save follow-up | Owner reports marquee and Save work; 13 viewport + 58 Save/path tests PASS; no compile | `docs/HANDOFF.md`; automated VTK smoke remains unavailable after Win32 OpenGL pixel-format error |
-| Post-compile cleanup/GitHub readiness | Planned: verify new package, move verified old outputs to DEL, synchronize tracked Markdown/README, local no-push preflight | Waiting for separate compile authorization; see `docs/superpowers/plans/2026-09-13-post-compile-cleanup-github-readiness.md` |
-| Post-T26 mindmap | Active/current | this document |
+| T25/T26 storage checkpoints | Historical moves; previous quarantine contents were cleared by owner | `DEL/UNUSED_FILES_MANIFEST.md` |
+| T27 free user-selected paths | Source and earlier 0.1.0 package gates complete | Historical detail in `docs/HANDOFF.md` |
+| Post-T27 CP1–5 + Crop/Save | Source-verified; owner reports requested source-app behavior works | `docs/HANDOFF.md` |
+| 0.2.0 package candidate | Nuitka standalone, RBZ, portable folder/ZIP built; package gates 9/9 PASS | Current 0.2.0 evidence below and `docs/HANDOFF.md` |
+| Compiled-app owner acceptance | Not yet reported for this exact 0.2.0 EXE | Owner test remains before calling it accepted/released |
+| T28 cleanup/GitHub prep | Superseded outputs and generated temp/cache moved to DEL; docs synchronized; no deletion or push | `DEL/UNUSED_FILES_MANIFEST.md`, current plan below |
 
-T24 performed one recoverable move only:
+### Current 0.2.0 candidate artifacts
 
-```text
-dist/post-t22-editing-final/
-  -> DEL/t24-quarantine-20260901/dist/post-t22-editing-final/
-     814 files, 933,569,500 bytes
-```
+| Artifact | Location | Size | SHA-256 |
+|---|---|---:|---|
+| Windows executable | `build/windows/final/app.dist/STAAD Model Preprocessor.exe` | 160,498,688 B | `A616C8286DD63C718D821132B37C4C24F82AA2FB75E15BB46A4FC60E004174A2` |
+| SketchUp RBZ | `build/sketchup/STAAD_Prep_Bridge_0.2.0.rbz` | 4,211 B | `655238B3EA983C2A3C76A66BA8C9D44FE030F68BE49A9D8B950CC5CD70234D06` |
+| Portable ZIP | `dist/STAAD_Model_Preprocessor_0.2.0_win64_portable.zip` | 226,243,587 B | `635AF835CE71C211E6FE184EBE05656187E0C4C36D2FA8BC542679802C7B15A7` |
 
-The accepted current release remains `dist/post-t22-refresh-save-final/` with 813 files and
-933,750,946 bytes. Its ZIP SHA-256 is
-`0EF7933499179284B7FC01B011876BF196F7471D4F8CA5B7B12F46E36059E314`; its executable SHA-256 is
-`1C7BB68D12BEFA8A1DBDC5A8A18B031A1E19AEFCFB91C7567441E79DB88F4470`.
+The folder contains 813 files / 709,571,303 bytes; its package manifest records 812 managed files.
+Package gates pass 9/9, and a no-Python/different-CWD launch passed 1/1 after cleanup. These outputs
+are ignored local build artifacts, not committed binaries.
 
-T25 moved the approved old package and five superseded/failed build attempts to
-`DEL/t25-storage-audit-20260901/`. That quarantine later had its contents removed by the user;
-the original six paths are absent and no live references to their old names remain. Post-move
-`build/` is 5,522 files / 2,269,062,384 bytes and `artifacts/` is 6 files / 155,022 bytes.
+### Current storage disposition
+
+`DEL/post-compile-cleanup-20260913/` contains **23,018 files / 15,111,734,735 bytes** moved
+recoverably. This includes the old 0.1.0 package/RBZ, a 0.2.0 package assembled before its README
+was synchronized, generated test/cache output, historical icon/log evidence, and one-off temporary
+helpers. The package under `dist/` is the current candidate and was not moved. Moving to DEL on the
+same volume does not reclaim storage; no files were deleted.
+
+Older T24/T25/T26 size tables and package hashes in later sections are dated historical records.
 
 ## 2. Main relationship map
 
@@ -59,14 +60,14 @@ flowchart TD
     NATIVE["native/skp_reader future helper"]
     VENDOR["vendor/sketchup-sdk boundary"]
     BUILD["build/windows/final Nuitka output"]
-    DIST["dist/post-t22-refresh-save-final accepted package"]
+    DIST["dist/STAAD_Model_Preprocessor_0.2.0_win64_portable candidate"]
     DATA["package-local Data/ state"]
     ISSUES["IssueConsole multi-selection"]
     BATCH["repair/quick_fix_batch typed preflight"]
     HISTORY["CompositeRepair + RepairHistory/audit"]
     BRAND["assets/branding/staad-model-preprocessor.png"]
     ICONBUILD["scripts/build_windows_icon.py"]
-    ICO["build/windows/icon-checkpoint-20260912/ multi-size ICO"]
+    ICO["build/windows/final/ multi-size ICO"]
     DEL["DEL/ recoverable quarantine"]
 
     ROOT --> DOCS
@@ -216,8 +217,10 @@ member endpoint UUID references must remain valid through edits and renumbering.
 
 ## 5. SketchUp RBZ deep map
 
-The accepted T22 RBZ (`0.1.0`) is a deterministic ZIP archive with exactly two members. There are no external
-HTML/CSS/JS assets; the HtmlDialog UI is embedded in `exporter.rb`.
+Historical T22 RBZ (`0.1.0`) evidence below records the deterministic two-member archive layout.
+The current `0.2.0` RBZ is built at `build/sketchup/STAAD_Prep_Bridge_0.2.0.rbz` and is included in
+the local portable candidate; it passed the RBZ/package gates. There are no external HTML/CSS/JS
+assets; the HtmlDialog UI is embedded in `exporter.rb`.
 
 ```mermaid
 flowchart LR
@@ -245,12 +248,12 @@ flowchart LR
 ### 5.1 RBZ build and loader flow
 
 ```text
-src/staadprep/version.py currently defines source __version__ = 0.2.0
+src/staadprep/version.py defines source __version__ = 0.2.0
   -> build_sketchup_rbz.py validates EXTENSION.version in loader
   -> stages only build/sketchup/stage/
   -> if explicitly executed, writes a version-matched sorted fixed-timestamp ZIP
-  -> current source output name would be STAAD_Prep_Bridge_0.2.0.rbz
-  -> accepted T22 RBZ/package remains 0.1.0; no 0.2.0 RBZ is retained
+  -> output is build/sketchup/STAAD_Prep_Bridge_0.2.0.rbz
+  -> current candidate package is dist/STAAD_Model_Preprocessor_0.2.0_win64_portable/
   -> SketchUp loads staadprep_loader.rb
   -> SketchupExtension.new('STAAD Prep Bridge', 'staadprep/exporter')
   -> SketchUp resolves staadprep/exporter.rb
@@ -361,8 +364,8 @@ flowchart LR
     PS[scripts/build_windows.ps1] --> NUITKA[Nuitka standalone build]
     NUITKA --> WINBUILD[build/windows/final]
     WINBUILD --> ASSEMBLE[scripts/assemble_portable.py]
-    RBZBUILD[scripts/build_sketchup_rbz.py] --> RBZ[version-matched RBZ; accepted package is 0.1.0]
-    ASSEMBLE --> PACKAGE[dist/post-t22-refresh-save-final]
+    RBZBUILD[scripts/build_sketchup_rbz.py] --> RBZ[version-matched RBZ 0.2.0]
+    ASSEMBLE --> PACKAGE[dist/STAAD_Model_Preprocessor_0.2.0_win64_portable]
     RBZ --> PACKAGE
     PACKAGE --> MANIFEST[package-manifest.json + SHA-256]
     PACKAGE --> ZIP[portable ZIP]
@@ -378,25 +381,25 @@ flowchart LR
 | Windows build | scripts/build_windows.ps1 | invoke the approved Nuitka build contract | reproducible executable creation |
 | Portable assembly | scripts/assemble_portable.py | copy runtime, data, RBZ, manifest and hashes | package layout and installer-free distribution |
 | Runtime smoke | src/staadprep/packaged_smoke.py | verify packaged imports/paths | post-build acceptance |
-| Current release | dist/post-t22-refresh-save-final/ | accepted folder package | user testing |
+| Current candidate | dist/STAAD_Model_Preprocessor_0.2.0_win64_portable/ | version-matched portable folder; 813 files | owner manual launch/acceptance pending |
 | Current release archive | current T22 ZIP artifact | transportable package copy | handoff and checksum verification |
 
-The app branding asset is copied byte-for-byte from `LOGO/ChatGPT Image Sep 12, 2026, 06_17_26 PM.png`.
-`scripts/build_windows_icon.py` uses development-only Pillow to generate a 16/24/32/48/64/128/256 ICO
-under `build/`; `build_windows.ps1` passes that ICO to Nuitka and includes the PNG beside the EXE
-for the Qt application icon. The checkpoint ICO is a source-test artifact, not a compiled release.
+The tracked app branding asset is `assets/branding/staad-model-preprocessor.png`.
+`scripts/build_windows_icon.py` uses development-only Pillow to generate a 16/24/32/48/64/128/256
+ICO under `build/windows/final/`; `build_windows.ps1` passes that ICO to Nuitka and includes the PNG
+beside the EXE for the Qt application icon.
 
 ### 7.2 Portable package contract
 
 ~~~text
-STAAD_Model_Preprocessor_0.1.0_win64_portable/
+STAAD_Model_Preprocessor_0.2.0_win64_portable/
 ├── STAAD Model Preprocessor.exe
 ├── Data/
 │   ├── Inbox/SketchUp/
 │   ├── Outbox/
 │   └── ... runtime data roots ...
 ├── SketchUp_Extension/
-│   └── STAAD_Prep_Bridge_0.1.0.rbz
+│   └── STAAD_Prep_Bridge_0.2.0.rbz
 ├── package-manifest.json
 └── package-manifest.sha256
 ~~~
@@ -410,12 +413,13 @@ distribution model.
 
 | Evidence | Current value |
 |---|---|
-| accepted folder | dist/post-t22-refresh-save-final/ |
-| folder inventory | 813 files, 933,750,946 bytes |
-| executable SHA-256 | 1C7BB68D12BEFA8A1DBDC5A8A18B031A1E19AEFCFB91C7567441E79DB88F4470 |
-| ZIP SHA-256 | 0EF7933499179284B7FC01B011876BF196F7471D4F8CA5B7B12F46E36059E314 |
-| package version | 0.1.0 |
-| accepted validation | T22 package verification and T23 user acceptance passed |
+| candidate folder | `dist/STAAD_Model_Preprocessor_0.2.0_win64_portable/` |
+| folder inventory | 813 files, 709,571,303 bytes |
+| executable SHA-256 | `A616C8286DD63C718D821132B37C4C24F82AA2FB75E15BB46A4FC60E004174A2` |
+| portable ZIP SHA-256 | `635AF835CE71C211E6FE184EBE05656187E0C4C36D2FA8BC542679802C7B15A7` |
+| package version | 0.2.0 (Windows file/product version 0.2.0.0) |
+| automated validation | package gates 9/9 PASS; post-cleanup no-Python launch smoke 1/1 PASS |
+| owner package acceptance | pending manual test of this exact compiled candidate |
 
 ## 8. Verification and test map
 
@@ -764,19 +768,19 @@ The following groups are intentionally not treated as ordinary source files. The
 worktree operational state and are included here so a future maintainer knows where evidence and
 large runtime trees belong.
 
-| Group | Current role | T24/T25 handling |
+| Group | Current role | Latest audit disposition |
 |---|---|---|
-| dist/ | generated distributables and release candidates | current accepted release retained; old candidate quarantined |
-| build/ | build staging and source/evidence outputs | current final retained; five old attempts moved to T25 quarantine |
-| artifacts/ | generated reports, package evidence, and test outputs | current evidence retained; old package moved to T25 quarantine |
+| dist/ | generated distributables and release candidates | 0.2.0 candidate retained; old 0.1.0 and pre-doc-sync 0.2.0 packages moved to T28 quarantine |
+| build/ | build staging and source/evidence outputs | current 0.2.0 executable/RBZ and reproducibility evidence retained; old icon snapshot moved to T28 quarantine |
+| artifacts/ | generated reports, package evidence, and test outputs | current project/report evidence retained; local audit report is ignored |
 | .tmp/ | test temporary output | retained/ignored; never a source of truth |
 | .cache/ | dependency/test/cache material | retained/ignored |
 | .logs/ | runtime/build logs | retained/ignored |
 | .venv/ | local Python runtime | protected from cleanup |
 | .worktrees/ | active Git worktrees | protected from cleanup |
 | vendor/sketchup-sdk/ | optional official native SDK boundary | protected from cleanup |
-| DEL/t24-quarantine-20260901/ | recoverable T24 quarantine | prior superseded package; user deleted contents |
-| DEL/t25-storage-audit-20260901/ | recoverable T25 quarantine | six approved generated items moved into; never deleted |
+| DEL/t24/t25/t26/t27 historical paths | historical quarantines | contents were later cleared by the owner |
+| DEL/post-compile-cleanup-20260913/ | current recoverable quarantine | 19,729 files / 12,273,385,286 bytes; nothing deleted |
 
 T24 inventory snapshot:
 
@@ -797,7 +801,7 @@ Historical post-T25 snapshot before T26 cleanup:
 - .tmp/: 68,089 files, 57,412,145,481 bytes before T26 cleanup.
 - .cache/: 10,211 files, 506,361,099 bytes before T26 cleanup.
 
-Current post-T26 snapshot:
+Historical T26 snapshot (the owner later cleared that earlier quarantine):
 
 - `.worktrees/` contains only the active `task-22-portable-packaging` directory.
 - Source `.tmp/` retains `.gitkeep` and an empty `pytest/` skeleton; generated contents moved to
@@ -806,8 +810,8 @@ Current post-T26 snapshot:
   `DEL/t26-storage-cleanup-20260901/generated-cache/` (10,211 files; 506,361,099 bytes).
 - Historical worktrees moved to `DEL/t26-storage-cleanup-20260901/old-worktrees/` (22 clean
   worktrees; 67,375 files; 5,706,009,647 bytes). Branch refs remain available.
-- The current package, current RBZ, final build, source, tests, and docs remain in place. User
-  deletion of the T26 quarantine is still pending.
+- At that checkpoint, the then-current package/RBZ/build/source/tests/docs remained in place; the
+  user later removed the T26 quarantine before this T28 audit.
 
 The large generated trees are intentionally not expanded into the tracked catalog. The manifest and
 the current package evidence are the authoritative records for their contents.
@@ -867,46 +871,40 @@ high-risk analytical or topology change, stop at the approval gate before touchi
 
 ## 13. Completion notes and known limits
 
-This mindmap records the current worktree as of 2026-09-12. It is a navigation and handoff aid,
-not a replacement for source code, tests, the package manifest, or the current handoff.
+This map is synchronized on 2026-09-13. It is a navigation/relationship aid, not a replacement for
+source code, tests, the generated package manifest, or [`HANDOFF.md`](HANDOFF.md).
 
-Completed and accepted:
+Completed source/package work:
 
-- T22 portable standalone packaging, RBZ inclusion, manifest, hashes, and package smoke.
-- T23 user acceptance on the real workflow available in the user's environment.
-- T24 inventory, reference scan, recoverable quarantine, and post-move package regression.
-- RBZ source/archive/callback/JSON handoff mapping in Section 5.
+- T01–T23 are complete by the recorded checkpoints; T23 remains an owner-reported acceptance.
+- T24–T27 are historical complete checkpoints; previous quarantine contents were subsequently
+  cleared by the owner.
+- Source version `0.2.0` includes the selected icon/taskbar identity, SketchUp model/date naming,
+  unrestricted Project JSON Open/First Save/Save As, multi-issue Quick Fix/intersection routing,
+  Crop to Select marquee, and Zoom in Select.
+- The matching Windows standalone, SketchUp RBZ, portable folder/ZIP, and manifest have been built.
+  Package verification is **9/9 PASS**; the no-Python/different-CWD smoke after cleanup is **1/1
+  PASS**. Exact artifact identities are in the current section at the top of this file and in the
+  handoff.
+- The owner reports the source-app Save and viewport behavior working. Manual launch/acceptance of
+  this exact compiled 0.2.0 candidate has not yet been reported.
+- T28 storage audit moved 19,729 superseded/generated files (12,273,385,286 bytes) into the
+  project-local `DEL/post-compile-cleanup-20260913/`; no files were deleted. This does not free disk
+  space until the owner deletes the quarantine.
 
-Post-T27 CP1–CP5 source follow-up is **SOURCE VERIFIED / USER ACCEPTANCE PENDING**:
-- source version `0.2.0`, SKP-stem/date JSON names, selected icon, external Project JSON Open/Save,
-  and STRICT multi-issue Quick Fix/intersection source behavior are implemented;
-- verification: **345 unit+integration PASS**, **1 skipped**, **3 portable-package gates deselected**,
-  **26/26 affected UI PASS**, Ruff PASS, strict mypy **0 issues** in four source files;
-- the accepted package remains `0.1.0`; no `0.2.0` exe/RBZ/portable archive is retained.
+Verification/operation limits:
 
-Post-CP5 viewport/save request (2026-09-12; owner recheck and Save implementation 2026-09-13): the
-owner reports Crop to Select / Zoom in Select passes. **13 non-renderer viewport tests PASS** and the
-Save/import/export/path regression is **58/58 PASS**, Ruff PASS, strict mypy **0 issues** in
-`main_window.py`. The Save guard was removed only from explicitly user-selected Project JSON First
-Save/Save As paths; atomic serialization and runtime path containment remain. The owner approved the
-refreshed STRICT plan on 2026-09-13. The owner reports Save works in the uncompiled app (2026-09-13);
-no compile/package authorization has been given. Automated offscreen VTK smoke remains unverified
-after Win32 OpenGL initialization reported `failed to get valid pixel
-format`, followed by a Python Application Error. No compile was performed.
+- The application prepares geometry; it does not perform structural analysis or design-code checks.
+- The portable distribution is a standalone **folder plus ZIP**, not a one-file EXE. Keep adjacent
+  package files, especially `Data/`, when moving the application.
+- The optional native SketchUp SDK reader is not enabled in V1; SketchUp integration uses the Ruby
+  Neutral JSON bridge, and DXF is a separate first-class import route.
+- Automated offscreen VTK initialization was unavailable in this environment because Win32 OpenGL
+  reported a pixel-format error followed by a Python Application Error. Owner manual viewport
+  acceptance is recorded separately.
+- No GitHub push or release was performed. No `LICENSE` file is present; license choice belongs to
+  the owner.
 
-Build-test side effect: an initial integration run created a transient `0.2.0` RBZ via a legacy
-test; it was removed. Existing ignored `build/sketchup/stage/` files were refreshed by that
-builder and left in place. RBZ/package integration fixtures now stay under `.tmp/tests`.
-
-
-Not implied by this document:
-
-- installation of STAAD.Pro on this machine;
-- a native SketchUp SDK reader being compiled or enabled;
-- an installer, auto-updater, or one-file executable being supported;
-- structural analysis or design-code calculation validation;
-- a `0.2.0` executable/RBZ/portable package being built or accepted by this source checkpoint.
-
-The authoritative next action after this documentation checkpoint remains whatever the user
-explicitly selects in the current handoff/task board. This document does not silently start T25 or
-any new implementation task.
+For the next code change, follow the relevant plan/spec, then update the six current documents listed
+in `AGENTS.md`. Assess the risk gate before changing coordinate conversion, topology, automatic
+repairs, or `.STD` semantics.

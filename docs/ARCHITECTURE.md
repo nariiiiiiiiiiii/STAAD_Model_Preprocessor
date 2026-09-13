@@ -7,6 +7,11 @@ portable package, and T23 target acceptance are user accepted. T24 cleanup is co
 the recoverable DEL quarantine and post-move verification. The canonical post-T24 file and RBZ
 relationship map is docs/WORKTREE_MINDMAP.md; this document remains the subsystem-boundary view.
 
+Current release checkpoint (2026-09-13): source version `0.2.0` and its matching Windows standalone,
+SketchUp RBZ, portable folder, and ZIP have been built; package gates pass **9/9**. Manual owner
+acceptance of the exact compiled candidate is not yet recorded. Current package hashes and storage
+cleanup evidence are in `HANDOFF.md` and `DEL/UNUSED_FILES_MANIFEST.md`.
+
 ## High-level architecture
 
 ```text
@@ -20,24 +25,25 @@ Future optional: `.skp` -> T14 native C-SDK helper -> Neutral JSON v1 -> same sh
 
 The 3D viewer never becomes the source of truth. It emits interaction intent and previews; commands mutate the canonical model only on commit.
 
-## Active source follow-up — 2026-09-12
+## 0.2.0 implementation and package checkpoint — 2026-09-13
 
-The source contract is at `0.2.0`; the accepted portable artifact remains `0.1.0`. Project JSON
-Open is path-unrestricted after explicit user selection, and Save targets the opened file while a
-new project's first Save stays in its Projects directory. Issue Console can emit multiple selected
+The source and current package candidate are at `0.2.0`. Project JSON Open, First Save, and Save As
+accept any path explicitly selected by the user; Issue Console can emit multiple selected
 issues; `quick_fix_batch.py` validates the selection and typed mutation footprints before returning
 one `CompositeRepair` to `RepairHistory`. Conflicting/stale/unsupported batches fail closed.
 `CROSSING_WITHOUT_NODE` reuses the existing split-at-intersection command. The batch topology
-behavior was approved for STRICT / Full TDD and source-verified; release build and manual user
-acceptance remain pending.
+behavior was approved for STRICT / Full TDD and source-verified; the matching RBZ/executable and
+portable package passed automated package checks. Owner manual acceptance of the compiled candidate
+remains pending.
 
 The post-CP5 viewport follow-up adds a checkable Crop to Select mode that projects scene Nodes and
 Member segments into a screen rectangle and updates only `SelectionState`/highlights. The former
 camera-framing action is named Zoom in Select and remains view-only; the owner manually reports this
-flow working on 2026-09-13. Project JSON First Save and Save As now resolve explicit destinations
+flow working on 2026-09-13. Project JSON First Save and Save As resolve explicit destinations
 with `ProjectPaths.resolve_user_selected_path()` and retain `save_project_atomic()`; the runtime
 containment guard remains in place for generated data. The owner reports the Save flow works in the
-uncompiled app (2026-09-13); compile/package authorization remains a separate gate.
+development app (2026-09-13); package build and automated gates are complete, while manual acceptance
+of that exact compiled candidate remains for the owner.
 
 ## Layers
 

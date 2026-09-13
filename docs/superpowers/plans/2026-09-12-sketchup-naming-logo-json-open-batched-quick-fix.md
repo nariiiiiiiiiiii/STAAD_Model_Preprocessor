@@ -1,4 +1,5 @@
 # Implementation Plan — Version, SketchUp Naming, Branding, Open JSON, and Batched Quick Fix
+> Historical plan record: task-date checkboxes and status are preserved as recorded; for current status see [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 > **Status:** Source checkpoints 1–5 are verified; user acceptance and all release builds remain pending.
 
@@ -98,7 +99,8 @@ Acceptance example: `13-DIZ-SD11-09-69.skp` exported on 12 September 2026 become
 
 **Risk:** STANDARD. **Model:** Luna Max.
 
-**Exact source:** `D:\Dizayn59\CLICodex\gpt_mcp_workshop\STAAD_Model_Preprocessor\LOGO\ChatGPT Image Sep 12, 2026, 06_17_26 PM.png` (1254×1254). Preserve this original.
+**Exact tracked app asset:** `assets/branding/staad-model-preprocessor.png` (1254×1254). The
+owner-supplied original is preserved separately; the build consumes this repository-relative copy.
 
 **Files:** `assets/branding/staad-model-preprocessor.png`, `pyproject.toml`, `scripts/build_windows_icon.py`, `scripts/build_windows.ps1`, `src/staadprep/app.py`, `tests/unit/test_windows_icon_builder.py`, `tests/unit/test_windows_build_contract.py`, `tests/ui/test_main_window.py`.
 

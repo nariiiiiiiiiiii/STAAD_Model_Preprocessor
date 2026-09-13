@@ -2,6 +2,11 @@
 
 Verification policy: risk-based.
 
+Current status (2026-09-13): Project JSON First Save/Save As received explicit STRICT / Full TDD
+approval and passed its focused verification before packaging. Version `0.2.0` is now built and the
+package gates pass **9/9**; the exact compiled app still awaits owner manual acceptance. No new
+high-risk code change is active in the documentation/storage/GitHub-preparation checkpoint.
+
 Historical gate state (2026-08-31): the explicitly approved post-T22 HR-2 correction scope completed
 STRICT source verification and its source behavior is user accepted. Full source verification is
 complete; the user authorized compile step 1 and Nuitka compilation completed successfully.
@@ -18,11 +23,11 @@ T27 path-selection scope is STANDARD: it changes only explicit file/folder selec
 resolution; it does not change structural calculations, topology, validation, ReadyGate, numbering,
 or `.STD` serialization. Source and package verification are recorded in `docs/HANDOFF.md`.
 
-Post-T27 source follow-up status (2026-09-12): CP1–CP5 changes are source-verified. The owner explicitly approved STRICT / Full TDD for multi-issue Quick Fix and intersection batching. Verification is **345 unit+integration PASS**, **1 RBZ archive test skipped**, **3 package-launch tests deselected** because the `0.2.0` executable/package is not built, **26/26 affected UI PASS**, Ruff PASS, strict mypy **0 issues** across four affected source files, and diff check PASS. Real app/SketchUp and package acceptance remain pending; no compile authorization was given.
+Historical post-T27 source follow-up snapshot (2026-09-12): CP1–CP5 changes are source-verified. The owner explicitly approved STRICT / Full TDD for multi-issue Quick Fix and intersection batching. Verification was **345 unit+integration PASS**, **1 RBZ archive test skipped**, **3 package-launch tests deselected** before the 0.2.0 build, **26/26 affected UI PASS**, Ruff PASS, strict mypy **0 issues** across four affected source files, and diff check PASS. The package-build and acceptance state is superseded by the current status above.
 
 Post-CP5 viewport follow-up (2026-09-12) is **STANDARD**: marquee selection and selected-camera framing affect only viewport selection/camera state, not canonical geometry. The non-renderer event/action/geometry suite is **13/13 PASS**, Ruff PASS, and strict mypy **0 issues** in the two affected source files. The owner reports manual viewport acceptance on 2026-09-13; automated real VTK smoke remains unverified after Win32 OpenGL pixel-format failure and a Python Application Error.
 
-User-selected Project JSON First Save/Save As destinations are **HIGH-RISK** because a wrong target or overwrite can lose user model data. The owner approved the refreshed STRICT / Full TDD plan on **2026-09-13**. The First Save-only containment guard was removed from the explicit user-selected save route; both First Save and Save As use the path resolver and atomic serializer. Existing-target failure, temp cleanup, cancellation, association, and external path behavior are covered by **58/58 relevant tests**; Ruff and strict mypy pass. The owner reports the Save flow works in the uncompiled app (2026-09-13). Compile/package still requires separate authorization.
+User-selected Project JSON First Save/Save As destinations are **HIGH-RISK** because a wrong target or overwrite can lose user model data. The owner approved the refreshed STRICT / Full TDD plan on **2026-09-13**. Both operations use the path resolver and atomic serializer. Existing-target failure, temp cleanup, cancellation, association, and external-path behavior were covered by **58/58 relevant tests**; Ruff and strict mypy passed. The owner reports the Save flow works in the development app (2026-09-13). The 0.2.0 candidate was built afterward; manual acceptance of that exact executable remains pending.
 
 
 The Project Explorer entity inventory/select-one/select-all increment is STANDARD because it only

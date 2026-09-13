@@ -1,4 +1,5 @@
 # Post-T22 Usability Patch Design
+> Historical design record: approved scope and decisions are preserved as recorded; current implementation/release status is in [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 **Date:** 2026-08-30
 **Status:** Requirements 1-2 user accepted; requirements 3-9 rebuilt/verified and preserved as historical evidence under `DEL/standalone-archive-20260831/post-t22-ux-final/`. Their separate package acceptance is superseded by the consolidated editing-final checkpoint in `2026-08-30-post-t22-editing-corrections-design.md`.

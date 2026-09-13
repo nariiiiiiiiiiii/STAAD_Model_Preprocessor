@@ -1,4 +1,5 @@
 # Worktree Mindmap and File-Relationship Map Implementation Plan
+> Historical plan record: task-date checkboxes and status are preserved as recorded; for current status see [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
 
 > **For agentic workers:** This is a post-T24 documentation deliverable. Do not execute it until T24 cleanup, reference verification, regression checks, and the T24 commit are complete.
 
