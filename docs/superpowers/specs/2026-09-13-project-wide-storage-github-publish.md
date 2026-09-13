@@ -27,8 +27,8 @@ Repository supplied by the owner:
   set locally before publishing. The owner instructed commit/push after local completion; do not
   publish before these gates pass.
 - For the T29 publication task, preserve the remote `main`'s then-current LICENSE. This scope
-  decision was superseded by the separate T30 owner request; the migration remains local pending
-  owner review before commit/push.
+  decision was superseded by the separate T30 owner request; the migration is committed/pushed on
+  `task/22-portable-packaging`, and PR #1 is open. `main` remains unchanged pending review/merge.
 
 ## Completion gates
 

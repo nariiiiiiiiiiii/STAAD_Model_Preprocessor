@@ -3,6 +3,9 @@
 Status: **owner-tested pre-release**. The owner reported on 2026-09-13 that this exact `0.2.0`
 executable works well; no stable-release approval has been given.
 
+Repository source/license changes are proposed in [PR #1](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/pull/1);
+the PR is open and the default branch has not been changed.
+
 ## Download and run
 
 Download the [portable ZIP asset](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/releases/download/v0.2.0/STAAD_Model_Preprocessor_0.2.0_win64_portable.zip)

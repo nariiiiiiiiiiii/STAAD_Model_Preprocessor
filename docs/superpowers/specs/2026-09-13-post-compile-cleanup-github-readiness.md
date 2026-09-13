@@ -37,9 +37,9 @@ repository—including the root `README.md`—for the owner to push to their Git
   the owner decides separately whether to delete quarantined data.
 - Do not move the newly accepted standalone, active source, tests, required SDK/vendor files, or
   current build evidence needed to reproduce the package.
-- Do not push, create a remote release, or change branches/merge into `master` as part of this task.
-  Its no-license-change scope was superseded by the separate T30 owner request; those changes still
-  require owner review before commit/push.
+- This T28/T29 task did not push or merge branches. Its no-license-change scope was superseded by the
+  separate T30 owner request; T30 is now committed/pushed on the feature branch and PR #1 is open.
+  Merging that PR remains a separate owner decision.
 - Preserve the existing project-local runtime path policy and exclude generated `build/`, `dist/`,
   `.tmp/`, `.cache/`, `.worktrees/`, and quarantined `DEL/` contents from Git unless an owner-approved
   release policy explicitly requires otherwise.

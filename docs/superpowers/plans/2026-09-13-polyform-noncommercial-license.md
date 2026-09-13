@@ -14,7 +14,7 @@
 
 - No application source-code or behavior changes.
 - The official license wording must remain unchanged; line wrapping may follow the official plain-text file.
-- Do not stage, commit, or push.
+- Do not merge PR #1 into `main` without owner approval. The owner approved the branch commit/push and PR creation on 2026-09-13.
 - Preserve unrelated existing working-tree changes.
 
 ---
@@ -50,6 +50,6 @@
 
 - [x] Compare the license body with the official PolyForm source; confirm the only addition is the separate Required Notice.
 - [x] Search active repository files for obsolete license names and contradictory project-license claims.
-- [x] Surface the official funded-organization permission in README and keep publication gated on owner confirmation if it conflicts with the intended blanket restriction.
+- [x] Surface the official funded-organization permission in README and PR #1 for owner review; keep merge gated on owner confirmation if it conflicts with the intended blanket restriction.
 - [x] Parse `pyproject.toml`, check README/metadata consistency, run `git diff --check`, and inspect the final diff/status.
-- [x] Confirm no source-code or behavior files changed, and leave changes uncommitted/unpushed.
+- [x] Confirm no source-code or behavior files changed in the license patch; commit `7bc1dcc` and merge bridge `f6aa64f` are pushed, PR #1 is open, and `main` is not merged.

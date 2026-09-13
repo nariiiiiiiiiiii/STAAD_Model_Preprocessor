@@ -907,12 +907,11 @@ Verification/operation limits:
   reported a pixel-format error followed by a Python Application Error. Owner manual viewport
   acceptance is recorded separately.
 - The remote repo is private; at the T29 checkpoint, `main` contained an initial README and its
-  then-current LICENSE, while local project history was unrelated. That file was copied into the
-  branch at that checkpoint; the current local T30 migration replaces it with PolyForm Noncommercial
-  1.0.0 and awaits owner approval before commit/push. The owner later reported that the exact
-  compiled app works well; it remains a pre-release. The `task/22-portable-packaging` branch was
-  pushed, and the `v0.2.0` pre-release was published with the portable ZIP as its only application
-  asset; `main` was left untouched.
+  then-current LICENSE, while local project history was unrelated. T30 committed PolyForm
+  Noncommercial 1.0.0 on the feature branch (`7bc1dcc`); merge bridge `f6aa64f` connects the histories.
+  PR #1 is open against `main`; `main` remains unchanged until an explicit merge. The owner reports
+  that the exact compiled app works well; it remains a pre-release. The v0.2.0 pre-release still has
+  the portable ZIP as its only application asset.
 
 For the next code change, follow the relevant plan/spec, then update the six current documents listed
 in `AGENTS.md`. Assess the risk gate before changing coordinate conversion, topology, automatic

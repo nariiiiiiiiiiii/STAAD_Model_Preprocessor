@@ -3,10 +3,11 @@
 Source/package version `0.2.0` is built. Package verification is **9/9 PASS** and the post-cleanup
 no-Python/different-CWD launch smoke is **1/1 PASS**. T28/T29 moved confirmed superseded outputs and
 three unreferenced logo drafts into `DEL/`; no deletion occurred. The project-wide audit is recorded
-locally. T30 updates the local `LICENSE` to PolyForm Noncommercial 1.0.0, aligns README and SPDX
-metadata, and reconciles stale license-status documentation; README flags PolyForm's funded-
-organization permission for owner review. These changes are not committed or pushed pending owner
-approval. Read-only GitHub inspection found private `main` with an initial
+locally. T30 replaced the `LICENSE` with PolyForm Noncommercial 1.0.0, aligned README and SPDX
+metadata, and reconciled license-status documentation. License commit `7bc1dcc` and merge bridge
+`f6aa64f` are pushed on the feature branch; PR #1 is open against `main`. README/PR disclose the
+funded-organization permission for review. `main` remains unchanged pending PR merge. Read-only
+GitHub inspection found private `main` with an initial
 README and unrelated history; the T29 branch snapshot preserved the then-current LICENSE. Branch
 `task/22-portable-packaging` was pushed at `47c0b0a`; the `v0.2.0` pre-release was published with only
 the portable ZIP application asset, leaving `main` untouched. The owner tested the exact compiled
@@ -49,7 +50,7 @@ Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 thro
 | Post-CP5 marquee + free Save destinations | Crop to Select rectangle, Zoom in Select rename, any-folder Save/Save As audit | STANDARD viewport; Save STRICT | **Source behavior owner-reported PASS; 0.2.0 candidate built and owner-tested PASS** |
 | Post-compile cleanup + GitHub readiness | Verify new standalone, quarantine verified old outputs to DEL, sync all tracked Markdown/README, local GitHub preflight | STANDARD; move-only cleanup | **T28 local prep committed; superseded by T29 publish; T29 license snapshot superseded locally by T30; owner reports 0.2.0 EXE works well** |
 | T29 project-wide audit + ZIP-only GitHub download | Recheck canonical + active worktree; quarantine verified obsolete data; push source/docs and publish only portable ZIP after local gates | STANDARD; no-delete cleanup | **PUSHED branch `task/22-portable-packaging`; `v0.2.0` pre-release asset verified; owner test PASS; stable-release decision pending** |
-| T30 PolyForm Noncommercial license migration | Replace official license text; align README and SPDX metadata; reconcile stale license status | STANDARD; licensing/documentation only | **LOCAL changes prepared; funded-organization exception and commit/push await owner review** |
+| T30 PolyForm Noncommercial license migration | Replace official license text; align README and SPDX metadata; reconcile stale license status | STANDARD; licensing/documentation only | **COMMITTED `7bc1dcc`; pushed; merge bridge `f6aa64f`; PR #1 open; merge awaits owner decision** |
 
 ## Operational rules
 
@@ -243,4 +244,4 @@ does not start T23.
 - [x] Synchronize the GitHub-facing root README and authoritative status/navigation docs; inventory all **46 tracked Markdown files** and label dated plans/specs as historical records.
 - [ ] Finish link/secret/path/binary/ignore/large-file/status preflight and run final `git diff --check`.
 - [ ] Commit only the intended docs/manifest/package-template changes; preserve the unrelated `tests/ui/test_manual_edit_mouse.py` line-ending-only change.
-- [x] Stop before GitHub push/release. The owner reports the exact compiled 0.2.0 EXE works well; stable release and T30 license commit/push still require separate owner approval.
+- [x] Owner reports the exact compiled 0.2.0 EXE works well. T30 is committed/pushed and PR #1 is open; stable release and merging PR #1 remain separate owner decisions.

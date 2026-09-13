@@ -65,8 +65,10 @@ For current state, use this index and the handoff first.
 - Current license: PolyForm Noncommercial 1.0.0. The official terms and required notice are in
   [`../LICENSE`](../LICENSE); package metadata uses SPDX identifier
   `PolyForm-Noncommercial-1.0.0`.
-- The supplied repo is private and its `main` history is unrelated to this local project history;
-  the safe target is a new `task/22-portable-packaging` branch, leaving `main` untouched.
+- The supplied private repo's `main` began with an unrelated starter history. T30 joined that
+  history on `task/22-portable-packaging`; [PR #1](https://github.com/nariiiiiiiiiiii/STAAD_Model_Preprocessor/pull/1)
+  is open against `main`. `main` remains unchanged until the PR is reviewed and merged.
 - A version-matched `v0.2.0` pre-release is published with the ZIP as its only application asset;
   the extracted folder and EXE were not added to Git history.
-- The 2026-09-13 local license migration is not committed or pushed; owner review is required first.
+- The license commit `7bc1dcc` and history-bridge merge `f6aa64f` are pushed on
+  `task/22-portable-packaging`; PR #1 is open and has not been merged.

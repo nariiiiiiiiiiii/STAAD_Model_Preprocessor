@@ -16,8 +16,9 @@
 - Quarantine verified superseded outputs only after package gates pass and the owner requests the recoverable move. Manual testing of the exact executable remains a separate pre-release acceptance step.
 - Move only verified-obsolete files under the canonical root to `DEL/`; never delete files.
 - Moving to `DEL/` does not reclaim disk space; deletion remains a separate owner action.
-- For this T28/T29 readiness sequence, license selection was outside scope. That boundary was later
-  superseded by the separate T30 owner request; its local changes await review before commit/push.
+- For this T28/T29 readiness sequence, license selection was outside scope. The separate T30 owner
+  request later superseded that boundary; its changes were committed/pushed to the feature branch and
+  submitted in PR #1. The PR remains unmerged pending owner review.
 - Preserve source, tests, current package/build evidence, required vendor files, and unrelated owner changes.
 - Audit every tracked Markdown file; retain historical measurements and label them historical rather than rewriting history.
 
@@ -114,6 +115,5 @@ none were deleted.
 ## Model recommendation
 
 Recommended model for any later multi-file implementation fix: **Luna Max with Max reasoning**.
-The build authorization checkpoint for this plan is already satisfied; the remaining owner gates are
-manual testing of the exact candidate and review/approval before the separate T30 license changes are
-committed or pushed.
+The build authorization checkpoint and exact 0.2.0 owner test are complete. T30 is committed/pushed
+and PR #1 is open; review and any decision to merge into `main` remain owner-controlled.

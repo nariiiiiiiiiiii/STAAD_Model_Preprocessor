@@ -448,7 +448,7 @@ also refreshed pre-existing ignored `build/sketchup/stage/` copies; those files 
 - [x] Replace machine-specific root paths in tracked Markdown with checkout-relative guidance.
 - [x] Complete final link/secret/path/binary/ignore/large-file/status preflight; all 46 local Markdown links resolve, no tracked binaries or files over 50 MB were found, no machine-specific checkout path or secret/key filename was found, and `git diff --check` passes.
 - [x] Commit only the reviewed docs, manifest, and portable README-template changes; leave unrelated line-ending-only test change unstaged.
-- [x] Stop before GitHub push/release. The owner later reported the exact compiled 0.2.0 EXE works well (2026-09-13); stable release and T30 license commit/push remain separate owner decisions.
+- [x] The owner later reported the exact compiled 0.2.0 EXE works well (2026-09-13); stable release remains a separate decision.
 
 ## T29 — Project-wide storage recheck and ZIP-only GitHub download (2026-09-13)
 
@@ -475,4 +475,5 @@ also refreshed pre-existing ignored `build/sketchup/stage/` copies; those files 
 - [x] Reconcile current-status and historical docs so they no longer imply the superseded license remains current.
 - [x] Flag PolyForm's funded-organization permission in README for owner review against the intended paid-use restrictions.
 - [x] Keep all changes limited to licensing/documentation; preserve unrelated test-file changes and package artifacts.
-- [ ] Present the exact license, funded-organization exception, and local diff to the owner; do not commit or push until explicitly approved.
+- [x] Owner approved commit/push and the history bridge; commit `7bc1dcc` and merge bridge `f6aa64f` are pushed, and PR #1 is open against `main`.
+- [ ] Keep the funded-organization permission visible in README/PR for owner review; do not merge PR #1 until the owner approves.
