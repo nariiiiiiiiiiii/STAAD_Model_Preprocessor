@@ -1,0 +1,1066 @@
+# STAAD Model Preprocessor V1 Implementation Plan
+> Historical plan record: task-date checkboxes and status are preserved as recorded; for current status see [HANDOFF](../../HANDOFF.md) and [INDEX](../../INDEX.md).
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Build a Windows desktop preprocessor that imports SketchUp/DXF structural geometry, exposes and repairs dirty analytical topology, normalizes member incidence/numbering, validates the model, and exports a clean STAAD `.STD` geometry model.
+
+**Architecture:** File-format adapters produce a format-neutral raw geometry batch. Strictly tested unit/coordinate and topology engines convert it into a canonical graph whose entities use stable UUID keys and separate STAAD-facing integer numbers. UI, 3D rendering, repair commands, validation, numbering, and exporters consume that canonical graph; no engineering-semantic logic lives in the GUI.
+
+**Tech Stack:** Python 3.12+, PySide6, PyVista/VTK, NumPy, SciPy, ezdxf, pytest/pytest-qt; public SketchUp Ruby API for the V1 SketchUp bridge; T14 C++ native bridge retained as future optional direct-SKP backend; Nuitka for production packaging after compatibility is proven.
+
+**Spec:** `docs/superpowers/specs/2026-08-28-staad-model-preprocessor-design.md` and `docs/PROJECT_SPEC.md`
+
+## Global Constraints
+
+- Windows 11 is the V1 target platform.
+- V1 first-class inputs: SketchUp Ruby Bridge Neutral JSON and Direct DXF `.dxf`; neither route blocks the other. Direct `.skp` C-SDK import is future optional.
+- Primary output: STAAD `.std`.
+- Canonical working unit: metre.
+- Canonical axis: STAAD Y-Up.
+- SketchUp source convention: Z-Up.
+- All project-generated source, tests, logs, cache, temp, build, dist, artifacts, SDK staging, and reports MUST remain under `STAAD_Model_Preprocessor/`.
+- UI baseline is fixed by `docs/UI_BASELINE.md` and `docs/ui/*.svg`; no redesign during MVP.
+- V1 does not implement a solver, loads, code design, IFC/BIM, cloud/login/database, AI auto-design, or automatic solid-member centerline inference.
+- High-risk HR-1 through HR-4 are approved for STRICT / Full TDD as of 2026-08-28.
+- Execute exactly one numbered Task at a time. Every Task ends with verification, documentation/status update, Git commit, and a hard stop for user review.
+
+---
+
+## Locked File Structure
+
+```text
+STAAD_Model_Preprocessor/
+├── pyproject.toml
+├── AGENTS.md
+├── README.md
+├── src/staadprep/
+│   ├── __init__.py
+│   ├── app.py
+│   ├── paths.py
+│   ├── model/
+│   │   ├── geometry.py
+│   │   ├── entities.py
+│   │   ├── project.py
+│   │   └── serialization.py
+│   ├── importers/
+│   │   ├── contracts.py
+│   │   ├── dxf_reader.py
+│   │   ├── skp_bridge.py          # T14 future-optional direct-SKP bridge
+│   │   └── neutral_reader.py      # T15 V1 SketchUp Ruby neutral import
+│   ├── units/
+│   │   └── transforms.py
+│   ├── topology/
+│   │   ├── builder.py
+│   │   └── connectivity.py
+│   ├── validation/
+│   │   ├── issues.py
+│   │   └── validators.py
+│   ├── repair/
+│   │   ├── commands.py
+│   │   ├── history.py
+│   │   └── audit.py
+│   ├── orientation/
+│   │   └── normalize.py
+│   ├── numbering/
+│   │   └── renumber.py
+│   ├── exporters/
+│   │   └── staad_std.py
+│   ├── viewer/
+│   │   ├── scene.py
+│   │   └── selection.py
+│   └── ui/
+│       ├── main_window.py
+│       ├── theme.py
+│       ├── issue_console.py
+│       └── panels.py
+├── extensions/sketchup_staadprep/
+├── native/skp_reader/             # future optional direct-SKP backend
+│   ├── CMakeLists.txt
+│   ├── include/neutral_contract.h
+│   └── src/main.cpp
+├── scripts/
+│   ├── run_dev.ps1
+│   └── build_windows.ps1
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   ├── ui/
+│   └── golden_models/
+├── docs/
+├── .tmp/
+├── .cache/
+├── .logs/
+├── artifacts/
+├── build/
+├── dist/
+└── vendor/
+```
+
+Stable internal entity keys are UUIDs. STAAD node/member numbers are mutable integer attributes and MUST NOT be used as canonical graph identity. This reduces reference-corruption risk during renumbering.
+
+---
+
+### Task 01: Python Bootstrap + Project-Local Path Guard
+
+**Risk:** STANDARD
+
+**Files:**
+- Create: `pyproject.toml`
+- Create: `src/staadprep/__init__.py`
+- Create: `src/staadprep/paths.py`
+- Create: `scripts/run_dev.ps1`
+- Create: `tests/unit/test_paths.py`
+- Modify: `.gitignore`
+- Modify: `docs/TASK_BOARD.md`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`
+
+**Interfaces:**
+- Produces: `ProjectPaths.from_root(root: Path) -> ProjectPaths`
+- Produces: `ProjectPaths.ensure_layout() -> None`
+- Produces: `ProjectPaths.assert_inside_project(path: Path) -> Path`
+
+- [x] **Step 1: Add package/test configuration with project-local pytest temp**
+
+Use a `src` layout and configure pytest with `--basetemp=.tmp/pytest`. Dependencies: PySide6, pyvista, vtk, numpy, scipy, ezdxf; dev dependencies: pytest, pytest-qt, ruff, mypy, nuitka.
+
+- [x] **Step 2: Write failing path-boundary tests**
+
+```python
+from pathlib import Path
+import pytest
+from staadprep.paths import ProjectPaths
+
+
+def test_generated_paths_are_under_project(tmp_path: Path) -> None:
+    root = tmp_path / "STAAD_Model_Preprocessor"
+    root.mkdir()
+    paths = ProjectPaths.from_root(root)
+    paths.ensure_layout()
+    for path in paths.generated_dirs:
+        assert path.is_relative_to(root)
+        assert path.exists()
+
+
+def test_rejects_path_outside_project(tmp_path: Path) -> None:
+    root = tmp_path / "STAAD_Model_Preprocessor"
+    root.mkdir()
+    paths = ProjectPaths.from_root(root)
+    with pytest.raises(ValueError):
+        paths.assert_inside_project(tmp_path / "outside.log")
+```
+
+- [x] **Step 3: Run RED**
+
+Run: `python -m pytest tests/unit/test_paths.py -v --basetemp=.tmp/pytest`
+Expected: FAIL because `staadprep.paths` does not exist.
+
+- [x] **Step 4: Implement the path service**
+
+`ProjectPaths` owns `.tmp`, `.cache`, `.logs`, `artifacts`, `build`, `dist`, and `vendor`; resolve paths before the `is_relative_to` check so `..` cannot escape the root.
+
+- [x] **Step 5: Add `scripts/run_dev.ps1`**
+
+The script sets `TEMP`, `TMP`, `PYTHONPYCACHEPREFIX`, and app-specific cache/log environment variables to directories under the repository before launching `python -m staadprep.app`.
+
+- [x] **Step 6: Run GREEN + lint**
+
+Run: `python -m pytest tests/unit/test_paths.py -v --basetemp=.tmp/pytest`
+Run: `python -m ruff check src tests`
+Expected: PASS.
+
+- [x] **Step 7: Update status docs and commit**
+
+Commit: `chore: bootstrap project-local Python runtime`
+
+---
+
+### Task 02: Approved Desktop UI Shell
+
+**Risk:** FAST/STANDARD
+
+**Files:**
+- Create: `src/staadprep/app.py`
+- Create: `src/staadprep/ui/main_window.py`
+- Create: `src/staadprep/ui/theme.py`
+- Create: `src/staadprep/ui/panels.py`
+- Create: `tests/ui/test_main_window.py`
+- Modify: `scripts/run_dev.ps1`
+
+**Interfaces:**
+- Produces: `create_application() -> QApplication`
+- Produces: `MainWindow(QMainWindow)` with named widgets `project_explorer`, `viewport_host`, `properties_panel`, `validation_panel`, `quick_fix_panel`, `issue_console`, `model_status`.
+
+- [x] **Step 1: Write UI smoke test**
+
+```python
+def test_main_window_has_approved_regions(qtbot):
+    from staadprep.ui.main_window import MainWindow
+    window = MainWindow()
+    qtbot.addWidget(window)
+    assert window.project_explorer.objectName() == "project_explorer"
+    assert window.viewport_host.objectName() == "viewport_host"
+    assert window.issue_console.objectName() == "issue_console"
+    assert window.model_status.text() == "MODEL STATUS: NO MODEL"
+```
+
+- [x] **Step 2: Run RED**
+
+Run: `python -m pytest tests/ui/test_main_window.py -v --basetemp=.tmp/pytest`
+
+- [x] **Step 3: Implement the dark engineering shell**
+
+Match `docs/UI_BASELINE.md`: ribbon actions `Import Model`, `Unit Check`, `Repair`, `Normalize Axis`, `Renumber`, `Validate`, `Export STD`; left explorer; central viewport host; right properties/validation/quick-fix; bottom issue console; persistent summary/status. Engineering actions remain disabled until their backing Tasks exist.
+
+- [x] **Step 4: Run test and launch smoke check**
+
+Run test above, then run `powershell -ExecutionPolicy Bypass -File scripts/run_dev.ps1` and visually compare against `docs/ui/main_dashboard.svg`.
+
+- [x] **Step 5: Commit**
+
+Commit: `feat: add approved desktop UI shell`
+
+---
+
+### Task 03: Canonical Model + Project Serialization
+
+**Risk:** STANDARD
+
+**Files:**
+- Create: `src/staadprep/model/geometry.py`
+- Create: `src/staadprep/model/entities.py`
+- Create: `src/staadprep/model/project.py`
+- Create: `src/staadprep/model/serialization.py`
+- Create: `tests/unit/test_model.py`
+- Create: `tests/unit/test_serialization.py`
+
+**Interfaces:**
+- Produces: `Vec3(x: float, y: float, z: float)`
+- Produces: `Node(key: UUID, position: Vec3, number: int | None, source_refs: tuple[str, ...])`
+- Produces: `Member(key: UUID, start: UUID, end: UUID, number: int | None, source_ref: str | None, group: str | None)`
+- Produces: `ProjectModel(nodes: dict[UUID, Node], members: dict[UUID, Member], metadata: ModelMetadata, revision: int)`
+- Produces: `save_project(model, path)` / `load_project(path) -> ProjectModel`
+
+- [x] **Step 1: Write tests proving stable UUID identity is independent from STAAD number**
+
+```python
+def test_member_references_stable_node_keys():
+    a = Node.new(Vec3(0, 0, 0))
+    b = Node.new(Vec3(1, 0, 0))
+    member = Member.new(a.key, b.key)
+    a.number = 100
+    b.number = 200
+    assert member.start == a.key
+    assert member.end == b.key
+```
+
+- [x] **Step 2: Write serialization round-trip test**
+
+Save under `.tmp/tests/project.json`, reload, and assert node/member keys, positions, numbers, metadata schema version, and source refs are equal.
+
+- [x] **Step 3: Run RED, implement minimal dataclasses and versioned JSON, run GREEN**
+
+Project JSON schema version starts at integer `1`. Non-finite coordinates are rejected by constructors; topology semantics are not implemented here.
+
+- [x] **Step 4: Commit**
+
+Commit: `feat: add canonical structural model contract`
+
+---
+
+### Task 04: 3D Viewport + Synthetic Frame + Selection
+
+**Risk:** STANDARD
+
+**Files:**
+- Create: `src/staadprep/viewer/scene.py`
+- Create: `src/staadprep/viewer/selection.py`
+- Create: `tests/unit/test_scene_data.py`
+- Modify: `src/staadprep/ui/main_window.py`
+
+**Interfaces:**
+- Consumes: `ProjectModel`
+- Produces: `SceneData.from_model(model) -> SceneData`
+- Produces: `StructuralViewport.set_model(model)`
+- Produces: `StructuralViewport.highlight_nodes(keys)` / `highlight_members(keys)`
+
+- [x] **Step 1: Test scene-array generation without GUI**
+
+For a two-member frame, assert point array shape `(3, 3)`, line connectivity count `2`, and stable mapping from rendered cell index to member UUID.
+
+- [x] **Step 2: Run RED, implement `SceneData`, run GREEN**
+
+- [x] **Step 3: Embed PyVista/VTK Qt viewport**
+
+Render a synthetic multi-bay frame on startup only in development/demo mode; include Y-Up axis triad and member selection callback.
+
+- [x] **Step 4: Smoke check selection/highlight and commit**
+
+Commit: `feat: add structural 3D viewport`
+
+---
+
+### Task 05: DXF Raw-Geometry Vertical Slice
+
+**Risk:** STANDARD
+
+**Files:**
+- Create: `src/staadprep/importers/contracts.py`
+- Create: `src/staadprep/importers/dxf_reader.py`
+- Create: `tests/integration/test_dxf_reader.py`
+- Create: `tests/golden_models/01_dxf_lines/source.dxf`
+- Modify: `src/staadprep/ui/main_window.py`
+
+**Interfaces:**
+- Produces: `RawPoint(position: Vec3, source_ref: str)`
+- Produces: `RawSegment(start: Vec3, end: Vec3, source_ref: str, layer: str | None)`
+- Produces: `ImportBatch(points, segments, source_format, declared_unit, metadata, warnings)`
+- Produces: `DxfReader.read(path: Path) -> ImportBatch`
+
+- [x] **Step 1: Create a tiny deterministic DXF fixture**
+
+Fixture contains `LINE`, 3D `POLYLINE`, and `POINT`. Faces are absent. Expected output is known segment/point counts and exact raw coordinates with no coordinate conversion.
+
+- [x] **Step 2: Write RED importer test**
+
+Assert LINE extraction, polyline-to-segment expansion, layer preservation, point extraction, and `$INSUNITS` metadata capture.
+
+- [x] **Step 3: Implement raw reader only**
+
+Do NOT merge endpoints, scale units, transform axes, detect structures, or repair geometry in this Task.
+
+- [x] **Step 4: Wire `Import Model > DXF` to show raw lines through a temporary raw preview adapter**
+
+The status must clearly say `RAW DXF PREVIEW — NOT VALIDATED`.
+
+- [x] **Step 5: Run integration test, UI smoke check, commit**
+
+Commit: `feat: import and preview raw DXF geometry`
+
+**Checkpoint A:** app can launch, import DXF, and display structural lines.
+
+---
+
+### Task 06: Unit, Scale, Dimension, and Z-Up→Y-Up Engine
+
+**Risk:** **STRICT HR-1**
+
+**Files:**
+- Create: `src/staadprep/units/transforms.py`
+- Create: `tests/unit/test_units_transforms.py`
+- Create: `tests/golden_models/07_wrong_scale/case.json`
+- Create: `tests/golden_models/08_wrong_axis/case.json`
+- Modify: `src/staadprep/importers/contracts.py`
+
+**Interfaces:**
+- Produces: `LengthUnit` enum (`METER`, `MILLIMETER`, `CENTIMETER`, `INCH`, `FOOT`, `UNKNOWN`)
+- Produces: `to_meters(value: float, unit: LengthUnit) -> float`
+- Produces: `sketchup_z_up_to_staad_y_up(p: Vec3) -> Vec3`, exactly `(x, z, -y)` after unit conversion
+- Produces: `transform_batch(batch, source_unit, source_axis) -> ImportBatch`
+- Produces: `measure(a, b) -> float`
+- Produces: `model_extents(points) -> Extents`
+- Produces: `reference_scale_ratio(measured_m, expected_m) -> float`
+
+- [x] **Step 1: Write independent conversion tests**
+
+Known cases: `1000 mm = 1 m`, `100 cm = 1 m`, `39.37007874015748 in = 1 m`, `3.280839895013123 ft = 1 m`.
+
+- [x] **Step 2: Run RED**
+
+- [x] **Step 3: Implement conversion table minimally; run GREEN**
+
+- [x] **Step 4: Write axis-transform RED tests from hand-calculated fixtures**
+
+```python
+def test_sketchup_to_staad_preserves_length_and_handed_mapping():
+    p = Vec3(1.0, 2.0, 3.0)
+    assert sketchup_z_up_to_staad_y_up(p) == Vec3(1.0, 3.0, -2.0)
+```
+
+Also assert source basis X→+X, Y→-Z, Z→+Y and pairwise distances are preserved.
+
+- [x] **Step 5: Implement transform; run GREEN and inverse round-trip checks**
+
+- [x] **Step 6: Add reference-length/extents tests including suspicious ratios**
+
+Recognize ratios near `10`, `100`, `1000`, `25.4`, and `304.8` as warnings; never silently rescale.
+
+- [x] **Step 7: Run full HR-1 targeted suite + lint/type-check**
+
+Run: `python -m pytest tests/unit/test_units_transforms.py -v --basetemp=.tmp/pytest`
+
+- [x] **Step 8: Commit**
+
+Commit: `feat: add verified unit and coordinate transform engine`
+
+---
+
+### Task 07: Canonical Topology Builder + Structure Count
+
+**Risk:** **STRICT HR-2**
+
+**Files:**
+- Create: `src/staadprep/topology/builder.py`
+- Create: `src/staadprep/topology/connectivity.py`
+- Create: `tests/unit/test_topology_builder.py`
+- Create: `tests/unit/test_connectivity.py`
+- Create: `tests/golden_models/06_disconnected_structures/case.json`
+
+**Interfaces:**
+- Produces: `TopologyPolicy(coincident_tolerance_m: float)` with V1 default `1e-9 m`
+- Produces: `build_project(batch: ImportBatch, policy: TopologyPolicy) -> ProjectModel`
+- Produces: `connected_components(model) -> list[StructureComponent]`
+
+- [x] **Step 1: Write RED tests for exact/coincident endpoint identity**
+
+Endpoints sharing the same coordinate become one canonical node. A 0.5 mm gap MUST remain two nodes at import because meaningful near-node repair is explicit later.
+
+- [x] **Step 2: Implement deterministic spatial bucket lookup**
+
+Avoid O(N²). Use quantized neighboring buckets while comparing true Euclidean distance against `coincident_tolerance_m`.
+
+- [x] **Step 3: Write RED connected-component fixtures**
+
+A main 4-member frame plus a detached 1-member segment must return exactly two components with expected node/member counts.
+
+- [x] **Step 4: Implement graph traversal and run GREEN**
+
+- [x] **Step 5: Assert graph invariants**
+
+Every member start/end UUID exists; no member references the same node at both ends unless deliberately retained as a zero-length issue; source refs remain auditable.
+
+- [x] **Step 6: Commit**
+
+Commit: `feat: build canonical topology and connected structures`
+
+---
+
+### Task 08: Geometry / Topology Validation Detectors
+
+**Risk:** **STRICT HR-2**
+
+**Files:**
+- Create: `src/staadprep/validation/issues.py`
+- Create: `src/staadprep/validation/validators.py`
+- Create: `tests/unit/test_validators.py`
+- Populate: `tests/golden_models/02_orphan_node`, `03_near_nodes`, `04_duplicate_member`, `05_short_member`, `09_crossing_without_node`, `10_combined_dirty_frame`
+
+**Interfaces:**
+- Produces: `IssueSeverity(ERROR, WARNING, INFO)`
+- Produces: `IssueType(INVALID_COORDINATE, DUPLICATE_NODE, NEAR_NODE, ORPHAN_NODE, ZERO_LENGTH_MEMBER, SHORT_MEMBER, DUPLICATE_MEMBER, UNCONNECTED_GAP, CROSSING_WITHOUT_NODE, DISCONNECTED_STRUCTURE)`
+- Produces: `Issue(id, severity, type, entity_keys, location, description, suggested_actions)`
+- Produces: `ValidationPolicy(near_node_m, short_member_m, intersection_m)`
+- Produces: `validate_model(model, policy) -> list[Issue]`
+
+- [x] **Step 1: Add one RED test per detector before implementation**
+
+Each fixture asserts exact issue type, affected UUIDs, and severity.
+
+- [x] **Step 2: Implement finite/duplicate/near/orphan/zero/short/duplicate-member checks**
+
+Near-node detection uses `scipy.spatial.cKDTree` or equivalent indexed search.
+
+- [x] **Step 3: Implement disconnected-structure issue from `connected_components`**
+
+- [x] **Step 4: Implement 3D segment-crossing-without-node check**
+
+Use indexed candidate bounding boxes and closest-points-on-segments math; only report when closest distance ≤ `intersection_m`, both closest parameters lie in the interior of the two segments, and no canonical node exists at the intersection.
+
+- [x] **Step 5: Run every golden dirty fixture and combined regression**
+
+- [x] **Step 6: Commit**
+
+Commit: `feat: detect structural geometry and topology issues`
+
+---
+
+### Task 09: Repair Commands + Undo/Redo + Audit
+
+**Risk:** **STRICT HR-2**
+
+**Files:**
+- Create: `src/staadprep/repair/commands.py`
+- Create: `src/staadprep/repair/history.py`
+- Create: `src/staadprep/repair/audit.py`
+- Create: `tests/unit/test_repair_commands.py`
+- Create: `tests/unit/test_repair_history.py`
+
+**Interfaces:**
+- Produces protocol: `RepairCommand.apply(model) -> RepairResult`; `RepairCommand.revert(model) -> None`
+- Commands: `MergeNodes`, `SnapNode`, `DeleteNode`, `DeleteMember`, `ConnectNodes`, `SplitMember`, `ReverseMember`, `ScaleModel`, `TransformModel`
+- Produces: `RepairHistory.execute(command)`, `undo()`, `redo()`
+- Produces: append-only `AuditEntry(command_type, before_revision, after_revision, affected_keys, parameters, timestamp)`
+
+- [x] **Step 1: RED test each graph mutation on a tiny model**
+
+Assert exact nodes/members before and after each command.
+
+- [x] **Step 2: Implement minimal commands with snapshot/inverse data sufficient for exact revert**
+
+- [x] **Step 3: RED/GREEN undo round-trip tests**
+
+For every command: serialize model before, apply, undo, serialize again; byte-normalized model payload must equal the original except audit/history metadata.
+
+- [x] **Step 4: Assert graph referential integrity after every command**
+
+No member may reference a missing node. Merge/split commands must update all affected members atomically.
+
+- [x] **Step 5: Re-run affected validation automatically and test revision increments**
+
+- [x] **Step 6: Commit**
+
+Commit: `feat: add reversible structural repair commands`
+
+---
+
+### Task 10: Issue Inspection + Quick-Fix UI
+
+**Risk:** STANDARD (core mutations remain covered by STRICT tests from T09)
+
+**Files:**
+- Create: `src/staadprep/ui/issue_console.py`
+- Modify: `src/staadprep/ui/main_window.py`
+- Modify: `src/staadprep/ui/panels.py`
+- Modify: `src/staadprep/viewer/scene.py`
+- Create: `tests/ui/test_issue_console.py`
+
+**Interfaces:**
+- Consumes: `list[Issue]`, `RepairHistory`
+- Produces: selecting an issue highlights/zooms its entity keys
+- Produces: action buttons dispatch only predefined `RepairCommand` objects
+
+- [x] **Step 1: UI test binds Issue rows to exact Issue IDs**
+
+- [x] **Step 2: Implement issue table/filter/severity counts and structure isolate action**
+
+- [x] **Step 3: Implement Quick Fix actions with confirmation for destructive delete operations**
+
+- [x] **Step 4: Add Undo/Redo actions and re-render/revalidate after command completion**
+
+- [x] **Step 5: Smoke check combined dirty fixture interactively and commit**
+
+Commit: `feat: inspect and repair model issues in desktop UI`
+
+**Checkpoint B:** user can detect, inspect, repair, and undo common dirty-geometry problems inside the app.
+
+---
+
+### Task 11: Member Incidence / Local-X Normalization
+
+**Risk:** **STRICT HR-2**
+
+**Files:**
+- Create: `src/staadprep/orientation/normalize.py`
+- Create: `tests/unit/test_orientation.py`
+- Modify: `src/staadprep/viewer/scene.py`
+- Modify: `src/staadprep/ui/main_window.py`
+
+**Interfaces:**
+- Produces: `MemberClass(COLUMN, BEAM_X, BEAM_Z, BRACE, OTHER)`
+- Produces: `classify_member(model, member, tolerance_m) -> MemberClass`
+- Produces: `needs_reverse(model, member) -> bool`
+- Produces: `NormalizeMemberDirection(member_key)` repair command or command factory
+
+- [x] **Step 1: RED tests for deterministic dominant-axis rule**
+
+For Y-Up: vertical member points `-Y→+Y`; X-dominant points `-X→+X`; Z-dominant points `-Z→+Z`. For diagonal ties use priority X, then Y, then Z. The implementation controls member incidence/local-X only; it does not claim to normalize STAAD local-Y/local-Z/Beta.
+
+- [x] **Step 2: Implement classification/reversal decision and run GREEN**
+
+- [x] **Step 3: Add viewport local-X arrows and preview count**
+
+- [x] **Step 4: Normalize all through existing reversible repair history, revalidate, commit**
+
+Commit: `feat: normalize deterministic member incidence`
+
+---
+
+### Task 12: Deterministic Node / Member Renumbering
+
+**Risk:** **STRICT HR-4**
+
+**Files:**
+- Create: `src/staadprep/numbering/renumber.py`
+- Create: `tests/unit/test_renumber.py`
+- Modify: `src/staadprep/model/entities.py`
+
+**Interfaces:**
+- Produces: `NumberingPolicy(node_precision_m=1e-9, class_order=...)`
+- Produces: `renumber_nodes(model, policy) -> NumberingMap`
+- Produces: `renumber_members(model, policy) -> NumberingMap`
+- `NumberingMap` exposes `node_numbers: dict[UUID, int]`, `member_numbers: dict[UUID, int]`.
+
+- [x] **Step 1: RED tests: node order**
+
+Default Y-Up sort is elevation `Y`, then `X`, then `Z`; ties are broken by stable UUID string only after coordinate equality at policy precision.
+
+- [x] **Step 2: RED tests: member order**
+
+Class order: COLUMN, BEAM_X, BEAM_Z, BRACE, OTHER; then midpoint elevation/position; then stable UUID tie-break.
+
+- [x] **Step 3: Implement numbering by changing only `.number` attributes**
+
+Stable node/member UUID keys and member endpoint UUID references MUST NOT change.
+
+- [x] **Step 4: Determinism test**
+
+Clone same model with different dictionary insertion order; repeated renumbering must produce identical UUID→number maps.
+
+- [x] **Step 5: Referential-integrity and audit tests, then commit**
+
+Commit: `feat: add deterministic STAAD-facing numbering`
+
+---
+
+### Task 13: Minimal STAAD `.STD` Geometry Exporter
+
+**Risk:** **STRICT HR-3**
+
+**Files:**
+- Create: `src/staadprep/exporters/staad_std.py`
+- Create: `tests/unit/test_staad_exporter.py`
+- Create: `tests/golden_models/01_clean_frame/expected.std`
+- Modify: `src/staadprep/ui/main_window.py`
+
+**Interfaces:**
+- Produces: `export_staad_std(model: ProjectModel, path: Path) -> ExportReport`
+- Export subset exactly: `STAAD SPACE`, `UNIT METER KN`, `JOINT COORDINATES`, `MEMBER INCIDENCES`, `FINISH`.
+- Requires every node/member to have a positive unique `.number` and final critical validation to pass.
+
+- [x] **Step 1: Write exact text-golden RED test**
+
+Expected form:
+
+```text
+STAAD SPACE
+UNIT METER KN
+JOINT COORDINATES
+1 0 0 0;
+2 6 0 0;
+MEMBER INCIDENCES
+1 1 2;
+FINISH
+```
+
+- [x] **Step 2: Implement deterministic numeric formatting**
+
+Use fixed canonical formatting that strips insignificant trailing zeros but never emits locale commas, NaN, or Infinity.
+
+- [x] **Step 3: Reject missing/duplicate numbers and dangling references with explicit export errors**
+
+- [x] **Step 4: Independently parse generated sections in test code and compare back to the canonical coordinates/incidences**
+
+The parser used for test verification must be test-only and independent from exporter formatting functions.
+
+- [x] **Step 5: Wire Export STD button behind validation gate and commit**
+
+Commit: `feat: export validated STAAD geometry model`
+
+**Checkpoint C:** cleaned DXF workflow can generate deterministic `.STD` geometry.
+
+---
+
+### Task 14: SKP Bridge Contract + Native Helper Capability Probe
+
+**Risk:** STANDARD
+
+**Files:**
+- Create: `src/staadprep/importers/skp_bridge.py`
+- Create: `native/skp_reader/CMakeLists.txt`
+- Create: `native/skp_reader/include/neutral_contract.h`
+- Create: `native/skp_reader/src/main.cpp`
+- Create: `tests/unit/test_skp_bridge.py`
+- Modify: `docs/HANDOFF.md`
+
+**Interfaces:**
+- Neutral protocol version: integer `1`.
+- Helper CLI: `skp_reader.exe --input <file.skp> --output <project-local-json>`.
+- JSON envelope fields: `protocol_version`, `source_file`, `source_unit`, `source_axis`, `points`, `segments`, `groups`, `tags`, `warnings`.
+- Produces: `SkpBridge.is_available() -> bool`; `SkpBridge.read(path) -> ImportBatch`.
+
+- [x] **Step 1: Test Python bridge with a fake project-local helper executable/script fixture**
+
+Assert protocol-version mismatch fails closed and helper output outside the project is rejected.
+
+- [x] **Step 2: Implement Python process bridge and capability status**
+
+If the official SketchUp SDK is absent, UI reports `SKP importer unavailable — DXF remains available`; no crash and no network download occurs automatically.
+
+- [x] **Step 3: Add CMake scaffold that expects the official SDK only under `vendor/sketchup-sdk/`**
+
+No SDK binaries are committed to Git.
+
+- [x] **Step 4: Commit**
+
+Commit: `feat: define isolated native SKP bridge contract`
+
+---
+
+### Task 15: SketchUp Ruby Extension + Neutral Import Integration
+
+**Risk:** **STRICT HR-1 / HR-2**
+
+**Spec:** `docs/superpowers/specs/2026-08-28-sketchup-ruby-bridge-design.md`
+
+**Files:**
+- Create: `extensions/sketchup_staadprep/staadprep_loader.rb`
+- Create: `extensions/sketchup_staadprep/staadprep/exporter.rb`
+- Create: `src/staadprep/importers/neutral_reader.py`
+- Create: `tests/unit/test_neutral_reader.py`
+- Create: `tests/integration/test_sketchup_ruby_pipeline.py`
+- Create: `tests/golden_models/11_sketchup_ruby_simple_frame/expected.json`
+- Modify: `src/staadprep/ui/main_window.py`
+- Preserve/regress: `src/staadprep/importers/dxf_reader.py` and existing DXF tests
+
+**Interfaces:**
+- Ruby extension command: `Send to STAAD Prep`.
+- Project-local inbox: `artifacts/sketchup_bridge/inbox/`.
+- Neutral protocol remains integer version `1` with T14 envelope fields.
+- Ruby exporter emits source/world SketchUp coordinates, `source_axis=Z-UP`, source unit, segment/group/component/tag metadata; it does NOT apply STAAD conversion.
+- Python `NeutralReader.read(path: Path) -> ImportBatch` validates protocol/schema/project-local path.
+- Both SketchUp-neutral and Direct DXF routes reuse T06 unit/axis conversion and T07 topology builder.
+- T14 C++/C-SDK helper is retained but not required by T15/V1.
+
+- [x] **Step 1: RED neutral-reader and hand-authored transform fixtures**
+
+Create protocol/schema/path tests and a nested group/component transform fixture with independently hand-calculated source/world coordinates. Protocol mismatch, malformed coordinates and paths outside the project root fail closed.
+
+- [x] **Step 2: Implement `NeutralReader` and project-local inbox contract**
+
+Neutral reader maps protocol-v1 points/segments/metadata to `ImportBatch` only. It must not merge, repair, transform or renumber geometry.
+
+- [x] **Step 3: Implement the SketchUp Ruby extension exporter contract**
+
+Use only the public SketchUp Ruby API. Recursively walk supported edges, groups and component instances; compose nested instance transforms; preserve useful tag/group/component metadata; report source units and Z-Up. Output uses atomic temporary-write -> rename inside the configured project-local inbox. No C SDK and no network download.
+
+- [x] **Step 4: STRICT transform/topology verification**
+
+Run Neutral JSON -> `ImportBatch` -> T06 metre/Y-Up -> T07 topology. Compare exact expected canonical coordinates/incidences against the hand-authored fixture. Ensure the Ruby layer never duplicates T06 coordinate mapping.
+
+- [x] **Step 5: Wire V1 import choices and preserve Direct DXF**
+
+UI exposes SketchUp Bridge inbox import/status and Direct DXF Import as independent choices. Missing SketchUp/extension must not disable DXF. Run existing DXF import/preview regression plus the new neutral route.
+
+- [x] **Step 6: SketchUp runtime check when available**
+
+Verified on SketchUp 2026 (26.1.256): the development extension registers successfully, exports a real 3-member root/group/nested-component fixture, and the resulting Neutral JSON passes through T06/T07 to the independently expected 4-node/3-member canonical geometry.
+
+- [x] **Step 7: Commit**
+
+Commit: `feat: bridge SketchUp Ruby geometry into canonical import`
+
+---
+
+### Task 16: SketchUp-Style Navigation + Selection Foundation
+
+**Status:** COMPLETE on `task/16-navigation-selection` (`43636af`).
+
+**Risk:** STANDARD
+
+Detailed executable plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md` Task 16.
+
+**Deliverable:** Explicit edit modes with safe default SELECT, SketchUp-style Middle-Mouse Orbit / Shift+Middle Pan / Wheel Zoom / Shift+Z Fit, selection filters, overlap cycling, focus, context actions, and Node/Member/Local-X/Coordinate labels. Navigation/select actions MUST NOT mutate canonical geometry.
+
+Commit: `feat: add safe SketchUp-style viewport controls`
+
+---
+
+### Task 17: Snap / Inference + Axis Lock Engine
+
+**Status:** COMPLETE on `task/17-snap-inference`.
+
+**Risk:** **STRICT HR-1 / HR-2**
+
+Detailed executable plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md` Task 17.
+
+**Deliverable:** Deterministic canonical-space inference for existing Node, endpoint, midpoint, intersection, X/Y/Z constraints, working plane/grid, and keyboard axis locks. Unresolved 3D depth is non-committable rather than guessed.
+
+Commit: `feat: add deterministic structural snap inference`
+
+---
+
+### Task 18: Manual Node / Member Editing
+
+**Status:** **COMPLETE** — implementation, strict verification, documentation, and task commit complete.
+
+**Risk:** **STRICT HR-2**
+
+Detailed executable plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md` Task 18.
+
+**Deliverable:** Reversible CreateNode/MoveNode + atomic composite repair; viewport Draw Member, Move/Snap Node, Delete exact selected entity, Split Member, ghost preview, Esc cancel, one-step atomic Undo, and real Qt/VTK manual-edit smoke. SELECT drag remains non-mutating.
+
+Commit: `feat: edit analytical nodes and members in viewport`
+
+---
+
+### Task 19: Precision Create Node + Translational Repeat
+
+**Risk:** **STRICT HR-2**
+
+Detailed executable plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md` Task 19.
+
+**Deliverable:** Create Node by exact XYZ or relative to selected Node, optional Create Member, collision preview, STAAD-like Translational Repeat with ΔX/ΔY/ΔZ, repeat count excluding reference Node, Consecutive / From Reference member modes, and one atomic history item.
+
+Status: **COMPLETE** — implementation, strict verification, documentation, and Git commit completed.
+
+Commit: `feat: create precise repeated structural nodes`
+
+---
+
+### Task 20: Numbering + Member Direction Controls
+
+**Status:** **COMPLETE — implementation, strict verification, documentation, and task commit complete.**
+
+**Risk:** **STRICT HR-2 / HR-4**
+
+Detailed executable plan: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md` Task 20.
+
+**Deliverable:** Reversible Auto Node Number / Auto Member Number / Auto Number All with Old->New preview; Auto Fix Axis All/Selected, Flip Selected, and Set Direction by clicking the desired Start `(i)` endpoint. Reuse T11/T12 algorithms; do not duplicate orientation/numbering logic.
+
+Final verification checkpoint: **243 unit + 88 UI + 5 integration = 336 passed**, Ruff passed; T20-local strict mypy reports **0 issues in 5 affected source files**. Four inherited `dxf_reader.py` typing errors remain outside T20 under full import-graph reporting.
+
+Commit: `feat: control STAAD numbering and member direction`
+
+**Checkpoint C2:** user can directly correct analytical line geometry, create repeated nodes/members, and control numbering/direction without returning to SketchUp for routine cleanup.
+
+---
+
+### Task 21: End-to-End READY Gate + Golden Suite + Audit Report
+
+**Risk:** **STRICT HR-1 through HR-4**
+
+**Files:**
+- Create: `src/staadprep/validation/ready_gate.py`
+- Create: `tests/integration/test_full_pipeline.py`
+- Complete: `tests/golden_models/01..11` plus manual-edit expected canonical fixtures
+- Modify: `src/staadprep/ui/main_window.py`
+- Modify: `src/staadprep/repair/audit.py`
+
+**Interfaces:**
+- Produces: `ReadyGate.evaluate(model, issues) -> ReadyStatus`
+- `ReadyStatus.ready` is false when any critical ERROR exists, unit/reference dimension is unverified when required by policy, or numbering is incomplete.
+- Produces project-local validation report JSON with import metadata, transforms, issue summary, repairs/manual edits, numbering maps, direction status, and export status.
+
+- [x] **Step 1: Define exact gate tests**
+
+Clean model = READY. Orphan, disconnected critical component, invalid coordinate, zero-length, unresolved crossing, or missing numbering = NOT READY. Warnings alone do not block unless policy says otherwise. SELECT/navigation-only actions must not alter readiness/model revision.
+
+- [x] **Step 2: Execute all golden fixtures through import -> transform -> topology -> validate**
+
+Dirty fixtures produce exact expected issue sets. Clean/repaired/manual-edited variants converge to expected structure count and geometry. Golden 07 is verified through the reference-dimension scale engine rather than a fabricated topology issue; canonical-dirty fixtures are evaluated at the validator boundary that owns those conditions.
+
+- [x] **Step 3: Repair combined dirty fixture through Quick Fix + manual commands and verify final model graph independently**
+
+The integration fixture exercises draw missing member, Move/Snap Node, exact duplicate Member delete, relative Node/member creation, crossing split, and Translational Repeat through `RepairHistory`; the final coordinate/incidence graph matches a hand-authored canonical expectation before export.
+
+- [x] **Step 4: Apply direction/numbering controls and independently verify invariants**
+
+Direction changes incidence only; numbering changes `.number` only; stable UUID identities and endpoint references remain valid.
+
+- [x] **Step 5: Export and test model -> STD -> independent test parser round-trip**
+
+Successful export also writes project-local validation/audit JSON containing import/transform metadata, issue summary, command history, numbering, direction status, readiness, and export status.
+
+- [x] **Step 6: Update UI status to `READY FOR STAAD` only from `ReadyGate` result**
+
+`ReadyGate` is authoritative for UI status and export enablement; direct export calls re-evaluate the same gate. SELECT/Fit/navigation-only actions do not change model revision/readiness.
+
+- [x] **Step 7: Commit**
+
+Final verification checkpoint 2026-08-29:
+- fresh unit + integration: **275/275 passed**;
+- fresh UI via permanent MCP-safe isolated runner: **62 lightweight + 30 VTK/renderer = 92/92 passed**;
+- total fresh regression: **367/367 passed**;
+- Ruff: passed;
+- T21-local strict mypy: **0 issues in 4 affected source/runner files** using `--follow-imports=silent`;
+- `git diff --check`: passed;
+- VTK/NumPy 2.5 deprecation warnings remain third-party only;
+- feature commit: `bddd177` — `test: verify end-to-end clean model readiness`.
+
+Commit: `test: verify end-to-end clean model readiness`
+
+**Checkpoint D:** SketchUp-Ruby/Direct-DXF -> Quick Fix/manual edit -> validated `.STD` V1 pipeline is functionally complete.
+
+---
+
+### Task 22: Portable Standalone Windows Packaging
+
+**Risk:** STANDARD
+
+**User-approved scope (2026-08-29):** portable/no-install Windows standalone release. The user extracts the package into any writable folder and launches `STAAD Model Preprocessor.exe`; all implicit runtime state stays under package-local `Data/`; the same package includes the version-matched SketchUp `.rbz`; version/manual-patch/update-ready contracts are included now. Setup/MSI/NSIS, automatic updater, registry installation, and production one-file mode are explicitly deferred.
+
+**Detailed executable plan:** `docs/superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md`
+
+**Final status 2026-08-30:** T22 is **COMPLETE** on `task/22-portable-packaging` in `.worktrees/task-22-portable-packaging`. The real Nuitka standalone `.exe`, versioned folder/ZIP, no-Python/different-CWD/relocation/Unicode gates, package-local `Data/`, manifest hashes, bundled `.rbz`, and packaged T21 workflow all passed. T23 remains not started. See [`docs/INDEX.md`](../../INDEX.md) and the active worktree handoff at `D:/Dizayn59/CLICodex/gpt_mcp_workshop/STAAD_Model_Preprocessor/.worktrees/task-22-portable-packaging/docs/HANDOFF.md`.
+
+**Current post-T22 checkpoint 2026-08-31:** the consolidated refresh-save-final folder/ZIP is
+package-verified and real-user accepted. The earlier ten-item editing-final and UX-only packages
+are superseded historical artifacts. T23 acceptance is **PASS by user report (2026-09-01)**; T24
+cleanup is in progress: inventory and reference/evidence mapping are complete, with no files moved.
+
+**Required outputs:**
+- `dist/STAAD_Model_Preprocessor_<VERSION>_win64_portable/`
+- `dist/STAAD_Model_Preprocessor_<VERSION>_win64_portable.zip`
+- packaged `STAAD Model Preprocessor.exe` with standalone PySide6/VTK runtime;
+- package-local `Data/` runtime hierarchy;
+- `SketchUp_Extension/STAAD_Prep_Bridge_<VERSION>.rbz`;
+- `Update/package-manifest.json` with version/schema/hash/preserve-root evidence;
+- portable, RBZ-install, and manual-update documentation.
+
+**Interfaces:**
+- Build/test/generated release outputs remain project-local under `build/`, `dist/`, `.tmp/`, `.cache/`, and `artifacts/`.
+- Packaged runtime root is anchored to the executable/compiled containing directory, never launch CWD.
+- Implicit runtime config/inbox/export/report/log/cache/temp/backups remain under package-local `Data/`.
+- Target machine requires no Python/pip/PySide6/VTK installation.
+- `Data/` is the preserved state root for manual patches and the future updater contract.
+
+- [x] **Step 1: Implement/test portable runtime path policy and writeability gate**
+
+- [x] **Step 2: Establish synchronized app/package/RBZ version contract**
+
+- [x] **Step 3: Build and validate version-matched SketchUp `.rbz`**
+
+- [x] **Step 4: Build Nuitka Windows x64 `--mode=standalone` package and prove real Qt/VTK launch without Python on PATH**
+
+- [x] **Step 5: Assemble versioned portable folder + ZIP + update manifest/hashes/manual-update docs**
+
+- [x] **Step 6: Prove relocation, different-CWD launch, spaces/Unicode paths, and package-local runtime writes**
+
+- [x] **Step 7: Run packaged golden import/manual-edit/READY/STD/report smoke plus full relevant regression**
+
+- [x] **Step 8: Close T22 docs/checkpoint; keep T23 not started**
+
+Commit: `build: package Windows desktop application`
+
+---
+
+### Task 23: Real-Project Acceptance + STAAD.Pro Verification
+
+**Risk:** **STRICT acceptance**
+
+**Files:**
+- Create/update only project-local acceptance artifacts under `artifacts/acceptance/`
+- Modify: `docs/HANDOFF.md`, `docs/CHECKLIST.md`, `docs/TASK_BOARD.md`
+
+**Interfaces:**
+- Acceptance input: representative real SketchUp model handed off through the Ruby bridge and/or representative direct DXF structural model.
+- Acceptance outputs: preprocessor report, exported `.STD`, screenshots/logs as needed, target STAAD.Pro open result.
+
+- [ ] **Step 1: Copy/reference a real test model into the project-local acceptance area without modifying the user's source file**
+
+- [ ] **Step 2: Run full import/Quick Fix/manual-edit/direction/renumber/validate/export workflow and preserve audit report**
+
+Acceptance must exercise at least one manual Draw Member or Move/Snap Node action and verify one Select/navigation gesture cannot mutate geometry.
+
+- [ ] **Step 3: Open exported `.STD` in target STAAD.Pro environment**
+
+Verify intended node coordinates, member incidences, structure count, member local-X incidence direction, numbering, and absence of parser/import geometry errors.
+
+- [ ] **Step 4: Record any discrepancy as a narrowly scoped patch item; do not silently change acceptance criteria**
+
+- [ ] **Step 5: Re-run only affected STRICT regression plus full golden pipeline after fixes**
+
+- [ ] **Step 6: Mark V1 production-usable only after target STAAD.Pro verification succeeds and commit acceptance docs**
+
+Commit: `docs: record V1 real-project acceptance`
+
+**Checkpoint E:** V1 is accepted for real use.
+
+---
+
+**Current T23 acceptance record (2026-09-01):** The user reported that T23 testing passed. This
+closes the T23 gate by user acceptance; detailed external STAAD.Pro logs/screenshots were not
+captured by this agent. T24 is now eligible but remains gated on an explicit user instruction.
+
+### Task 24: Post-Acceptance Unused-File Audit + DEL Quarantine
+
+**Risk:** STANDARD
+
+**Files:**
+- Create: `DEL/UNUSED_FILES_MANIFEST.md`
+- Create/update: `artifacts/cleanup/` audit evidence as needed
+- Modify: `README.md`
+- Modify: `docs/HANDOFF.md`
+- Modify: `docs/CHECKLIST.md`
+- Modify: `docs/TASK_BOARD.md`
+- Move only verified-unused/superseded files into project-local `DEL/`
+
+**Interfaces:**
+- Input: the exact T23-accepted repository/workspace state.
+- Output: a lean working tree plus `DEL/UNUSED_FILES_MANIFEST.md` containing original path, quarantine path, classification, evidence, and restore instruction for every moved item.
+- T24 never deletes files and never changes structural behavior intentionally.
+
+- [x] **Step 1: Inventory and classify candidates without moving anything** — initial inventory recorded in `artifacts/cleanup/t24-inventory-20260901.md`; no files moved.
+
+Enumerate tracked files plus relevant project-local untracked/generated paths. Classify candidates as `KEEP`, `REGENERABLE`, `SUPERSEDED`, or `UNUSED`. Protect `.git`, active `.worktrees`, current `.venv`, required `vendor` SDK, T23 acceptance evidence, and any file with uncertain ownership.
+
+- [x] **Step 2: Build a reference/evidence map** — `artifacts/cleanup/t24-reference-map-20260901.md`; no files moved.
+
+Search Python imports, tests, scripts, docs links, package/build configuration, runtime path constants, fixtures/golden references, native CMake references, and README/HANDOFF references. A file may enter the move set only when this evidence demonstrates it is not required by current V1.
+
+- [x] **Step 3: Write the pre-move manifest and review the exact move set** — user approved
+  `DEL/UNUSED_FILES_MANIFEST.md` before the move.
+
+For every proposed move record: original path, target under `DEL/`, classification, reason, evidence/search result, and restoration command/path. Do not include ambiguous candidates.
+
+- [x] **Step 4: Move verified candidates to project-local `DEL/` only** — moved
+  `dist/post-t22-editing-final/` to `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/`; no deletion.
+
+Preserve useful relative grouping under `DEL/` so restoration is obvious. Do not delete, overwrite, or move files outside the canonical project root.
+
+- [x] **Step 5: Verify no live reference points to quarantined paths** — post-move scan found no
+  source/test/script/config reference to the old path; historical Markdown links now use the
+  quarantine path.
+
+Repeat reference/import/config search after the moves. Any broken or still-live reference means restore the affected file and remove it from the move set.
+
+- [x] **Step 6: Run affected regression plus final project verification** — current accepted package
+  suite **7/7 PASS**, `git diff --check` PASS, and quarantine/current-release counts preserved.
+  No source/lint/type/build rerun was needed because the approved move set touched only generated
+  historical package output and documentation.
+
+Run full Python tests, Ruff, targeted/full mypy as applicable, native/build/package smoke where the move set touches those areas, and `git diff --check`. The accepted V1 behavior must remain unchanged.
+
+- [x] **Step 7: Update final docs and commit** — final audit recorded in
+  `artifacts/cleanup/t24-final-verification-20260901.md`; synchronized docs and quarantine manifest
+  are ready for the T24 checkpoint commit.
+
+Document quarantine size/count, categories, remaining protected/regenerable directories, and explicit statement that the user—not T24—owns final deletion of `DEL/` contents.
+
+Commit: `chore: quarantine unused project files for review`
+
+**Checkpoint F:** accepted V1 workspace is audited and verified-unused files are isolated in `DEL/`
+for user-controlled deletion. T24 is **COMPLETE** after the checkpoint commit.
+
+## Post-T24 deliverable: complete worktree mindmap
+
+After Checkpoint F, execute [`docs/superpowers/plans/2026-09-01-worktree-mindmap.md`](2026-09-01-worktree-mindmap.md).
+It produces the canonical [`docs/WORKTREE_MINDMAP.md`](../../WORKTREE_MINDMAP.md), covering every
+tracked/protected/relevant generated file, source/test/document/build/package relationship, lifecycle
+status, and future patch entry point. This deliverable is intentionally not started before T24 is
+complete.
+
+---
+
+## Per-Task Stop Protocol
+
+At the end of every Task the executor MUST:
+
+1. Run the exact targeted verification for that Task.
+2. Update `docs/TASK_BOARD.md` status and `docs/CHECKLIST.md` relevant boxes.
+3. Update `docs/HANDOFF.md` with current commit, completed Task, next Task, known issues, and exact resume command/entry point.
+4. Commit only the completed Task's files.
+5. Report results to the user.
+6. **STOP. Do not begin the next Task until the user explicitly says to continue/run it.**
+
+## Plan Self-Review Result
+
+- Spec coverage: all approved V1 functional requirements map to T01–T24; detailed Manual Editing T16–T20 plan is linked above.
+- Project-boundary rule: enforced from T01 and carried through every Task.
+- UI baseline: T02/T04/T10 plus SketchUp-style/manual-edit interaction T16–T20.
+- V1 import paths: T15 SketchUp Ruby bridge + Direct DXF; T14 direct-SKP C-SDK bridge is future optional.
+- HR-1: T06/T15/T17/T21.
+- HR-2: T07/T08/T09/T11/T15/T17/T18/T19/T20/T21.
+- HR-3: T13/T21/T23.
+- HR-4: T12/T20/T21/T23.
+- Stable identity strategy prevents renumbering from rewriting canonical graph references.
+- Manual editing remains analytical-line focused; arbitrary Rotate/Mirror/full Copy Array/Trim/Extend/Offset/solids/section modeling and solver/design/BIM/cloud features are not scheduled.

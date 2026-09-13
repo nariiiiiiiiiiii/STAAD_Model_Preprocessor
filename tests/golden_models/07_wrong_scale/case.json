@@ -1,0 +1,6 @@
+{
+  "measured_m": 6000.0,
+  "expected_m": 6.0,
+  "expected_ratio": 1000.0,
+  "expected_warning_factor": 1000.0
+}

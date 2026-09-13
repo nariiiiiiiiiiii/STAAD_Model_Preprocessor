@@ -1,0 +1,1684 @@
+from __future__ import annotations
+
+import os
+from collections.abc import Iterable
+from dataclasses import replace
+from typing import Any
+from uuid import UUID
+
+import numpy as np
+import pyvista as pv
+from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, QRect, QRectF, Qt, Signal
+from PySide6.QtGui import QCloseEvent
+from PySide6.QtWidgets import QMenu, QRubberBand, QVBoxLayout, QWidget
+from pyvistaqt import QtInteractor
+from vtkmodules.vtkRenderingCore import vtkCellPicker
+
+from staadprep.editing.create_node import (
+    ExistingNodeResolution,
+    MemberTranslationalRepeatPreview,
+    MemberTranslationalRepeatSpec,
+    RepeatConnectionMode,
+    TranslationalRepeatPreview,
+    TranslationalRepeatSpec,
+)
+from staadprep.editing.inference import AxisLock, InferenceEngine, InferenceHit, SnapKind
+from staadprep.editing.manual_ops import (
+    build_draw_member_existing,
+    build_draw_member_new,
+    build_move_or_snap_node,
+    build_split_intersection,
+    build_split_member,
+)
+from staadprep.model.geometry import Vec3
+from staadprep.model.project import ProjectModel
+from staadprep.orientation.local_axes import member_local_axes
+from staadprep.repair.commands import CreateNode
+from staadprep.viewer.interaction import (
+    EditMode,
+    InteractionState,
+    LabelVisibility,
+    SelectionFilter,
+)
+from staadprep.viewer.palette import VIEWPORT_LABEL_TEXT_COLOR
+from staadprep.viewer.scene import SceneData
+from staadprep.viewer.selection import (
+    SelectionCandidate,
+    SelectionEntity,
+    SelectionState,
+    filter_candidates,
+    next_overlap_candidate,
+)
+
+
+class StructuralViewport(QWidget):
+    """Interactive 3D view with stable member/node highlight mappings."""
+
+    member_selected = Signal(object)
+    node_selected = Signal(object)
+    axis_lock_changed = Signal(object, str)
+    manual_command_requested = Signal(object)
+    direction_endpoint_selected = Signal(object)
+    selection_filter_requested = Signal(object)
+    selection_changed = Signal(object, object)
+    delete_selection_requested = Signal()
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setObjectName("viewport_host")
+        self.setMinimumSize(480, 360)
+
+        self.scene: SceneData | None = None
+        self._model: ProjectModel | None = None
+        self.selection = SelectionState()
+        self.interaction_state = InteractionState()
+        self.axis_lock = AxisLock.NONE
+        self._member_actor: Any | None = None
+        self._node_actor: Any | None = None
+        self._member_highlight_actor: Any | None = None
+        self._node_highlight_actor: Any | None = None
+        self._local_x_actor: Any | None = None
+        self._local_axis_actors: list[Any] = []
+        self._local_axis_label_actors: list[Any] = []
+        self._label_actors: list[Any] = []
+        self._navigation_mode: str | None = None
+        self._last_mouse_pos: tuple[float, float] | None = None
+        self._left_press_pos: tuple[float, float] | None = None
+        self._crop_drag_additive = False
+        self._crop_select_enabled = False
+        self._last_overlap_candidates: tuple[SelectionCandidate, ...] = ()
+        self._last_overlap_choice: SelectionCandidate | None = None
+        self._draw_start_node: UUID | None = None
+        self._move_node_key: UUID | None = None
+        self._edit_preview_position: Vec3 | None = None
+        self._ghost_actor: Any | None = None
+        self._ghost_connected_member_count = 0
+        self._precision_node_actor: Any | None = None
+        self._precision_member_actor: Any | None = None
+        self._precision_ghost_node_count = 0
+        self._precision_ghost_member_count = 0
+        self._direction_member_key: UUID | None = None
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self._off_screen = os.getenv("QT_QPA_PLATFORM", "").lower() == "offscreen"
+        self.plotter: Any = QtInteractor(self, off_screen=self._off_screen)
+        layout.addWidget(self.plotter.interactor)
+        self._crop_select_rubber_band = QRubberBand(
+            QRubberBand.Shape.Rectangle,
+            self.plotter.interactor,
+        )
+        self._crop_select_rubber_band.hide()
+        self.plotter.interactor.installEventFilter(self)
+        self.plotter.interactor.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.plotter.interactor.setMouseTracking(True)
+        self._configure_scene()
+
+    def _configure_scene(self) -> None:
+        self.plotter.set_background("#0d1319")
+        # Native VTK grid/axes rendering is unstable on the Qt offscreen test
+        # platform. Automated tests validate geometry actors directly; the real
+        # Windows application keeps the full engineering grid and axes.
+        if self._off_screen:
+            return
+        self.plotter.add_axes(
+            line_width=2,
+            color="#f2f2f2",
+            xlabel="X",
+            ylabel="Y",
+            zlabel="Z",
+            labels_off=False,
+        )
+        self.plotter.show_grid(
+            color="#2b3641",
+            xtitle="X",
+            ytitle="Y",
+            ztitle="Z",
+            grid="back",
+            location="outer",
+        )
+
+    def set_model(self, model: ProjectModel) -> None:
+        self._model = model
+        self.scene = SceneData.from_model(model)
+        self._cancel_crop_select_drag()
+        self.selection.clear()
+        self._last_overlap_candidates = ()
+        self._last_overlap_choice = None
+        self._draw_start_node = None
+        self._move_node_key = None
+        self._edit_preview_position = None
+        self._ghost_actor = None
+        self._ghost_connected_member_count = 0
+        self._precision_node_actor = None
+        self._precision_member_actor = None
+        self._precision_ghost_node_count = 0
+        self._precision_ghost_member_count = 0
+        self._direction_member_key = None
+        if not self._off_screen:
+            self.plotter.disable_picking()
+        self.plotter.clear()
+        self._configure_scene()
+        self._member_actor = None
+        self._node_actor = None
+        self._member_highlight_actor = None
+        self._node_highlight_actor = None
+        self._local_x_actor = None
+        self._local_axis_actors = []
+        self._local_axis_label_actors = []
+        self._clear_label_actors()
+
+        if self.scene.points.size == 0:
+            self.plotter.render()
+            self._emit_selection_changed()
+            return
+
+        point_cloud = pv.PolyData(self.scene.points)
+        point_count = len(self.scene.point_keys)
+        point_cloud.verts = np.column_stack(
+            (np.ones(point_count, dtype=np.int64), np.arange(point_count, dtype=np.int64))
+        ).ravel()
+        self._node_actor = self.plotter.add_mesh(
+            point_cloud,
+            color="#6fcf97",
+            point_size=8,
+            render_points_as_spheres=True,
+            style="points",
+            pickable=True,
+        )
+
+        if self.scene.lines.size:
+            line_mesh = pv.PolyData(
+                self.scene.points,
+                lines=self.scene.lines.ravel(),
+            )
+            line_mesh.cell_data["member_index"] = np.arange(
+                len(self.scene.member_keys), dtype=np.int64
+            )
+            self._member_actor = self.plotter.add_mesh(
+                line_mesh,
+                color="#b7c2cc",
+                line_width=2,
+                pickable=True,
+            )
+
+        if self.interaction_state.labels.local_x:
+            self._render_local_x_arrows()
+        self._render_labels()
+        self.plotter.reset_camera()
+        self.plotter.render()
+        self._emit_selection_changed()
+
+    def set_edit_mode(self, mode: EditMode) -> None:
+        resolved = EditMode(mode)
+        if resolved is not EditMode.SELECT:
+            self.set_crop_to_select_enabled(False)
+        if resolved is not EditMode.SET_DIRECTION:
+            self._direction_member_key = None
+        self.interaction_state = replace(self.interaction_state, mode=resolved)
+
+    def begin_set_direction(self, member_key: UUID) -> None:
+        if self._model is None or member_key not in self._model.members:
+            raise ValueError(f"Member {member_key} does not exist")
+        member = self._model.members[member_key]
+        self._direction_member_key = member_key
+        self.highlight_members((member_key,))
+        self.highlight_nodes((member.start, member.end))
+
+    def set_axis_lock(self, axis_lock: AxisLock) -> None:
+        self.axis_lock = AxisLock(axis_lock)
+        if self.axis_lock is AxisLock.NONE:
+            helper_text = "Axis lock cleared"
+        else:
+            helper_text = InferenceEngine.axis_helper_text(self.axis_lock)
+        self.axis_lock_changed.emit(self.axis_lock, helper_text)
+
+    def resolve_inference(
+        self,
+        candidate_position: Vec3,
+        *,
+        tolerance_m: float,
+        reference_position: Vec3 | None = None,
+    ) -> InferenceHit | None:
+        if self._model is None:
+            return None
+        return InferenceEngine.resolve(
+            self._model,
+            candidate_position,
+            tolerance_m=tolerance_m,
+            axis_lock=self.axis_lock,
+            reference_position=reference_position,
+        )
+
+    @staticmethod
+    def resolve_work_plane_inference(
+        *,
+        ray_origin: Vec3,
+        ray_direction: Vec3,
+        plane_origin: Vec3,
+        plane_normal: Vec3,
+    ) -> InferenceHit | None:
+        return InferenceEngine.resolve_work_plane(
+            ray_origin=ray_origin,
+            ray_direction=ray_direction,
+            plane_origin=plane_origin,
+            plane_normal=plane_normal,
+        )
+
+    @property
+    def preview_active(self) -> bool:
+        return self._draw_start_node is not None or self._move_node_key is not None
+
+    def begin_draw_member(self, start_node: UUID) -> None:
+        if self._model is None or start_node not in self._model.nodes:
+            raise ValueError(f"Node {start_node} does not exist")
+        self.cancel_edit_preview()
+        self._draw_start_node = start_node
+        self._edit_preview_position = self._model.nodes[start_node].position
+
+    def focus_interactor(self) -> None:
+        self.plotter.interactor.setFocus(Qt.FocusReason.OtherFocusReason)
+
+    def update_draw_preview(self, position: Vec3) -> None:
+        if self._model is None or self._draw_start_node is None:
+            raise RuntimeError("Draw Member preview has not started")
+        self._edit_preview_position = position
+        start = self._model.nodes[self._draw_start_node].position
+        self._render_ghost_line(start, position)
+
+    def commit_draw_member_existing(self, end_node: UUID) -> None:
+        if self._draw_start_node is None:
+            raise RuntimeError("Draw Member preview has not started")
+        command = build_draw_member_existing(self._draw_start_node, end_node)
+        self.manual_command_requested.emit(command)
+        self.cancel_edit_preview()
+
+    def commit_draw_member_new(self, position: Vec3) -> None:
+        if self._draw_start_node is None:
+            raise RuntimeError("Draw Member preview has not started")
+        command = build_draw_member_new(self._draw_start_node, position)
+        self.manual_command_requested.emit(command)
+        self.cancel_edit_preview()
+
+    def begin_move_node(self, node_key: UUID) -> None:
+        if self._model is None or node_key not in self._model.nodes:
+            raise ValueError(f"Node {node_key} does not exist")
+        self.cancel_edit_preview()
+        self._move_node_key = node_key
+        position = self._model.nodes[node_key].position
+        self._edit_preview_position = position
+        self._render_move_ghost(position)
+
+    def update_move_preview(self, position: Vec3) -> None:
+        if self._move_node_key is None:
+            raise RuntimeError("Move/Snap preview has not started")
+        self._edit_preview_position = position
+        self._render_move_ghost(position)
+
+    def commit_move_node(
+        self,
+        position: Vec3,
+        *,
+        snap_node_key: UUID | None = None,
+    ) -> None:
+        if self._move_node_key is None:
+            raise RuntimeError("Move/Snap preview has not started")
+        command = build_move_or_snap_node(
+            self._move_node_key,
+            position,
+            snap_node_key=snap_node_key,
+        )
+        self.manual_command_requested.emit(command)
+        self.cancel_edit_preview()
+
+    def request_delete_selection(self) -> None:
+        if self.selection.selected_members or self.selection.selected_nodes:
+            self.delete_selection_requested.emit()
+
+    def cancel_edit_preview(self) -> None:
+        self._remove_actor(self._ghost_actor)
+        self._ghost_actor = None
+        self._ghost_connected_member_count = 0
+        self._draw_start_node = None
+        self._move_node_key = None
+        self._edit_preview_position = None
+        self.plotter.render()
+
+    def _render_ghost_line(self, start: Vec3, end: Vec3) -> None:
+        self._remove_actor(self._ghost_actor)
+        mesh = pv.PolyData(
+            np.asarray([start.as_tuple(), end.as_tuple()], dtype=float),
+            lines=np.asarray([2, 0, 1], dtype=np.int64),
+        )
+        self._ghost_actor = self.plotter.add_mesh(
+            mesh,
+            line_width=4,
+            opacity=0.6,
+            pickable=False,
+        )
+        self.plotter.render()
+
+    def _render_move_ghost(self, position: Vec3) -> None:
+        self._remove_actor(self._ghost_actor)
+        points = [position.as_tuple()]
+        lines: list[int] = []
+        connected = 0
+        if self._model is not None and self._move_node_key is not None:
+            for member_key in sorted(self._model.members, key=lambda key: key.int):
+                member = self._model.members[member_key]
+                if member.start == self._move_node_key:
+                    other_key = member.end
+                elif member.end == self._move_node_key:
+                    other_key = member.start
+                else:
+                    continue
+                if other_key == self._move_node_key or other_key not in self._model.nodes:
+                    continue
+                points.append(self._model.nodes[other_key].position.as_tuple())
+                lines.extend((2, 0, len(points) - 1))
+                connected += 1
+
+        mesh = pv.PolyData(np.asarray(points, dtype=float))
+        mesh.verts = np.asarray([1, 0], dtype=np.int64)
+        if lines:
+            mesh.lines = np.asarray(lines, dtype=np.int64)
+        self._ghost_connected_member_count = connected
+        self._ghost_actor = self.plotter.add_mesh(
+            mesh,
+            point_size=14,
+            render_points_as_spheres=True,
+            line_width=3,
+            opacity=0.6,
+            pickable=False,
+        )
+        self.plotter.render()
+
+    def clear_precision_preview(self) -> None:
+        self._remove_actor(self._precision_node_actor)
+        self._remove_actor(self._precision_member_actor)
+        self._precision_node_actor = None
+        self._precision_member_actor = None
+        self._precision_ghost_node_count = 0
+        self._precision_ghost_member_count = 0
+        self.plotter.render()
+
+    def _render_precision_geometry(
+        self,
+        points: list[Vec3],
+        segments: list[tuple[Vec3, Vec3]],
+    ) -> None:
+        self.clear_precision_preview()
+        if points:
+            point_mesh = pv.PolyData(
+                np.asarray([point.as_tuple() for point in points], dtype=float)
+            )
+            self._precision_node_actor = self.plotter.add_mesh(
+                point_mesh,
+                point_size=13,
+                render_points_as_spheres=True,
+                style="points",
+                opacity=0.7,
+                pickable=False,
+            )
+        if segments:
+            line_points: list[tuple[float, float, float]] = []
+            line_cells: list[int] = []
+            for index, (start, end) in enumerate(segments):
+                base = index * 2
+                line_points.extend((start.as_tuple(), end.as_tuple()))
+                line_cells.extend((2, base, base + 1))
+            line_mesh = pv.PolyData(
+                np.asarray(line_points, dtype=float),
+                lines=np.asarray(line_cells, dtype=np.int64),
+            )
+            self._precision_member_actor = self.plotter.add_mesh(
+                line_mesh,
+                line_width=3,
+                opacity=0.55,
+                pickable=False,
+            )
+        self._precision_ghost_node_count = len(points)
+        self._precision_ghost_member_count = len(segments)
+        self.plotter.render()
+
+    def show_precise_node_preview(
+        self,
+        position: Vec3,
+        *,
+        reference_node: UUID | None = None,
+        create_member: bool = False,
+    ) -> None:
+        segments: list[tuple[Vec3, Vec3]] = []
+        if create_member:
+            if (
+                self._model is None
+                or reference_node is None
+                or reference_node not in self._model.nodes
+            ):
+                raise ValueError("Create Member preview requires a valid reference node")
+            segments.append((self._model.nodes[reference_node].position, position))
+        self._render_precision_geometry([position], segments)
+
+    def show_translational_repeat_preview(
+        self,
+        preview: TranslationalRepeatPreview,
+        spec: TranslationalRepeatSpec,
+        resolutions: dict[int, ExistingNodeResolution],
+    ) -> None:
+        if self._model is None or spec.reference_node not in self._model.nodes:
+            raise ValueError("Translational Repeat preview requires a valid reference node")
+        reference_position = self._model.nodes[spec.reference_node].position
+        previous_position = reference_position
+        previous_key: UUID | None = spec.reference_node
+        points: list[Vec3] = []
+        segments: list[tuple[Vec3, Vec3]] = []
+
+        for step in preview.steps:
+            resolution = resolutions.get(step.index)
+            if resolution is not None:
+                resolution = ExistingNodeResolution(resolution)
+            if resolution in {ExistingNodeResolution.SKIP_STEP, ExistingNodeResolution.CANCEL}:
+                continue
+
+            current = step.position
+            current_key = (
+                step.existing_node if resolution is ExistingNodeResolution.USE_EXISTING else None
+            )
+            points.append(current)
+
+            if spec.connection_mode is RepeatConnectionMode.CONSECUTIVE:
+                source_position = previous_position
+                source_key = previous_key
+            elif spec.connection_mode is RepeatConnectionMode.FROM_REFERENCE:
+                source_position = reference_position
+                source_key = spec.reference_node
+            else:
+                source_position = None
+                source_key = None
+
+            should_draw = source_position is not None
+            if should_draw and source_key is not None and current_key is not None:
+                if source_key == current_key:
+                    should_draw = False
+                else:
+                    should_draw = not any(
+                        {member.start, member.end} == {source_key, current_key}
+                        for member in self._model.members.values()
+                    )
+            if should_draw and source_position is not None:
+                segments.append((source_position, current))
+
+            if spec.connection_mode is RepeatConnectionMode.CONSECUTIVE:
+                previous_position = current
+                previous_key = current_key
+
+        self._render_precision_geometry(points, segments)
+
+
+    def show_member_translational_repeat_preview(
+        self,
+        preview: MemberTranslationalRepeatPreview,
+        spec: MemberTranslationalRepeatSpec,
+        resolutions: dict[tuple[int, UUID], ExistingNodeResolution],
+    ) -> None:
+        del preview, resolutions
+        if self._model is None:
+            raise ValueError("Member Translational Repeat preview requires a model")
+        missing = [key for key in spec.member_keys if key not in self._model.members]
+        if missing:
+            raise ValueError("Member Translational Repeat preview requires valid selected members")
+
+        source_node_keys = sorted(
+            {
+                node_key
+                for member_key in spec.member_keys
+                for node_key in (
+                    self._model.members[member_key].start,
+                    self._model.members[member_key].end,
+                )
+            },
+            key=lambda key: key.int,
+        )
+        points: list[Vec3] = []
+        segments: list[tuple[Vec3, Vec3]] = []
+
+        for step in range(1, spec.repeats + 1):
+            delta = Vec3(spec.dx * step, spec.dy * step, spec.dz * step)
+            translated = {
+                key: Vec3(
+                    self._model.nodes[key].position.x + delta.x,
+                    self._model.nodes[key].position.y + delta.y,
+                    self._model.nodes[key].position.z + delta.z,
+                )
+                for key in source_node_keys
+            }
+            points.extend(translated.values())
+            for member_key in spec.member_keys:
+                member = self._model.members[member_key]
+                segments.append((translated[member.start], translated[member.end]))
+
+        self._render_precision_geometry(points, segments)
+
+    def request_create_node_hit(self, hit: InferenceHit) -> None:
+        if self._model is None:
+            return
+        if hit.kind in {SnapKind.NODE, SnapKind.ENDPOINT}:
+            if not hit.entity_keys:
+                raise ValueError("Node/endpoint inference requires a Node key")
+            node_key = hit.entity_keys[0]
+            if node_key not in self._model.nodes:
+                raise ValueError(f"Node {node_key} does not exist")
+            self.highlight_nodes((node_key,))
+            return
+        if hit.kind is SnapKind.MIDPOINT:
+            if len(hit.entity_keys) != 1:
+                raise ValueError("Midpoint inference requires one Member key")
+            self.manual_command_requested.emit(build_split_member(hit.entity_keys[0], hit.position))
+            return
+        if hit.kind is SnapKind.INTERSECTION:
+            if len(hit.entity_keys) != 2:
+                raise ValueError("Intersection inference requires two Member keys")
+            self.manual_command_requested.emit(
+                build_split_intersection(
+                    hit.entity_keys[0],
+                    hit.entity_keys[1],
+                    hit.position,
+                )
+            )
+            return
+        if hit.kind in {
+            SnapKind.WORK_PLANE,
+            SnapKind.AXIS_X,
+            SnapKind.AXIS_Y,
+            SnapKind.AXIS_Z,
+        }:
+            self.manual_command_requested.emit(CreateNode(hit.position))
+            return
+        raise ValueError(f"Unsupported Create Node inference kind: {hit.kind}")
+
+    def set_selection_filter(self, selection_filter: SelectionFilter) -> None:
+        self.interaction_state = replace(
+            self.interaction_state,
+            selection_filter=selection_filter,
+        )
+        if not selection_filter.nodes:
+            self.highlight_nodes((), _notify=False)
+        if not selection_filter.members:
+            self.highlight_members((), _notify=False)
+        self._emit_selection_changed()
+
+    def set_crop_to_select_enabled(self, enabled: bool) -> None:
+        """Enable filtered left-drag rectangle selection in safe Select mode."""
+        self._crop_select_enabled = bool(enabled) and self.interaction_state.mode is EditMode.SELECT
+        if not self._crop_select_enabled:
+            self._cancel_crop_select_drag()
+
+    def _cancel_crop_select_drag(self) -> None:
+        self._left_press_pos = None
+        self._crop_drag_additive = False
+        self._crop_select_rubber_band.hide()
+
+    def _project_world_point(self, point: np.ndarray) -> tuple[float, float, float] | None:
+        """Project a world-space Node to interactor-local coordinates and depth."""
+        renderer = self.plotter.renderer
+        renderer.SetWorldPoint(float(point[0]), float(point[1]), float(point[2]), 1.0)
+        renderer.WorldToDisplay()
+        display_x, display_y, display_depth = renderer.GetDisplayPoint()
+        render_width, render_height = self.plotter.render_window.GetSize()
+        widget = self.plotter.interactor
+        if render_width <= 0 or render_height <= 0 or widget.width() <= 0 or widget.height() <= 0:
+            return None
+        local_x = float(display_x) * float(widget.width()) / float(render_width)
+        local_y = float(widget.height()) - (
+            float(display_y) * float(widget.height()) / float(render_height)
+        )
+        depth = float(display_depth)
+        if depth < 0.0 or depth > 1.0:
+            return None
+        return local_x, local_y, depth
+
+    @staticmethod
+    def _segment_intersects_rectangle(
+        start: tuple[float, float],
+        end: tuple[float, float],
+        rectangle: QRectF,
+    ) -> bool:
+        """Return whether a projected Member segment intersects a selection rectangle."""
+        x0, y0 = start
+        dx, dy = end[0] - x0, end[1] - y0
+        t_min, t_max = 0.0, 1.0
+        limits = (
+            (-dx, x0 - rectangle.left()),
+            (dx, rectangle.right() - x0),
+            (-dy, y0 - rectangle.top()),
+            (dy, rectangle.bottom() - y0),
+        )
+        for direction, distance in limits:
+            if direction == 0.0:
+                if distance < 0.0:
+                    return False
+                continue
+            ratio = distance / direction
+            if direction < 0.0:
+                t_min = max(t_min, ratio)
+            else:
+                t_max = min(t_max, ratio)
+            if t_min > t_max:
+                return False
+        return True
+
+    def _select_screen_rectangle(
+        self,
+        start: tuple[float, float],
+        end: tuple[float, float],
+        *,
+        additive: bool,
+    ) -> None:
+        """Select filtered scene entities whose projected geometry intersects a drag rectangle."""
+        if self.scene is None:
+            return
+        rectangle = QRectF(QPointF(*start), QPointF(*end)).normalized().adjusted(
+            -1.0, -1.0, 1.0, 1.0
+        )
+        selection_filter = self.interaction_state.selection_filter
+        node_hits: list[UUID] = []
+        member_hits: list[UUID] = []
+
+        if selection_filter.nodes:
+            for index, key in enumerate(self.scene.point_keys):
+                projected = self._project_world_point(self.scene.points[index])
+                if projected is not None and rectangle.contains(
+                    QPointF(projected[0], projected[1])
+                ):
+                    node_hits.append(key)
+
+        if selection_filter.members:
+            for index, key in enumerate(self.scene.member_keys):
+                row = self.scene.lines[index]
+                start_projection = self._project_world_point(
+                    self.scene.points[int(row[1])]
+                )
+                end_projection = self._project_world_point(
+                    self.scene.points[int(row[2])]
+                )
+                if start_projection is None or end_projection is None:
+                    continue
+                if self._segment_intersects_rectangle(
+                    (start_projection[0], start_projection[1]),
+                    (end_projection[0], end_projection[1]),
+                    rectangle,
+                ):
+                    member_hits.append(key)
+
+        selected_nodes = list(self.selection.selected_nodes) if additive else []
+        selected_members = list(self.selection.selected_members) if additive else []
+        selected_nodes.extend(key for key in node_hits if key not in selected_nodes)
+        selected_members.extend(key for key in member_hits if key not in selected_members)
+        self.selection.set_nodes(tuple(selected_nodes))
+        self.selection.set_members(tuple(selected_members))
+        self._render_selection_highlights()
+        self._emit_selection_changed()
+
+    def set_label_visibility(self, visibility: LabelVisibility) -> None:
+        self.interaction_state = replace(self.interaction_state, labels=visibility)
+        self._clear_local_axis_actors()
+        self._clear_label_actors()
+        if visibility.local_x:
+            self._render_local_x_arrows()
+        self._render_labels()
+        self.plotter.render()
+
+    def show_local_x_arrows(self, visible: bool) -> None:
+        """Backward-compatible T11 hook routed through T16 label visibility state."""
+        self.set_label_visibility(replace(self.interaction_state.labels, local_x=bool(visible)))
+
+    def _clear_label_actors(self) -> None:
+        for actor in self._label_actors:
+            self._remove_actor(actor)
+        self._label_actors = []
+
+    def _render_labels(self) -> None:
+        if self.scene is None or self._model is None or not len(self.scene.point_keys):
+            return
+        visibility = self.interaction_state.labels
+        if visibility.node_numbers or visibility.coordinates:
+            labels: list[str] = []
+            for index, key in enumerate(self.scene.point_keys):
+                parts: list[str] = []
+                node = self._model.nodes[key]
+                if visibility.node_numbers:
+                    parts.append(f"N{node.number if node.number is not None else '?'}")
+                if visibility.coordinates:
+                    x, y, z = self.scene.points[index]
+                    parts.append(f"({x:.3f}, {y:.3f}, {z:.3f})")
+                labels.append("\n".join(parts))
+            actor = self.plotter.add_point_labels(
+                self.scene.points,
+                labels,
+                point_size=0,
+                font_size=11,
+                text_color=VIEWPORT_LABEL_TEXT_COLOR,
+                shape=None,
+                always_visible=True,
+                show_points=False,
+            )
+            self._label_actors.append(actor)
+
+        if visibility.member_numbers and len(self.scene.member_keys):
+            labels = []
+            for key in self.scene.member_keys:
+                number = self._model.members[key].number
+                labels.append(f"M{number if number is not None else '?'}")
+            actor = self.plotter.add_point_labels(
+                self.scene.member_midpoints,
+                labels,
+                point_size=0,
+                font_size=11,
+                text_color=VIEWPORT_LABEL_TEXT_COLOR,
+                shape=None,
+                always_visible=True,
+                show_points=False,
+            )
+            self._label_actors.append(actor)
+
+    def _clear_local_axis_actors(self) -> None:
+        for actor in self._local_axis_actors:
+            self._remove_actor(actor)
+        for actor in self._local_axis_label_actors:
+            self._remove_actor(actor)
+        self._local_axis_actors = []
+        self._local_axis_label_actors = []
+        self._local_x_actor = None
+
+    def _render_local_x_arrows(self) -> None:
+        """Render selected Member local XYZ triads using the STAAD beta=0 basis."""
+        if self.scene is None or self._model is None:
+            return
+        selected = tuple(
+            key for key in self.selection.selected_members if key in self._model.members
+        )
+        if not selected:
+            return
+
+        span = np.ptp(self.scene.points, axis=0) if len(self.scene.points) else np.zeros(3)
+        reference = max(float(np.max(span)), 1.0)
+        magnitude = reference * 0.04
+        origins: list[tuple[float, float, float]] = []
+        x_vectors: list[tuple[float, float, float]] = []
+        y_vectors: list[tuple[float, float, float]] = []
+        z_vectors: list[tuple[float, float, float]] = []
+
+        for key in selected:
+            member = self._model.members[key]
+            axes = member_local_axes(self._model, member)
+            if axes is None:
+                continue
+            start = self._model.nodes[member.start].position
+            end = self._model.nodes[member.end].position
+            midpoint = (
+                (start.x + end.x) * 0.5,
+                (start.y + end.y) * 0.5,
+                (start.z + end.z) * 0.5,
+            )
+            origins.append(midpoint)
+            x_vectors.append((axes.x.x, axes.x.y, axes.x.z))
+            y_vectors.append((axes.y.x, axes.y.y, axes.y.z))
+            z_vectors.append((axes.z.x, axes.z.y, axes.z.z))
+
+        if not origins:
+            return
+
+        origin_array = np.asarray(origins, dtype=float)
+        axis_specs = (
+            ("X", np.asarray(x_vectors, dtype=float), "#ff4d4d"),
+            ("Y", np.asarray(y_vectors, dtype=float), "#39d98a"),
+            ("Z", np.asarray(z_vectors, dtype=float), "#3b82f6"),
+        )
+        for label, vectors, color in axis_specs:
+            actor = self.plotter.add_arrows(
+                origin_array,
+                vectors,
+                mag=magnitude,
+                color=color,
+            )
+            self._local_axis_actors.append(actor)
+            if label == "X":
+                self._local_x_actor = actor
+
+            label_points = origin_array + vectors * (magnitude * 1.15)
+            label_actor = self.plotter.add_point_labels(
+                label_points,
+                [label] * len(label_points),
+                point_size=0,
+                font_size=11,
+                text_color=color,
+                shape=None,
+                always_visible=True,
+                show_points=False,
+            )
+            self._local_axis_label_actors.append(label_actor)
+
+    def _on_cells_picked(self, picked: Any) -> None:
+        blocks = picked if isinstance(picked, pv.MultiBlock) else (picked,)
+        for block in blocks:
+            if block is None or getattr(block, "n_cells", 0) == 0:
+                continue
+            if "member_index" not in block.cell_data:
+                continue
+            member_index = int(np.asarray(block.cell_data["member_index"])[0])
+            self.select_member_by_cell(member_index)
+            return
+
+    def select_member_by_cell(self, cell_index: int, *, additive: bool = False) -> UUID | None:
+        if self.scene is None:
+            raise RuntimeError("No model is loaded")
+        if not self.interaction_state.selection_filter.members:
+            return None
+        member_key = self.scene.member_key_for_cell(cell_index)
+        self.selection.select_member(member_key, additive=additive)
+        self._render_selection_highlights()
+        self.member_selected.emit(member_key)
+        self._emit_selection_changed()
+        return member_key
+
+    def select_node_by_index(self, point_index: int, *, additive: bool = False) -> UUID | None:
+        if self.scene is None:
+            raise RuntimeError("No model is loaded")
+        if not self.interaction_state.selection_filter.nodes:
+            return None
+        node_key = self.scene.point_keys[point_index]
+        self.selection.select_node(node_key, additive=additive)
+        self._render_selection_highlights()
+        self.node_selected.emit(node_key)
+        self._emit_selection_changed()
+        return node_key
+
+    def select_overlap_candidates(
+        self,
+        candidates: tuple[SelectionCandidate, ...],
+        *,
+        additive: bool = False,
+    ) -> SelectionCandidate | None:
+        allowed = filter_candidates(candidates, self.interaction_state.selection_filter)
+        current = self._last_overlap_choice if allowed == self._last_overlap_candidates else None
+        choice = next_overlap_candidate(allowed, current)
+        self._last_overlap_candidates = allowed
+        self._last_overlap_choice = choice
+        if choice is None:
+            return None
+        if choice.entity is SelectionEntity.NODE:
+            if self.scene is None:
+                return None
+            self.selection.select_node(choice.key, additive=additive)
+            self.node_selected.emit(choice.key)
+        else:
+            self.selection.select_member(choice.key, additive=additive)
+            self.member_selected.emit(choice.key)
+        self._render_selection_highlights()
+        self._emit_selection_changed()
+        return choice
+
+    def clear_selection(self) -> None:
+        self.selection.clear()
+        self._last_overlap_candidates = ()
+        self._last_overlap_choice = None
+        self._render_selection_highlights()
+        self._emit_selection_changed()
+
+    def _emit_selection_changed(self) -> None:
+        self.selection_changed.emit(
+            self.selection.selected_nodes,
+            self.selection.selected_members,
+        )
+
+    def _render_selection_highlights(self) -> None:
+        node_keys = self.selection.selected_nodes
+        member_keys = self.selection.selected_members
+        self.highlight_nodes(node_keys, _notify=False)
+        self.highlight_members(member_keys, _notify=False)
+
+    def highlight_members(self, keys: Iterable[UUID], *, _notify: bool = True) -> None:
+        selected = tuple(keys)
+        self.selection.set_members(selected)
+        if self.interaction_state.labels.local_x:
+            self._clear_local_axis_actors()
+            self._render_local_x_arrows()
+        self._remove_actor(self._member_highlight_actor)
+        self._member_highlight_actor = None
+
+        if self.scene is None or not selected:
+            self.plotter.render()
+            if _notify:
+                self._emit_selection_changed()
+            return
+
+        selected_set = set(selected)
+        rows = [
+            self.scene.lines[index]
+            for index, key in enumerate(self.scene.member_keys)
+            if key in selected_set
+        ]
+        if not rows:
+            self.plotter.render()
+            if _notify:
+                self._emit_selection_changed()
+            return
+
+        mesh = pv.PolyData(
+            self.scene.points,
+            lines=np.asarray(rows, dtype=np.int64).reshape(-1),
+        )
+        self._member_highlight_actor = self.plotter.add_mesh(
+            mesh,
+            color="#4da3ff",
+            line_width=5,
+            pickable=False,
+        )
+        self.plotter.render()
+        if _notify:
+            self._emit_selection_changed()
+
+    def highlight_nodes(self, keys: Iterable[UUID], *, _notify: bool = True) -> None:
+        selected = tuple(keys)
+        self.selection.set_nodes(selected)
+        self._remove_actor(self._node_highlight_actor)
+        self._node_highlight_actor = None
+
+        if self.scene is None or not selected:
+            self.plotter.render()
+            if _notify:
+                self._emit_selection_changed()
+            return
+
+        point_indices = [
+            self.scene.point_index_by_key[key]
+            for key in selected
+            if key in self.scene.point_index_by_key
+        ]
+        if not point_indices:
+            self.plotter.render()
+            if _notify:
+                self._emit_selection_changed()
+            return
+
+        mesh = pv.PolyData(self.scene.points[point_indices])
+        self._node_highlight_actor = self.plotter.add_mesh(
+            mesh,
+            color="#ffb347",
+            point_size=14,
+            render_points_as_spheres=True,
+            style="points",
+            pickable=False,
+        )
+        self.plotter.render()
+        if _notify:
+            self._emit_selection_changed()
+
+    def begin_navigation(self, *, shift: bool) -> str:
+        self._navigation_mode = "pan" if shift else "orbit"
+        if self._navigation_mode == "orbit":
+            pivot = self._selection_center()
+            if pivot is not None:
+                self.plotter.camera.SetFocalPoint(*pivot)
+        return self._navigation_mode
+
+    def navigate_drag(self, dx: float, dy: float) -> None:
+        if self._navigation_mode is None:
+            return
+        camera = self.plotter.camera
+        if self._navigation_mode == "orbit":
+            camera.Azimuth(float(dx) * 0.45)
+            camera.Elevation(float(-dy) * 0.45)
+            camera.OrthogonalizeViewUp()
+        else:
+            position = np.asarray(camera.GetPosition(), dtype=float)
+            focal = np.asarray(camera.GetFocalPoint(), dtype=float)
+            up = np.asarray(camera.GetViewUp(), dtype=float)
+            view = focal - position
+            view_norm = float(np.linalg.norm(view))
+            if view_norm <= 0.0:
+                return
+            view /= view_norm
+            up_norm = float(np.linalg.norm(up))
+            if up_norm <= 0.0:
+                return
+            up /= up_norm
+            right = np.cross(view, up)
+            right_norm = float(np.linalg.norm(right))
+            if right_norm <= 0.0:
+                return
+            right /= right_norm
+            scene_scale = self._scene_reference_span() * 0.0015
+            delta = (-float(dx) * right + float(dy) * up) * scene_scale
+            camera.SetPosition(*(position + delta))
+            camera.SetFocalPoint(*(focal + delta))
+        self.plotter.renderer.ResetCameraClippingRange()
+        self.plotter.render()
+
+    def end_navigation(self) -> None:
+        self._navigation_mode = None
+        self._last_mouse_pos = None
+
+    def zoom_by_steps(self, steps: float, anchor: tuple[float, float, float] | None = None) -> None:
+        if steps == 0.0:
+            return
+        camera = self.plotter.camera
+        factor = 1.2 ** float(steps)
+        if camera.GetParallelProjection():
+            camera.SetParallelScale(camera.GetParallelScale() / factor)
+        elif anchor is None:
+            camera.Dolly(factor)
+        else:
+            anchor_v: np.ndarray = np.asarray(anchor, dtype=float)
+            position = np.asarray(camera.GetPosition(), dtype=float)
+            focal = np.asarray(camera.GetFocalPoint(), dtype=float)
+            camera.SetPosition(*(anchor_v + (position - anchor_v) / factor))
+            camera.SetFocalPoint(*(anchor_v + (focal - anchor_v) / factor))
+        self.plotter.renderer.ResetCameraClippingRange()
+        self.plotter.render()
+
+    def fit_model(self) -> None:
+        if self.scene is None or not len(self.scene.point_keys):
+            return
+        self.plotter.reset_camera()
+        self.plotter.render()
+
+    @staticmethod
+    def _staad_isometric_camera(
+        bounds: tuple[float, float, float, float, float, float],
+    ) -> tuple[
+        tuple[float, float, float],
+        tuple[float, float, float],
+        tuple[float, float, float],
+    ]:
+        xmin, xmax, ymin, ymax, zmin, zmax = bounds
+        focal = (
+            (xmin + xmax) / 2.0,
+            (ymin + ymax) / 2.0,
+            (zmin + zmax) / 2.0,
+        )
+        span = max(xmax - xmin, ymax - ymin, zmax - zmin, 1.0)
+        position = (
+            focal[0] + span,
+            focal[1] + span,
+            focal[2] + span,
+        )
+        return position, focal, (0.0, 1.0, 0.0)
+
+    def _scene_bounds(self) -> tuple[float, float, float, float, float, float] | None:
+        if self.scene is None or not len(self.scene.point_keys):
+            return None
+        minimum = np.min(self.scene.points, axis=0)
+        maximum = np.max(self.scene.points, axis=0)
+        return (
+            float(minimum[0]),
+            float(maximum[0]),
+            float(minimum[1]),
+            float(maximum[1]),
+            float(minimum[2]),
+            float(maximum[2]),
+        )
+
+    def reset_view(self) -> None:
+        bounds = self._scene_bounds()
+        if bounds is None:
+            return
+        position, focal, view_up = self._staad_isometric_camera(bounds)
+        camera = self.plotter.camera
+        camera.SetFocalPoint(*focal)
+        camera.SetPosition(*position)
+        camera.SetViewUp(*view_up)
+        self.plotter.reset_camera()
+        self.plotter.renderer.ResetCameraClippingRange()
+        self.plotter.render()
+
+    def zoom_in_select(self) -> None:
+        if self.scene is None:
+            return
+        points: list[np.ndarray] = []
+        for key in self.selection.selected_nodes:
+            index = self.scene.point_index_by_key.get(key)
+            if index is not None:
+                points.append(self.scene.points[index])
+        selected_members = set(self.selection.selected_members)
+        for index, key in enumerate(self.scene.member_keys):
+            if key in selected_members:
+                row = self.scene.lines[index]
+                points.extend(
+                    (self.scene.points[int(row[1])], self.scene.points[int(row[2])])
+                )
+        if not points:
+            return
+        coordinates = np.asarray(points, dtype=float)
+        minimum = np.min(coordinates, axis=0)
+        maximum = np.max(coordinates, axis=0)
+        selected_span = float(np.max(maximum - minimum))
+        scene_span = float(np.max(np.ptp(self.scene.points, axis=0)))
+        reference_span = scene_span if scene_span > 0.0 else 1.0
+        pad = max(selected_span * 0.08, reference_span * 0.02)
+        bounds = (
+            float(minimum[0] - pad),
+            float(maximum[0] + pad),
+            float(minimum[1] - pad),
+            float(maximum[1] + pad),
+            float(minimum[2] - pad),
+            float(maximum[2] + pad),
+        )
+        self.plotter.reset_camera(bounds=bounds)
+        self.plotter.renderer.ResetCameraClippingRange()
+        self.plotter.render()
+
+    def focus_selection(self) -> None:
+        self.focus_entities(self.selection.selected_nodes, self.selection.selected_members)
+
+    def _scene_reference_span(self) -> float:
+        if self.scene is None or not len(self.scene.point_keys):
+            return 1.0
+        span = np.ptp(self.scene.points, axis=0)
+        return max(float(np.max(span)), 1.0)
+
+    def _selection_center(self) -> tuple[float, float, float] | None:
+        if self.scene is None:
+            return None
+        coordinates: list[np.ndarray] = []
+        for key in self.selection.selected_nodes:
+            index = self.scene.point_index_by_key.get(key)
+            if index is not None:
+                coordinates.append(self.scene.points[index])
+        member_set = set(self.selection.selected_members)
+        for index, key in enumerate(self.scene.member_keys):
+            if key in member_set:
+                row = self.scene.lines[index]
+                coordinates.extend((self.scene.points[int(row[1])], self.scene.points[int(row[2])]))
+        if not coordinates:
+            return None
+        center = np.asarray(coordinates, dtype=float).mean(axis=0)
+        return (float(center[0]), float(center[1]), float(center[2]))
+
+    def focus_entities(
+        self,
+        node_keys: Iterable[UUID],
+        member_keys: Iterable[UUID],
+        location: Vec3 | None = None,
+    ) -> None:
+        """Fit the camera around selected issue entities without changing the model."""
+        if self.scene is None:
+            return
+        coordinates: list[np.ndarray] = []
+        for key in node_keys:
+            index = self.scene.point_index_by_key.get(key)
+            if index is not None:
+                coordinates.append(self.scene.points[index])
+
+        member_set = set(member_keys)
+        for index, key in enumerate(self.scene.member_keys):
+            if key not in member_set:
+                continue
+            row = self.scene.lines[index]
+            coordinates.append(self.scene.points[int(row[1])])
+            coordinates.append(self.scene.points[int(row[2])])
+
+        if location is not None:
+            coordinates.append(np.asarray(location.as_tuple(), dtype=float))
+        if not coordinates:
+            return
+
+        points = np.asarray(coordinates, dtype=float)
+        minimum = points.min(axis=0)
+        maximum = points.max(axis=0)
+        span = maximum - minimum
+        reference = max(float(span.max()), 0.1)
+        padding = reference * 0.2
+        bounds = (
+            float(minimum[0] - padding),
+            float(maximum[0] + padding),
+            float(minimum[1] - padding),
+            float(maximum[1] + padding),
+            float(minimum[2] - padding),
+            float(maximum[2] + padding),
+        )
+        self.plotter.reset_camera(bounds=bounds)
+        self.plotter.render()
+
+    def isolate_entities(self, keys: Iterable[UUID]) -> None:
+        """Temporarily hide the base model and display only the selected issue entities."""
+        if self.scene is None:
+            return
+        key_set = set(keys)
+        node_keys = tuple(key for key in self.scene.point_keys if key in key_set)
+        member_keys = tuple(key for key in self.scene.member_keys if key in key_set)
+        self.highlight_nodes(node_keys)
+        self.highlight_members(member_keys)
+        self._set_actor_visibility(self._node_actor, False)
+        self._set_actor_visibility(self._member_actor, False)
+        for actor in (*self._local_axis_actors, *self._local_axis_label_actors):
+            self._set_actor_visibility(actor, False)
+        self.focus_entities(node_keys, member_keys)
+        self.plotter.render()
+
+    def clear_isolation(self) -> None:
+        self._set_actor_visibility(self._node_actor, True)
+        self._set_actor_visibility(self._member_actor, True)
+        for actor in (*self._local_axis_actors, *self._local_axis_label_actors):
+            self._set_actor_visibility(actor, self.interaction_state.labels.local_x)
+        self.highlight_nodes(())
+        self.highlight_members(())
+        if self.scene is not None and self.scene.points.size:
+            self.plotter.reset_camera()
+        self.plotter.render()
+
+    def _pick_candidate_for_actor(
+        self,
+        actor: Any | None,
+        x: float,
+        y: float,
+        entity: SelectionEntity,
+    ) -> SelectionCandidate | None:
+        if actor is None or self.scene is None:
+            return None
+        picker = vtkCellPicker()
+        picker.SetTolerance(0.01)
+        picker.PickFromListOn()
+        picker.AddPickList(actor)
+        display = self._vtk_display_coordinates(x, y)
+        if display is None:
+            return None
+        display_x, display_y = display
+        if not picker.Pick(display_x, display_y, 0.0, self.plotter.renderer):
+            return None
+        cell_id = int(picker.GetCellId())
+        if cell_id < 0:
+            return None
+        if entity is SelectionEntity.NODE:
+            if cell_id >= len(self.scene.point_keys):
+                return None
+            return SelectionCandidate(entity, self.scene.point_keys[cell_id])
+        if cell_id >= len(self.scene.member_keys):
+            return None
+        return SelectionCandidate(entity, self.scene.member_keys[cell_id])
+
+    def _pick_candidates_at(self, x: float, y: float) -> tuple[SelectionCandidate, ...]:
+        candidates: list[SelectionCandidate] = []
+        node = self._pick_candidate_for_actor(self._node_actor, x, y, SelectionEntity.NODE)
+        member = self._pick_candidate_for_actor(self._member_actor, x, y, SelectionEntity.MEMBER)
+        if node is not None:
+            candidates.append(node)
+        if member is not None:
+            candidates.append(member)
+        return tuple(candidates)
+
+    def _pick_world_at(self, x: float, y: float) -> tuple[float, float, float] | None:
+        picker = vtkCellPicker()
+        picker.SetTolerance(0.01)
+        display = self._vtk_display_coordinates(x, y)
+        if display is None:
+            return None
+        display_x, display_y = display
+        if not picker.Pick(display_x, display_y, 0.0, self.plotter.renderer):
+            return None
+        position = picker.GetPickPosition()
+        return (float(position[0]), float(position[1]), float(position[2]))
+
+    @staticmethod
+    def _scaled_vtk_display_coordinates(
+        x: float,
+        y: float,
+        *,
+        widget_size: tuple[int, int],
+        render_size: tuple[int, int],
+    ) -> tuple[float, float] | None:
+        widget_width, widget_height = widget_size
+        render_width, render_height = render_size
+        if min(widget_width, widget_height, render_width, render_height) <= 0:
+            return None
+        return (
+            float(x) * float(render_width) / float(widget_width),
+            (float(widget_height) - float(y))
+            * float(render_height)
+            / float(widget_height),
+        )
+
+    def _vtk_display_coordinates(self, x: float, y: float) -> tuple[float, float] | None:
+        render_width, render_height = self.plotter.render_window.GetSize()
+        return self._scaled_vtk_display_coordinates(
+            x,
+            y,
+            widget_size=(
+                int(self.plotter.interactor.width()),
+                int(self.plotter.interactor.height()),
+            ),
+            render_size=(int(render_width), int(render_height)),
+        )
+
+    def _request_selection_filter(self, selection_filter: SelectionFilter) -> None:
+        self.set_edit_mode(EditMode.SELECT)
+        self.set_selection_filter(selection_filter)
+        self.selection_filter_requested.emit(selection_filter)
+
+    def _build_context_menu(self) -> QMenu:
+        menu = QMenu(self)
+        current_filter = self.interaction_state.selection_filter
+        node_filter = SelectionFilter(nodes=True, members=False)
+        member_filter = SelectionFilter(nodes=False, members=True)
+        all_filter = SelectionFilter()
+
+        node_mode_action = menu.addAction("Select Nodes")
+        member_mode_action = menu.addAction("Select Members")
+        all_mode_action = menu.addAction("Select Nodes + Members")
+        for action, selection_filter in (
+            (node_mode_action, node_filter),
+            (member_mode_action, member_filter),
+            (all_mode_action, all_filter),
+        ):
+            action.setCheckable(True)
+            action.setChecked(current_filter == selection_filter)
+            action.triggered.connect(
+                lambda _checked=False, selected=selection_filter: self._request_selection_filter(
+                    selected
+                )
+            )
+
+        menu.addSeparator()
+        has_nodes = bool(self.selection.selected_nodes)
+        has_members = bool(self.selection.selected_members)
+        if has_nodes and has_members:
+            focus_text = "Focus Selected Entities"
+        elif has_nodes:
+            focus_text = "Focus Selected Node(s)"
+        elif has_members:
+            focus_text = "Focus Selected Member(s)"
+        else:
+            focus_text = "Focus Selected"
+        focus_action = menu.addAction(focus_text)
+        zoom_action = menu.addAction("Zoom in Select")
+        clear_action = menu.addAction("Clear Selection")
+        delete_action = menu.addAction("Delete Selected")
+        focus_action.setEnabled(has_nodes or has_members)
+        zoom_action.setEnabled(has_nodes or has_members)
+        clear_action.setEnabled(has_nodes or has_members)
+        delete_action.setEnabled(has_nodes or has_members)
+        focus_action.triggered.connect(self.focus_selection)
+        zoom_action.triggered.connect(self.zoom_in_select)
+        clear_action.triggered.connect(self.clear_selection)
+        delete_action.triggered.connect(self.delete_selection_requested.emit)
+
+        menu.addSeparator()
+        fit_action = menu.addAction("Fit Model")
+        reset_action = menu.addAction("Reset View")
+        fit_action.triggered.connect(self.fit_model)
+        reset_action.triggered.connect(self.reset_view)
+        return menu
+
+    def _show_context_menu(
+        self,
+        local_position: tuple[float, float],
+        global_position: Any,
+    ) -> None:
+        candidates = self._pick_candidates_at(*local_position)
+        if candidates:
+            self.select_overlap_candidates(candidates)
+        self._build_context_menu().exec(global_position)
+
+    def eventFilter(self, watched: QObject, event: Any) -> bool:  # noqa: N802
+        if watched is not self.plotter.interactor:
+            return bool(super().eventFilter(watched, event))
+
+        event_type = event.type()
+        if event_type == QEvent.Type.MouseButtonPress:
+            position = event.position()
+            point = (float(position.x()), float(position.y()))
+            if event.button() == Qt.MouseButton.MiddleButton:
+                self.begin_navigation(
+                    shift=bool(event.modifiers() & Qt.KeyboardModifier.ShiftModifier)
+                )
+                self._last_mouse_pos = point
+                return True
+            if event.button() == Qt.MouseButton.LeftButton:
+                if self.interaction_state.mode is EditMode.SELECT:
+                    self._left_press_pos = point
+                    self._crop_drag_additive = bool(
+                        event.modifiers() & Qt.KeyboardModifier.ControlModifier
+                    )
+                    return True
+                if self.interaction_state.mode in {
+                    EditMode.CREATE_NODE,
+                    EditMode.DRAW_MEMBER,
+                    EditMode.MOVE_SNAP_NODE,
+                    EditMode.DELETE,
+                    EditMode.SET_DIRECTION,
+                }:
+                    return True
+            if event.button() == Qt.MouseButton.RightButton:
+                self._show_context_menu(point, event.globalPosition().toPoint())
+                return True
+
+        if event_type == QEvent.Type.MouseMove and self._navigation_mode is not None:
+            position = event.position()
+            point = (float(position.x()), float(position.y()))
+            if self._last_mouse_pos is not None:
+                self.navigate_drag(
+                    point[0] - self._last_mouse_pos[0],
+                    point[1] - self._last_mouse_pos[1],
+                )
+            self._last_mouse_pos = point
+            return True
+
+        if (
+            event_type == QEvent.Type.MouseMove
+            and self.preview_active
+            and self.interaction_state.mode in {EditMode.DRAW_MEMBER, EditMode.MOVE_SNAP_NODE}
+        ):
+            position = event.position()
+            world = self._pick_world_at(float(position.x()), float(position.y()))
+            if world is not None:
+                preview_position = Vec3(*world)
+                if self.interaction_state.mode is EditMode.DRAW_MEMBER:
+                    self.update_draw_preview(preview_position)
+                else:
+                    self.update_move_preview(preview_position)
+            return True
+
+        if (
+            event_type == QEvent.Type.MouseMove
+            and self.interaction_state.mode is EditMode.SELECT
+            and event.buttons() & Qt.MouseButton.LeftButton
+        ):
+            if self._crop_select_enabled and self._left_press_pos is not None:
+                position = event.position()
+                point = (float(position.x()), float(position.y()))
+                distance = (
+                    (point[0] - self._left_press_pos[0]) ** 2
+                    + (point[1] - self._left_press_pos[1]) ** 2
+                ) ** 0.5
+                if distance > 4.0:
+                    self._crop_select_rubber_band.setGeometry(
+                        QRect(
+                            QPoint(round(self._left_press_pos[0]), round(self._left_press_pos[1])),
+                            QPoint(round(point[0]), round(point[1])),
+                        ).normalized()
+                    )
+                    self._crop_select_rubber_band.show()
+            return True
+
+        if event_type == QEvent.Type.MouseButtonRelease:
+            if event.button() == Qt.MouseButton.MiddleButton and self._navigation_mode is not None:
+                self.end_navigation()
+                return True
+            if event.button() == Qt.MouseButton.LeftButton and self.interaction_state.mode in {
+                EditMode.CREATE_NODE,
+                EditMode.DRAW_MEMBER,
+                EditMode.MOVE_SNAP_NODE,
+                EditMode.DELETE,
+                EditMode.SET_DIRECTION,
+            }:
+                position = event.position()
+                point = (float(position.x()), float(position.y()))
+                candidates = self._pick_candidates_at(*point)
+                node_candidates = tuple(
+                    candidate
+                    for candidate in candidates
+                    if candidate.entity is SelectionEntity.NODE
+                )
+
+                if self.interaction_state.mode is EditMode.SET_DIRECTION:
+                    if self._model is not None and self._direction_member_key is not None:
+                        member = self._model.members.get(self._direction_member_key)
+                        if member is not None:
+                            endpoints = {member.start, member.end}
+                            for candidate in node_candidates:
+                                if candidate.key in endpoints:
+                                    self.direction_endpoint_selected.emit(candidate.key)
+                                    break
+                    return True
+
+                if self.interaction_state.mode is EditMode.CREATE_NODE:
+                    if node_candidates and self._model is not None:
+                        node_key = node_candidates[0].key
+                        self.request_create_node_hit(
+                            InferenceHit(
+                                self._model.nodes[node_key].position,
+                                SnapKind.NODE,
+                                (node_key,),
+                                "NODE",
+                            )
+                        )
+                    else:
+                        world = self._pick_world_at(*point)
+                        if world is not None:
+                            hit = self.resolve_inference(
+                                Vec3(*world),
+                                tolerance_m=1e-9,
+                            )
+                            if hit is not None:
+                                self.request_create_node_hit(hit)
+                    return True
+
+                if self.interaction_state.mode is EditMode.DRAW_MEMBER:
+                    if self._draw_start_node is None:
+                        if node_candidates:
+                            self.begin_draw_member(node_candidates[0].key)
+                    elif node_candidates and node_candidates[0].key != self._draw_start_node:
+                        self.commit_draw_member_existing(node_candidates[0].key)
+                    else:
+                        world = self._pick_world_at(*point)
+                        if world is not None:
+                            candidate_position = Vec3(*world)
+                            hit = self.resolve_inference(
+                                candidate_position,
+                                tolerance_m=1e-9,
+                            )
+                            if hit is not None and hit.kind in {
+                                SnapKind.MIDPOINT,
+                                SnapKind.INTERSECTION,
+                            }:
+                                self.commit_draw_member_new(hit.position)
+                    return True
+
+                if self.interaction_state.mode is EditMode.MOVE_SNAP_NODE:
+                    if self._move_node_key is None:
+                        if node_candidates:
+                            self.begin_move_node(node_candidates[0].key)
+                    else:
+                        snap_key = (
+                            node_candidates[0].key
+                            if node_candidates and node_candidates[0].key != self._move_node_key
+                            else None
+                        )
+                        world = self._pick_world_at(*point)
+                        if snap_key is not None and self._model is not None:
+                            self.commit_move_node(
+                                self._model.nodes[snap_key].position,
+                                snap_node_key=snap_key,
+                            )
+                        elif world is not None:
+                            self.commit_move_node(Vec3(*world))
+                    return True
+
+                if candidates:
+                    self.clear_selection()
+                    choice = self.select_overlap_candidates(candidates)
+                    if choice is not None:
+                        self.request_delete_selection()
+                return True
+
+            if (
+                event.button() == Qt.MouseButton.LeftButton
+                and self.interaction_state.mode is EditMode.SELECT
+            ):
+                position = event.position()
+                point = (float(position.x()), float(position.y()))
+                pressed = self._left_press_pos
+                self._left_press_pos = None
+                if pressed is not None:
+                    distance = ((point[0] - pressed[0]) ** 2 + (point[1] - pressed[1]) ** 2) ** 0.5
+                    if self._crop_select_enabled and distance > 4.0:
+                        self._crop_select_rubber_band.hide()
+                        self._select_screen_rectangle(
+                            pressed,
+                            point,
+                            additive=self._crop_drag_additive,
+                        )
+                    elif distance <= 4.0:
+                        candidates = self._pick_candidates_at(*point)
+                        additive = bool(event.modifiers() & Qt.KeyboardModifier.ControlModifier)
+                        if candidates:
+                            self.select_overlap_candidates(candidates, additive=additive)
+                        elif not additive:
+                            self.clear_selection()
+                self._crop_drag_additive = False
+                return True
+
+        if event_type == QEvent.Type.MouseButtonDblClick:
+            if event.button() == Qt.MouseButton.LeftButton:
+                self.focus_selection()
+                return True
+
+        if event_type == QEvent.Type.Wheel:
+            position = event.position()
+            anchor = self._pick_world_at(float(position.x()), float(position.y()))
+            steps = float(event.angleDelta().y()) / 120.0
+            self.zoom_by_steps(steps, anchor)
+            return True
+
+        if event_type == QEvent.Type.KeyPress:
+            if event.key() == Qt.Key.Key_Escape and self._left_press_pos is not None:
+                self._cancel_crop_select_drag()
+                return True
+            if event.key() == Qt.Key.Key_Delete:
+                self.request_delete_selection()
+                return True
+            if (
+                event.key() == Qt.Key.Key_Z
+                and event.modifiers() & Qt.KeyboardModifier.ShiftModifier
+            ):
+                self.fit_model()
+                return True
+            if event.key() == Qt.Key.Key_X:
+                self.set_axis_lock(AxisLock.X)
+                return True
+            if event.key() == Qt.Key.Key_Y:
+                self.set_axis_lock(AxisLock.Y)
+                return True
+            if event.key() == Qt.Key.Key_Z:
+                self.set_axis_lock(AxisLock.Z)
+                return True
+            if event.key() == Qt.Key.Key_Escape:
+                self.cancel_edit_preview()
+                self.clear_precision_preview()
+                self.set_axis_lock(AxisLock.NONE)
+                return True
+
+        return bool(super().eventFilter(watched, event))
+
+    @staticmethod
+    def _set_actor_visibility(actor: Any, visible: bool) -> None:
+        if actor is not None:
+            actor.SetVisibility(bool(visible))
+
+    def _remove_actor(self, actor: Any) -> None:
+        if actor is not None:
+            self.plotter.remove_actor(actor, render=False)
+
+    def closeEvent(self, event: QCloseEvent) -> None:  # noqa: N802
+        self.plotter.close()
+        super().closeEvent(event)

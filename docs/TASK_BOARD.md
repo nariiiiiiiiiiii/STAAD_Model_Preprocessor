@@ -1,0 +1,247 @@
+## Current checkpoint — 2026-09-13
+
+Source/package version `0.2.0` is built. Package verification is **9/9 PASS** and the post-cleanup
+no-Python/different-CWD launch smoke is **1/1 PASS**. T28/T29 moved confirmed superseded outputs and
+three unreferenced logo drafts into `DEL/`; no deletion occurred. The project-wide audit is recorded
+locally. T30 replaced the `LICENSE` with PolyForm Noncommercial 1.0.0, aligned README and SPDX
+metadata, and reconciled license-status documentation. License commit `7bc1dcc` and merge bridge
+`f6aa64f` are pushed on the feature branch; PR #1 records the integration into `main`. README/PR
+disclose the funded-organization permission. The owner authorized the merge on 2026-09-13. Read-only
+GitHub inspection found private `main` with an initial
+README and unrelated history; the T29 branch snapshot preserved the then-current LICENSE. Branch
+`task/22-portable-packaging` was pushed at `47c0b0a`; the `v0.2.0` pre-release was published with only
+the portable ZIP application asset, leaving `main` untouched. The owner tested the exact compiled
+0.2.0 candidate and reports it works well (2026-09-13); stable-release approval remains pending.
+Older status blocks below are dated history.
+
+Execution policy: **run exactly one Task at a time**. Every Task must end with its verification, Git commit, documentation/status update, and a hard stop for user review before the next Task begins.
+
+Approval state: **PROJECT_SPEC approved + STRICT/Full TDD approved for HR-1 through HR-4 on 2026-08-28. Manual Editing + SketchUp-style controls and SketchUp Ruby Bridge + Direct DXF V1 import architecture approved on 2026-08-28. Post-T22 HR-2 Delete/Merge/Member-Repeat correction scope explicitly approved on 2026-08-30. Multi-issue Quick Fix/intersection batch approved STRICT on 2026-09-12. User-selected Project JSON Save/Save As refreshed plan approved STRICT on 2026-09-13.**
+
+| Task | Deliverable | Risk | Status |
+|---|---|---|---|
+| T01 | Python project bootstrap + project-local path guard | STANDARD | **COMPLETE** |
+| T02 | Desktop UI shell matching approved baseline | FAST/STANDARD | **COMPLETE** |
+| T03 | Canonical Node/Member/Project model + project serialization | STANDARD | **COMPLETE** |
+| T04 | 3D viewport + synthetic structural model + selection | STANDARD | **COMPLETE** |
+| T05 | DXF raw-line import vertical slice | STANDARD | **COMPLETE** |
+| T06 | Unit/scale/dimension + Z-Up→Y-Up engine | **STRICT HR-1** | **COMPLETE** |
+| T07 | Canonical topology builder + connected structures | **STRICT HR-2** | **COMPLETE** |
+| T08 | Geometry/topology validation detectors | **STRICT HR-2** | **COMPLETE** |
+| T09 | Repair commands + undo/redo + audit log | **STRICT HR-2** | **COMPLETE** |
+| T10 | Issue Console + inspect/zoom/quick-fix UI integration | STANDARD | **COMPLETE** |
+| T11 | Member incidence/local-X normalization | **STRICT HR-2** | **COMPLETE** |
+| T12 | Deterministic node/member STAAD-facing numbering | **STRICT HR-4** | **COMPLETE** |
+| T13 | STAAD `.STD` geometry exporter | **STRICT HR-3** | **COMPLETE** |
+| T14 | SKP bridge contract + native helper capability probe | STANDARD | **COMPLETE** |
+| T15 | SketchUp Ruby Extension -> Neutral JSON + shared canonical import integration; preserve Direct DXF | **STRICT HR-1/HR-2** | **COMPLETE** |
+| T16 | SketchUp-style navigation + selection/filter/label foundation | STANDARD | **COMPLETE** |
+| T17 | Snap/inference + working-plane + axis-lock engine | **STRICT HR-1/HR-2** | **COMPLETE** |
+| T18 | Manual Node/Member editing + atomic repair UI | **STRICT HR-2** | **COMPLETE** |
+| T19 | Exact/Relative Create Node + Translational Repeat | **STRICT HR-2** | **COMPLETE** |
+| T20 | Auto numbering + member direction controls | **STRICT HR-2/HR-4** | **COMPLETE** |
+| T21 | End-to-end READY gate + golden dirty-model suite + audit report | **STRICT HR-1..HR-4** | **COMPLETE** |
+| T22 | Portable standalone Windows packaging (`.exe` + bundled `.rbz` + update-ready manifest) | STANDARD | **COMPLETE** |
+| T23 | Real-project acceptance + target STAAD.Pro verification | **STRICT acceptance** | **COMPLETE / PASS** (user-tested 2026-09-01) |
+| T24 | Post-acceptance unused-file audit + quarantine to project-local `DEL/` | STANDARD | **COMPLETE** |
+| T25 | Full project storage recheck + approved old package/build quarantine | STANDARD | **HISTORICAL MOVE COMPLETE; owner later cleared that quarantine** |
+| Post-T27 CP1–5 | version/name/icon/Project JSON/batched Quick Fix source follow-up | STANDARD; CP5 STRICT/HR-2 | **SOURCE VERIFIED; superseded by the 0.2.0 package checkpoint below** |
+| Post-CP5 manual bug report | Crop-to-Selection single-Node camera collapse; user-selected Save destinations | STANDARD; Save STRICT | **Source fixes and focused verification complete; owner reports behavior works** |
+| Post-CP5 marquee + free Save destinations | Crop to Select rectangle, Zoom in Select rename, any-folder Save/Save As audit | STANDARD viewport; Save STRICT | **Source behavior owner-reported PASS; 0.2.0 candidate built and owner-tested PASS** |
+| Post-compile cleanup + GitHub readiness | Verify new standalone, quarantine verified old outputs to DEL, sync all tracked Markdown/README, local GitHub preflight | STANDARD; move-only cleanup | **T28 local prep committed; superseded by T29 publish; T29 license snapshot superseded locally by T30; owner reports 0.2.0 EXE works well** |
+| T29 project-wide audit + ZIP-only GitHub download | Recheck canonical + active worktree; quarantine verified obsolete data; push source/docs and publish only portable ZIP after local gates | STANDARD; no-delete cleanup | **PUSHED branch `task/22-portable-packaging`; `v0.2.0` pre-release asset verified; owner test PASS; stable-release decision pending** |
+| T30 PolyForm Noncommercial license migration | Replace official license text; align README and SPDX metadata; reconcile stale license status | STANDARD; licensing/documentation only | **COMMITTED `7bc1dcc`; pushed; merge bridge `f6aa64f`; PR #1 integration approved by owner** |
+
+## Operational rules
+
+1. Never start Task N+1 during Task N unless the user explicitly authorizes continuation after the current Task gate.
+2. At the end of each Task: run required verification, update this board/checklist/HANDOFF, commit, then stop/checkpoint.
+3. Any file generated by development/runtime/testing/build remains under `STAAD_Model_Preprocessor/`.
+4. No structural solver, load/design system, BIM/IFC authoring, cloud/login, or automatic solid-to-centerline inference in V1.
+5. Manual editing is limited to analytical Node/Member geometry; no arbitrary Rotate/Mirror/full Copy Array/Trim/Extend/Offset/3D-solid/section-modeling tools in V1.
+6. `SELECT` mode must never mutate structural geometry from a mouse drag.
+7. Geometry edits commit only through reversible/auditable commands; ghost preview is not canonical state.
+8. If a new high-risk behavior outside approved HR-1..HR-4 appears, stop and request a new explicit approval before implementing it.
+9. T24 never deletes files. It moves only verified-unused candidates to project-local `DEL/` with a manifest; user performs any final deletion.
+
+## Fastest usable checkpoints
+
+- **Checkpoint A — after T05:** desktop app can open/display DXF structural lines.
+- **Checkpoint B — after T10:** app can detect/inspect/Quick-Fix the main dirty-geometry issues.
+- **Checkpoint C — after T13:** canonical clean model can generate deterministic `.STD` geometry.
+- **Checkpoint C2 — after T20:** user can directly edit analytical nodes/members and control numbering/direction in-app.
+- **Checkpoint D — after T21:** SketchUp-Ruby/Direct-DXF -> repair/manual edit -> READY -> `.STD` V1 pipeline is functionally complete.
+- **Checkpoint E — after T23:** V1 accepted for real production use in target STAAD.Pro environment.
+- **Checkpoint F — after T24:** accepted V1 workspace is audited; verified-unused files are quarantined under project-local `DEL/` for user review/deletion.
+
+## Detailed plans
+
+- Main V1: `docs/superpowers/plans/2026-08-28-staad-model-preprocessor-v1.md`
+- Manual Editing T16-T20: `docs/superpowers/plans/2026-08-28-manual-model-editing-v1.md`
+- Manual Editing design: `docs/superpowers/specs/2026-08-28-manual-model-editing-design.md`
+
+## Pre-T18 maintenance checkpoint
+
+- `viewer/widget.py` inherited strict-mypy debt cleaned before T18: **19 -> 0 errors**.
+- Full `staadprep.viewer` + `editing/inference.py` strict mypy baseline: **0 errors**.
+- No runtime behavior change; 225-test regression + real Qt/VTK smoke preserved.
+- T18 subsequently completed with the clean pre-T18 typing baseline preserved.
+
+## Completed checkpoint — T20
+
+**T20 — Numbering + Member Direction Controls** is **COMPLETE** on `task/20-model-controls`.
+
+Final verified state:
+- T20 targeted tests: **21 passed**.
+- T11/T12 + manual-edit targeted unit regression: **54 passed**.
+- Fresh full regression executed with isolated Windows-renderer processes where needed: **243 unit + 88 UI + 5 integration = 336 passed**.
+- Ruff: passed.
+- T20-local strict mypy: **0 issues in 5 affected source files** using `--follow-imports=silent`; four inherited `dxf_reader.py` typing errors remain outside T20.
+- `git diff --check`: passed.
+- Feature commit subject: `feat: control STAAD numbering and member direction`.
+
+## Completed checkpoint — T21
+
+**T21 — End-to-End READY Gate + Golden Suite + Audit Report** is **COMPLETE** on `task/21-ready-gate`.
+
+Final verified state:
+- authoritative `ReadyGate` controls `READY FOR STAAD` and export availability;
+- golden fixtures 01-11 plus the hand-authored manual-edit canonical expectation are covered;
+- combined dirty-model repair/manual-edit flow converges to the expected graph before direction/numbering/export;
+- independent direction/numbering invariants and independent `.STD` parser round-trip passed;
+- validation/audit JSON is emitted project-locally after successful UI export;
+- permanent MCP-safe UI runner verifies **62 lightweight + 30 VTK/renderer = 92 UI tests** without long multi-renderer MCP calls;
+- fresh final regression: **275 unit+integration + 92 UI = 367 passed**;
+- Ruff: passed;
+- T21-local strict mypy: **0 issues in 4 affected source/runner files** using `--follow-imports=silent`;
+- `git diff --check`: passed;
+- feature commit: `bddd177` — `test: verify end-to-end clean model readiness`.
+
+## Current accepted package baseline — T22
+
+**T22 — Portable Standalone Windows Packaging** is **COMPLETE** on `task/22-portable-packaging`.
+
+Final evidence: Nuitka standalone build completion `yes`; real Qt/VTK launch without Python; different-CWD and spaces/Unicode relocation; package-local `Data/`; versioned folder/ZIP; 811/811 manifest hashes; packaged T21 READY/STD/report workflow; 307/307 unit+integration; 3/3 affected UI; Ruff and T22-local strict mypy clean.
+
+Post-T22 usability checkpoint: SketchUp Bridge requirements 1-2 are **USER ACCEPTED** after real SketchUp testing. The separate desktop requirements 3-9 package is verified historical evidence and is **SUPERSEDED** by the consolidated ten-item editing-correction package; no separate acceptance remains on `post-t22-ux-final`.
+
+Post-T22 ten-item editing corrections are a **VERIFIED HISTORICAL PACKAGE CHECKPOINT** on the same
+T22 worktree: **325/325 unit+integration**, **111/111 UI**, real Windows smokes, Ruff, strict mypy,
+exact package gates **4/4**, manifest **811/811**, and extracted-ZIP launch all passed. Release:
+`DEL/t24-quarantine-20260901/dist/post-t22-editing-final/`. It is superseded for current acceptance by accepted source
+follow-ups; T23 acceptance is now **PASS** by user report (2026-09-01).
+
+Targeted archive checkpoint (user-authorized, 2026-08-31): superseded baseline and
+`post-t22-ux-final` release artifacts moved recoverably to `DEL/standalone-archive-20260831/` with
+`DEL/UNUSED_FILES_MANIFEST.md`. Current editing-final and latest build input are preserved; this
+does not start full T24 cleanup.
+
+Detailed live checkpoint: `docs/superpowers/plans/2026-08-29-t22-portable-standalone-packaging.md`, `docs/HANDOFF.md`, and `docs/INDEX.md`.
+
+**USER ACTION REQUIRED:** test and accept the new package. Nuitka compile step 1, isolated
+portable-folder/ZIP assembly, and package-only verification (**7/7 PASS**) are complete under
+`dist/post-t22-refresh-save-final/`; the historical quarantined `DEL/t24-quarantine-20260901/dist/post-t22-editing-final/` package does
+not contain every accepted source follow-up. T23 package/target acceptance is **PASS** by user
+report (2026-09-01); T24 inventory and reference/evidence mapping are complete. The exact pre-move
+manifest `DEL/UNUSED_FILES_MANIFEST.md` was approved and Step 4 moved the superseded standalone
+package into `DEL/`; no files were deleted. Step 5 found no live source/test/script/config reference
+to the old path and historical Markdown links now point to `DEL/`. Step 6 targeted package
+verification passed 7/7 and `git diff --check` passed. The next gate is final documentation
+synchronization and commit. T24 final audit evidence is recorded in
+`artifacts/cleanup/t24-final-verification-20260901.md`; the checkpoint commit completes T24.
+
+Incremental follow-up (2026-08-31): all agreed source features are **USER ACCEPTED**, including
+Apply/OK repair refresh, repeated-Orphan handling, Project Explorer selection, engineering
+Properties, Member Repeat/Local Axes, Save/Open Project JSON, and corrected Exit confirmation.
+Task 7 full source verification is **COMPLETE**: **332/332 source unit+integration**, **140/140 UI**,
+six real Windows source smokes, focused Save/Open **5/5**, Ruff, strict mypy, and diff checks pass.
+The user authorized compile step 1 and the fresh Nuitka standalone build completed successfully.
+Portable assembly and ZIP creation completed under `dist/post-t22-refresh-save-final/`; package-only
+verification is **7/7 PASS** and real package acceptance is **PASS** (2026-08-31). This follow-up
+does not start T23.
+
+
+## 2026-08-31 source handoff checkpoint
+
+- User-accepted source behavior before handoff: Member Translational Repeat preview, engineering Properties, Project Explorer entity selection, Member Local Axes XYZ, three-row toolbar with visible View controls, Save/Open Project JSON, import-derived save filename, `SAVED` / `NOT SAVED` title state, Ctrl+S save confirmation, readable Node/Member/Coordinate labels, Global Axis X/Y/Z labels, and Exit confirmation UI.
+- Latest real-user defect was clicking window `X` and choosing `Yes` without closing the application.
+- Latest source fix: exit dialog now compares the native Qt button result with equality (`==`) and the accepted close path delegates to `QMainWindow.closeEvent()`.
+- Exit regression evidence after fix: `tests/ui/test_exit_confirmation.py` **4/4 PASS**; Ruff PASS; strict mypy 0 issues for `main_window.py`; `git diff --check` PASS.
+- Status of latest close fix: **SOURCE VERIFIED / USER ACCEPTED — 2026-08-31**.
+- Full source verification is **COMPLETE**: **332/332 source unit+integration PASS**, **102/102
+  lightweight UI PASS**, **38/38 isolated VTK UI PASS**, six real source smokes exit 0, focused
+  Save/Open **5/5 PASS**, Ruff PASS, strict mypy 0 issues, and diff check PASS.
+- The package-only verification suite was run against the new package after explicit authorization:
+  **7/7 PASS**. Nuitka compilation, portable assembly, and ZIP creation completed under
+  `dist/post-t22-refresh-save-final/`; real package acceptance is **PASS** (2026-08-31).
+
+## 2026-09-01 post-T24 mindmap checkpoint
+
+- `docs/WORKTREE_MINDMAP.md` is the canonical current worktree/file relationship map.
+- It covers tracked source, tests, plans/specs, build/package/runtime flow, generated/protected
+  groups, T24 quarantine, and the RBZ archive/source/callback/JSON contract in depth.
+- At the 2026-09-01 checkpoint T24 was **COMPLETE**; the mindmap was documentation-only. Later
+  T25–T28 work is recorded below and in the current checkpoint at the top of this board.
+- The original mindmap checkpoint was committed as `9751746 docs: add complete worktree and RBZ
+  mindmap`; the mindmap was subsequently synchronized again on 2026-09-13.
+
+## 2026-09-01 T25 storage audit checkpoint
+
+- Approved old package and five non-current build attempts were moved to
+  `DEL/t25-storage-audit-20260901/` and later removed by the user; the manifest retains the move record.
+- Current package, current RBZ, `build/windows/final/`, source, tests, and evidence boundaries were
+  retained and verified.
+- Post-move result: originals 0, quarantine targets 6, live references to original names 0.
+- `.tmp/` and `.cache/` were not moved or deleted; they require a separate explicit space-cleanup
+  decision. Moving to `DEL/` does not itself free disk space.
+- Manifest: `DEL/UNUSED_FILES_MANIFEST.md`; audit: `artifacts/cleanup/storage-audit-20260901.md`.
+- After the move, the accepted standalone folder passed the focused no-Python/different-CWD smoke:
+  **1/1 PASS** (`test_final_package_launches_without_python_from_different_cwd`, 6.29 seconds).
+  No process remained, package hashes were unchanged, and no compile/source change was performed.
+
+## 2026-09-01 T26 space-cleanup checkpoint
+
+- Generated contents of the active `.tmp/` and `.cache/` were moved to
+  `DEL/t26-storage-cleanup-20260901/`; only empty pytest skeletons and `.tmp/.gitkeep` remain.
+- All 22 historical clean worktrees (maintenance plus T01–T21) were moved to
+  `DEL/t26-storage-cleanup-20260901/old-worktrees/`; only T22 remains active and registered in
+  `.worktrees/`. Branch refs remain available.
+- Post-move checks: no prunable worktree, current executable and ZIP exist with unchanged hashes,
+  no Python/standalone process remains, and no source/package/build-final path was moved.
+- Quarantine contents are recoverable until the user separately deletes them. No deletion was performed.
+- Post-cleanup standalone recheck passed **1/1 in 6.54 seconds** with Python removed from PATH and a
+  different CWD; its newly generated test output was moved into the T26 quarantine afterward.
+
+## 2026-09-06 T27 free user-selected paths checkpoint
+
+- SketchUp Bridge JSON import now accepts a valid file selected from any location; the default inbox
+  remains the initial chooser location.
+- SketchUp RBZ `Choose Inbox...` now accepts any existing selected directory and persists it.
+- STD export now accepts any selected destination and writes the sibling validation report beside it.
+- Project JSON Save/Open and application-managed runtime paths remain project-local.
+- Source evidence: focused path/import/export/RBZ regressions **24/24 PASS**, unit+integration
+  **336/336 PASS**, Ruff PASS, strict mypy PASS, and `git diff --check` PASS.
+- Nuitka standalone compile completed (`mode=standalone`, `completion=yes`); package gates **9/9 PASS**.
+- Previous accepted package/build/RBZ were moved to `DEL/t27-free-path-selection-20260906/old-release/`;
+  no old artifact was deleted.
+
+## Historical checkpoint — 2026-09-12 Post-T27 usability follow-up — CP1–5
+
+- Owner approved source version `0.2.0`; at this checkpoint the last packaged build was still `0.1.0`.
+- Source changes cover model/date SketchUp JSON names, the selected application icon, unrestricted Project JSON Open with Save-back, and strict multi-issue Quick Fix/intersection handling.
+- The user approved STRICT / Full TDD for CP5. Verification: **345 unit+integration passed**, **1 skipped** (RBZ archive absent), **3 package-launch tests deselected** (no `0.2.0` executable), **26/26 affected UI passed**, Ruff passed, strict mypy 0 issues in four affected source files, and diff check passed.
+- At this checkpoint the final RBZ, Nuitka executable, portable folder, and ZIP had not yet been built. The later 2026-09-13 package checkpoint below supersedes this status.
+- Incident record: the first full suite invoked a legacy RBZ builder test and generated a transient `0.2.0` RBZ; that file was removed. The test harness now uses `.tmp/tests` fixtures instead. Existing ignored `build/sketchup/stage/` copies were refreshed by the transient run and left in place.
+
+## 2026-09-13 Post-compile cleanup and GitHub preparation
+
+- [x] Owner authorized starting the post-compile sequence; Nuitka built version `0.2.0.0` in standalone mode (`completion=yes`).
+- [x] Build the matching `STAAD_Prep_Bridge_0.2.0.rbz`, portable folder, and ZIP; retain generated outputs under ignored `build/` and `dist/`.
+- [x] Verify package manifest, RBZ archive, packaged path/workflow gates: **9/9 PASS**.
+- [x] After cleanup, rerun the no-Python/different-CWD executable smoke: **1/1 PASS**.
+- [x] Move the 0.1.0 standalone folder/ZIP and RBZ, pre-doc-sync 0.2.0 candidate, old build icon evidence, old logs, caches, tests, and temporary helpers into `DEL/post-compile-cleanup-20260913/`; verify destination presence/metrics, never delete.
+- [x] Update the tracked storage manifest and create the local ignored detailed storage audit.
+- [x] Synchronize the GitHub-facing root README and authoritative status/navigation docs; inventory all **46 tracked Markdown files** and label dated plans/specs as historical records.
+- [ ] Finish link/secret/path/binary/ignore/large-file/status preflight and run final `git diff --check`.
+- [ ] Commit only the intended docs/manifest/package-template changes; preserve the unrelated `tests/ui/test_manual_edit_mouse.py` line-ending-only change.
+- [x] Owner reports the exact compiled 0.2.0 EXE works well. T30 is committed/pushed and the owner authorized PR #1 integration; stable release remains a separate decision.

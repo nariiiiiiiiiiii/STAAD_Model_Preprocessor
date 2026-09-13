@@ -1,0 +1,43 @@
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# Project-local runtime outputs
+.tmp/*
+!.tmp/.gitkeep
+.cache/
+.logs/
+build/
+dist/
+artifacts/
+
+# Recoverable user-controlled quarantine: keep only its audit manifest in Git.
+DEL/*
+!DEL/UNUSED_FILES_MANIFEST.md
+
+# Native build outputs
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Local SDK/vendor binaries may be staged in-project but are not committed by default
+vendor/**/bin/
+vendor/**/lib/
+
+# Local isolated task worktrees
+.worktrees/
+
+# Serena project/worktree metadata
+.serena/

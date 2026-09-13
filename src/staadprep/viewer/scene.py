@@ -1,0 +1,95 @@
+"""Deterministic render-scene arrays derived from the canonical model."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from uuid import UUID
+
+import numpy as np
+
+from staadprep.model.project import ProjectModel
+
+
+@dataclass(slots=True)
+class SceneData:
+    points: np.ndarray
+    lines: np.ndarray
+    point_keys: tuple[UUID, ...]
+    member_keys: tuple[UUID, ...]
+    point_index_by_key: dict[UUID, int]
+    member_endpoint_points: np.ndarray
+    member_midpoints: np.ndarray
+    local_x_vectors: np.ndarray
+
+    @classmethod
+    def from_model(cls, model: ProjectModel) -> SceneData:
+        point_keys = tuple(sorted(model.nodes, key=str))
+        point_index_by_key = {key: index for index, key in enumerate(point_keys)}
+        if point_keys:
+            points = np.array(
+                [model.nodes[key].position.as_tuple() for key in point_keys],
+                dtype=float,
+            )
+        else:
+            points = np.empty((0, 3), dtype=float)
+
+        member_keys = tuple(sorted(model.members, key=str))
+        line_rows: list[tuple[int, int, int]] = []
+        endpoint_points: list[np.ndarray] = []
+        midpoints: list[np.ndarray] = []
+        local_x_vectors: list[np.ndarray] = []
+        for member_key in member_keys:
+            member = model.members[member_key]
+            try:
+                start_index = point_index_by_key[member.start]
+                end_index = point_index_by_key[member.end]
+            except KeyError as exc:
+                raise ValueError(
+                    f"Member {member.key} references missing node {exc.args[0]}"
+                ) from exc
+            line_rows.append((2, start_index, end_index))
+
+            start = points[start_index]
+            end = points[end_index]
+            endpoint_points.append(np.asarray((start, end), dtype=float))
+            vector = end - start
+            length = float(np.linalg.norm(vector))
+            midpoints.append((start + end) / 2.0)
+            if length > 0.0:
+                local_x_vectors.append(vector / length)
+            else:
+                local_x_vectors.append(np.zeros(3, dtype=float))
+
+        lines = (
+            np.array(line_rows, dtype=np.int64)
+            if line_rows
+            else np.empty((0, 3), dtype=np.int64)
+        )
+        member_endpoint_points = (
+            np.asarray(endpoint_points, dtype=float).reshape((-1, 2, 3))
+            if endpoint_points
+            else np.empty((0, 2, 3), dtype=float)
+        )
+        member_midpoints = (
+            np.asarray(midpoints, dtype=float).reshape((-1, 3))
+            if midpoints
+            else np.empty((0, 3), dtype=float)
+        )
+        local_x = (
+            np.asarray(local_x_vectors, dtype=float).reshape((-1, 3))
+            if local_x_vectors
+            else np.empty((0, 3), dtype=float)
+        )
+        return cls(
+            points=points,
+            lines=lines,
+            point_keys=point_keys,
+            member_keys=member_keys,
+            point_index_by_key=point_index_by_key,
+            member_endpoint_points=member_endpoint_points,
+            member_midpoints=member_midpoints,
+            local_x_vectors=local_x,
+        )
+
+    def member_key_for_cell(self, cell_index: int) -> UUID:
+        return self.member_keys[cell_index]
